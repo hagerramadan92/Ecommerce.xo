@@ -57,7 +57,7 @@ export default function Page() {
           أدخل بريدك الإلكتروني أو رقم الهاتف لتسجيل الدخول أو إنشاء حساب
         </p>
 
-        <form className="space-y-6" onSubmit={handleSubmit}>
+        <form className="space-y-6 my-5 mb-8" onSubmit={handleSubmit}>
           <div className="relative w-full">
             <input
               id="userInput"
@@ -84,58 +84,47 @@ export default function Page() {
           )}
 
           <ButtonComponent title="تسجيل الدخول" onClick={handleSubmit} />
-
-          <div className="relative border-t border-gray-200 grid grid-cols-1 lg:grid-cols-3 gap-3 py-2 pt-4">
-            <label className="bg-white p-1 absolute top-[-19] left-[40%]">سجل من خلال</label>
-            <button>
-              <div className="h-fit p-2 flex items-center justify-center gap-2  rounded-full border border-gray-200 hover:shadow transition duration-100 cursor-pointer">
-                <p>Facebook</p>
-                <Image
-                  src="./images/f.avif"
-                  alt="facebook"
-                  width={22}
-                  height={22}
-                />
-              </div>
-            </button>
-            <button
-              onClick={async () => {
-                try {
-                  const response = await signIn("google", {
-                    prompt: "select_account",
-                    redirect: false,
-                  });
-                  console.log("Google SignIn response:", response);
-                } catch (error) {
-                  console.error("Error during Google SignIn:", error);
-                }
-              }}
-            >
-              <div className="h-fit p-2 flex items-center justify-center gap-2  rounded-full border border-gray-200 hover:shadow transition duration-100 cursor-pointer">
-                <p>Google</p>
-                <Image
-                  src="./images/g.png"
-                  alt="Google"
-                  width={28}
-                  height={22}
-                />
-               
-              </div>
-            </button>
-            <button>
-              <div className="h-fit p-2 flex items-center justify-center gap-2  rounded-full border border-gray-200 hover:shadow transition duration-100 cursor-pointer">
-                <p>Apple</p>
-                <Image
-                  src="./images/ap.png"
-                  alt="Apple"
-                  width={22}
-                  height={22}
-                />
-               
-              </div>
-            </button>
-          </div>
         </form>
+        <div className="relative border-t border-gray-200 grid grid-cols-1 lg:grid-cols-3 gap-3 py-2 pt-8">
+          <label className="bg-white p-1 absolute top-[-19] left-[40%] text-gray-500">
+            أو من خلال
+          </label>
+          <button>
+            <div className="h-fit p-2 flex items-center justify-center gap-2  rounded-full border border-gray-200 hover:shadow transition duration-100 cursor-pointer">
+              <p>Facebook</p>
+              <Image
+                src="./images/f.avif"
+                alt="facebook"
+                width={22}
+                height={22}
+              />
+            </div>
+          </button>
+          <button
+            onClick={async () => {
+              try {
+                const response = await signIn("google", {
+                  prompt: "select_account",
+                  redirect: false,
+                });
+                console.log("Google SignIn response:", response);
+              } catch (error) {
+                console.error("Error during Google SignIn:", error);
+              }
+            }}
+          >
+            <div className="h-fit p-2 flex items-center justify-center gap-2  rounded-full border border-gray-200 hover:shadow transition duration-100 cursor-pointer">
+              <p>Google</p>
+              <Image src="./images/g.png" alt="Google" width={28} height={22} />
+            </div>
+          </button>
+          <button>
+            <div className="h-fit p-2 flex items-center justify-center gap-2  rounded-full border border-gray-200 hover:shadow transition duration-100 cursor-pointer">
+              <p>Apple</p>
+              <Image src="./images/ap.png" alt="Apple" width={22} height={22} />
+            </div>
+          </button>
+        </div>
       </div>
     </div>
   );
