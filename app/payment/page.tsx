@@ -1,14 +1,9 @@
 import BankPayment from "@/components/BankPayment";
 import CoBon from "@/components/cobon";
 import InvoiceSection from "@/components/InvoiceSection";
-import OrderPayDetails from "@/components/orderPayDetails";
 import OrderSummary from "@/components/OrderSummary";
 import TotalOrder from "@/components/TotalOrder";
 import { FiPlus } from "react-icons/fi";
-import {
-  MdKeyboardArrowDown,
-  MdOutlineKeyboardArrowDown,
-} from "react-icons/md";
 
 export default function PaymentPage() {
   return (
@@ -56,7 +51,7 @@ export default function PaymentPage() {
               <InvoiceSection />
             </div>
             <div className="p-2 pb-0 shadow mt-3  rounded-xl">
-               <OrderSummary />
+              <OrderSummary />
               <TotalOrder />
             </div>
           </div>

@@ -86,7 +86,6 @@ export default function AddressForm({ open, onClose }: AddressFormProps) {
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="grid gap-4">
-            {/* الاسم الأول والأخير */}
             <div className="grid md:grid-cols-2 gap-4">
               {[
                 { name: "firstName", label: "الإسم الأول" },
@@ -117,7 +116,6 @@ export default function AddressForm({ open, onClose }: AddressFormProps) {
               ))}
             </div>
 
-            {/* المبنى + الدور + الشقة */}
             <div className="grid md:grid-cols-3 gap-4">
               {[
                 { name: "building", label: "المبنى (اختياري)" },
@@ -149,7 +147,6 @@ export default function AddressForm({ open, onClose }: AddressFormProps) {
               ))}
             </div>
 
-            {/* تفاصيل العنوان */}
             <div className="relative">
               <textarea
                 id="details"
@@ -171,7 +168,6 @@ export default function AddressForm({ open, onClose }: AddressFormProps) {
               </p>
             </div>
 
-            {/* الاسم المختصر */}
             <div className="relative">
               <input
                 id="nickname"
