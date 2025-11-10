@@ -41,6 +41,7 @@ const handler = NextAuth({
         image: token.image,
         provider: token.provider,
       };
+     
       return session;
     },
   },

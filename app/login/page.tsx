@@ -4,6 +4,8 @@ import ButtonComponent from "@/components/ButtonComponent";
 import { signIn, useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { auth } from "@/lib/firebaseClient";
+import { FacebookAuthProvider, OAuthProvider, signInWithPopup } from "firebase/auth";
 
 export default function Page() {
   const [value, setValue] = useState("");
@@ -46,7 +48,27 @@ export default function Page() {
       router.push("/");
     }
   }, [status, session, router]);
+  
+  const signInWithFacebook = async () => {
+    try {
+      const provider = new FacebookAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      console.log("Facebook user:", result.user);
+    } catch (err: any) {
+      console.error("Facebook sign-in error:", err);
+      alert("حدث خطأ أثناء تسجيل الدخول بـ Facebook");
+    }
+  };
 
+  const signInWithApple = async () => {
+    try {
+      const provider = new OAuthProvider("apple.com");
+      const result = await signInWithPopup(auth, provider);
+      console.log("Apple user:", result.user);
+    } catch (err: any) {
+      console.error("Apple sign-in error:", err);
+      alert("حدث خطأ أثناء تسجيل الدخول بـ Apple");
+    }}
   return (
     <div className="flex flex-col items-center bg-gray-50 px-4 py-10">
       <div className="bg-white shadow-md rounded-2xl p-8 w-full max-w-md text-center">
@@ -89,7 +111,7 @@ export default function Page() {
           <label className="bg-white p-1 absolute top-[-19] left-[40%] text-gray-500">
             أو من خلال
           </label>
-          <button>
+          <button onClick={signInWithFacebook}>
             <div className="h-fit p-2 flex items-center justify-center gap-2  rounded-full border border-gray-200 hover:shadow transition duration-100 cursor-pointer">
               <p>Facebook</p>
               <Image
@@ -115,10 +137,10 @@ export default function Page() {
           >
             <div className="h-fit p-2 flex items-center justify-center gap-2  rounded-full border border-gray-200 hover:shadow transition duration-100 cursor-pointer">
               <p>Google</p>
-              <Image src="./images/g.png" alt="Google" width={28} height={22} />
+              <Image src="./images/g.png" alt="Google" width={28} height={28} style={{ height: "auto" }} />
             </div>
           </button>
-          <button>
+          <button onClick={signInWithApple}>
             <div className="h-fit p-2 flex items-center justify-center gap-2  rounded-full border border-gray-200 hover:shadow transition duration-100 cursor-pointer">
               <p>Apple</p>
               <Image src="./images/ap.png" alt="Apple" width={22} height={22} />

@@ -22,7 +22,7 @@ export default function SearchNavbar() {
   const categories2 = link;
   const links2 = categories;
 
-  const { userName  } = useAuth();
+  const { fullName  } = useAuth();
 
   return (
     <>
@@ -126,7 +126,7 @@ export default function SearchNavbar() {
           </div>
 
           {/* ✅ Login / User Dropdown */}
-          {!userName  ? (
+          {!fullName  ? (
             <Link
               href="/login"
               className="hidden1 flex gap-1 items-center rounded-4xl bg-pro text-white py-3 text-[0.9rem] px-4 cursor-pointer"

@@ -4,10 +4,12 @@ import ButtonComponent from "@/components/ButtonComponent";
 import React, { useEffect, useState } from "react";
 import { BiSolidHide, BiSolidShow } from "react-icons/bi";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/src/context/AuthContext";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [firstName, setFirstName] = useState("");
+  const [LastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -15,20 +17,21 @@ export default function SignupPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const router = useRouter();
+  const { login } = useAuth(); // 🔑 استخدام AuthContext
 
   useEffect(() => {
     const storedEmail = localStorage.getItem("userEmail");
     if (storedEmail && storedEmail !== email) {
       setEmail(storedEmail);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [email]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     const newErrors: { [key: string]: string } = {};
     if (!firstName.trim()) newErrors.firstName = "الاسم الأول مطلوب";
+    if (!LastName.trim()) newErrors.LastName = "الاسم الأخير مطلوب";
     if (!phone.trim()) newErrors.phone = "رقم الهاتف مطلوب";
     if (!password.trim()) newErrors.password = "كلمة المرور مطلوبة";
     else if (password.length < 8)
@@ -38,8 +41,17 @@ export default function SignupPage() {
 
     setErrors(newErrors);
     if (Object.keys(newErrors).length === 0) {
-      localStorage.setItem("firstName", firstName);
-      router.push("/");
+      const fullNameValue = firstName + " " + LastName;
+
+      // 🔑 تحديث AuthContext
+      login(firstName, email, "", fullNameValue);
+
+      // تخزين في localStorage
+      localStorage.setItem("userName", firstName);
+      localStorage.setItem("fullName", fullNameValue);
+      localStorage.setItem("userEmail", email);
+
+      router.push("/"); // إعادة التوجيه للصفحة الرئيسية
     }
   };
 
@@ -68,7 +80,6 @@ export default function SignupPage() {
           onSubmit={handleSubmit}
           className="flex flex-col gap-8 my-5 relative"
         >
-          {/* البريد */}
           <div className="text-gray-400 bg-gray-100 p-2 rounded-md text-lg">
             <div className="flex items-center justify-between">
               <p>{email}</p>
@@ -78,37 +89,58 @@ export default function SignupPage() {
             </div>
           </div>
 
-          {/* الاسم */}
-          <div className="relative w-full">
-            <input
-              type="text"
-              value={firstName}
-              onChange={(e) => {
-                setFirstName(e.target.value);
-                if (errors.firstName) {
-                  setErrors((prev) => ({ ...prev, firstName: "" }));
-                }
-              }}
-              className={inputClasses(!!errors.firstName)}
-              placeholder="الاسم الأول"
-            />
-            <label className={labelClasses(!!errors.firstName)}>
-              الاسم الأول
-            </label>
-            {errors.firstName && (
-              <p className="text-red-500 text-sm text-right mt-1">
-                {errors.firstName}
-              </p>
-            )}
+          <div className="flex items-center gap-3">
+            <div className="relative w-full">
+              <input
+                type="text"
+                value={firstName}
+                onChange={(e) => {
+                  setFirstName(e.target.value);
+                  if (errors.firstName) {
+                    setErrors((prev) => ({ ...prev, firstName: "" }));
+                  }
+                }}
+                className={inputClasses(!!errors.firstName)}
+                placeholder="الاسم الأول"
+              />
+              <label className={labelClasses(!!errors.firstName)}>
+                الاسم الأول
+              </label>
+              {errors.firstName && (
+                <p className="text-red-500 text-sm text-right mt-1">
+                  {errors.firstName}
+                </p>
+              )}
+            </div>
+            <div className="relative w-full">
+              <input
+                type="text"
+                value={LastName}
+                onChange={(e) => {
+                  setLastName(e.target.value);
+                  if (errors.LastName) {
+                    setErrors((prev) => ({ ...prev, LastName: "" }));
+                  }
+                }}
+                className={inputClasses(!!errors.LastName)}
+                placeholder="الاسم الأخير"
+              />
+              <label className={labelClasses(!!errors.LastName)}>
+                الاسم الأخير
+              </label>
+              {errors.LastName && (
+                <p className="text-red-500 text-sm text-right mt-1">
+                  {errors.LastName}
+                </p>
+              )}
+            </div>
           </div>
 
-          {/* رقم الهاتف */}
           <div className="relative w-full">
             <input
               type="text"
               value={phone}
-            //   onChange={(e) => setPhone(e.target.value)}
-               onChange={(e) => {
+              onChange={(e) => {
                 setPhone(e.target.value);
                 if (errors.phone) {
                   setErrors((prev) => ({ ...prev, phone: "" }));
@@ -125,13 +157,11 @@ export default function SignupPage() {
             )}
           </div>
 
-          {/* كلمة المرور */}
           <div className="relative w-full">
             <input
               type={showPassword ? "text" : "password"}
               value={password}
-            //   onChange={(e) => setPassword(e.target.value)}
-             onChange={(e) => {
+              onChange={(e) => {
                 setPassword(e.target.value);
                 if (errors.password) {
                   setErrors((prev) => ({ ...prev, password: "" }));
@@ -147,26 +177,18 @@ export default function SignupPage() {
               onClick={() => setShowPassword(!showPassword)}
               className="absolute end-3 top-1/2 -translate-y-1/2 text-gray-700 cursor-pointer"
             >
-              {showPassword ? (
-                <BiSolidShow size={25} />
-              ) : (
-                <BiSolidHide size={25} />
-              )}
+              {showPassword ? <BiSolidShow size={25} /> : <BiSolidHide size={25} />}
             </div>
             {errors.password && (
-              <p className="text-red-500 text-sm text-right">
-                {errors.password}
-              </p>
+              <p className="text-red-500 text-sm text-right">{errors.password}</p>
             )}
           </div>
 
-          {/* تأكيد كلمة المرور */}
           <div className="relative w-full">
             <input
               type={showConfirm ? "text" : "password"}
               value={confirmPassword}
-            //   onChange={(e) => setConfirmPassword(e.target.value)}
-                onChange={(e) => {
+              onChange={(e) => {
                 setConfirmPassword(e.target.value);
                 if (errors.confirmPassword) {
                   setErrors((prev) => ({ ...prev, confirmPassword: "" }));
@@ -182,11 +204,7 @@ export default function SignupPage() {
               onClick={() => setShowConfirm(!showConfirm)}
               className="absolute end-3 top-1/2 -translate-y-1/2 text-gray-700 cursor-pointer"
             >
-              {showConfirm ? (
-                <BiSolidShow size={25} />
-              ) : (
-                <BiSolidHide size={25} />
-              )}
+              {showConfirm ? <BiSolidShow size={25} /> : <BiSolidHide size={25} />}
             </div>
             {errors.confirmPassword && (
               <p className="text-red-500 text-sm text-right mt-1">
