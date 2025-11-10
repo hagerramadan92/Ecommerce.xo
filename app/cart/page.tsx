@@ -10,30 +10,12 @@ import toast from "react-hot-toast";
 import { MdAddLocationAlt, MdOutlineKeyboardArrowLeft } from "react-icons/md";
 import { useState } from "react";
 import AddressForm from "@/components/AddressForm";
-import Button from "@mui/material/Button";
-import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
-import { useRouter } from "next/navigation";
-export default function CartPage() {
-  const router = useRouter();
 
-  const handleClick = () => {
-    router.push("/payment");
-  };
-  const [code, setCode] = useState("");
+import CoBon from "@/components/cobon";
+import TotalOrder from "@/components/TotalOrder";
+export default function CartPage() {
   const [openModal, setOpenModal] = useState(false);
   const { cart, removeFromCart, changeQuantity, total } = useCart();
-  const handleApply = () => {
-    if (!code.trim()) {
-      toast.error("هناك خطأ ما، من فضلك أدخل الكود", { position: "top-left" });
-      return;
-    }
-
-    toast.success("تم تطبيق الكود بنجاح ", { position: "top-left" });
-  };
-  const formattedTotal = total.toLocaleString("en-US", {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
 
   if (cart.length === 0) {
     return (
@@ -166,25 +148,10 @@ export default function CartPage() {
 
           <AddressForm open={openModal} onClose={() => setOpenModal(false)} />
           <div className="shadow p-4 pb-0 mt-4 text-[#605f5f] ">
-            <p className="text-xl font-bold p-2 text-pro">كوبون كود</p>
-            <div className="flex items-center border border-gray-300 rounded overflow-hidden w-full max-w-sm">
-              <input
-                type="text"
-                value={code}
-                placeholder="ادخل الكود"
-                onChange={(e) => setCode(e.target.value)}
-                className="flex-1 px-4 py-2 text-gray-800 focus:outline-none"
-              />
-              <button
-                onClick={handleApply}
-                className="bg-gray-200 cursor-pointer text-gray-800 px-5 py-2 hover:bg-gray-300 transition-colors duration-200"
-              >
-                تطبيق
-              </button>
-            </div>
-
+            <CoBon />
             {/* order */}
-            <div className="my-4 gap-2 flex flex-col">
+
+            {/* <div className="my-4 gap-2 flex flex-col">
               <h4 className="text-pro font-semibold my-2 text-xl">
                 ملخص الطلب
               </h4>
@@ -240,7 +207,9 @@ export default function CartPage() {
               >
                 تابع عملية الشراء
               </Button>
-            </div>
+            </div> */}
+             <h4 className="text-pro font-semibold my-2 text-xl">ملخص الطلب</h4>
+            <TotalOrder/>
           </div>
         </div>
       </div>

@@ -61,7 +61,7 @@ export default function DropdownUser() {
 
         <div className="flex flex-col">
           <p>
-            أهلاً ,<span> {displayName}</span>
+            أهلاً ,<span className=" capitalize "> {displayName}</span>
           </p>
         </div>
         <FaAngleDown />

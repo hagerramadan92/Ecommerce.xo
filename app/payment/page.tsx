@@ -1,6 +1,14 @@
-import Image from "next/image";
+import BankPayment from "@/components/BankPayment";
+import CoBon from "@/components/cobon";
+import InvoiceSection from "@/components/InvoiceSection";
+import OrderPayDetails from "@/components/orderPayDetails";
+import OrderSummary from "@/components/OrderSummary";
+import TotalOrder from "@/components/TotalOrder";
 import { FiPlus } from "react-icons/fi";
-import { MdKeyboardArrowDown } from "react-icons/md";
+import {
+  MdKeyboardArrowDown,
+  MdOutlineKeyboardArrowDown,
+} from "react-icons/md";
 
 export default function PaymentPage() {
   return (
@@ -36,35 +44,22 @@ export default function PaymentPage() {
             <div className="p-2 ps-6 shadow rounded-xl my-4">
               <h2 className="text-2xl font-semibold py-3">اختر طريقة الدفع</h2>
             </div>
-            <div className="shadow-md rounded-xl p-4 mb-4">
-              {/* bank */}
-              <div className="flex items-center gap-2 cursor-pointer">
-                <p className="text-xl text-gray-800">الدفع بالبطاقات البنكية</p>
-                <MdKeyboardArrowDown size={22} />
-              </div>
-              <div className="flex items-center gap-4 my-2">
-                <Image
-                  src="/images/bank.webp"
-                  alt="bank"
-                  width={80}
-                  height={35}
-                />
-                <Image
-                  src="/images/bb4.png"
-                  alt="bank"
-                  width={60}
-                  height={25}
-                />
-                 <Image
-                  src="/images/bank+transfer.png"
-                  alt="bank"
-                  width={60}
-                  height={25}
-                />
-              </div>
+
+            <BankPayment />
+          </div>
+          <div className="col-span-1 lg:col-span-1 h-fit mt-4">
+            <div className="p-2 shadow mb-1 pb-5 rounded-xl">
+              <CoBon />
+            </div>
+
+            <div className="p-2 shadow my-3 pb-3 rounded-xl">
+              <InvoiceSection />
+            </div>
+            <div className="p-2 pb-0 shadow mt-3  rounded-xl">
+               <OrderSummary />
+              <TotalOrder />
             </div>
           </div>
-          <div className="col-span-1 lg:col-span-1 h-fit"></div>
         </div>
       </div>
     </>
