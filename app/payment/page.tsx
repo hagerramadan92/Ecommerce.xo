@@ -1,11 +1,18 @@
+"use client";
+
+import AddressForm from "@/components/AddressForm";
 import BankPayment from "@/components/BankPayment";
 import CoBon from "@/components/cobon";
 import InvoiceSection from "@/components/InvoiceSection";
 import OrderSummary from "@/components/OrderSummary";
+import SavedAddress from "@/components/SavedAddress";
 import TotalOrder from "@/components/TotalOrder";
+import { useState } from "react";
 import { FiPlus } from "react-icons/fi";
 
 export default function PaymentPage() {
+  const [openModal, setOpenModal] = useState(false);
+  const [showAddress, setShowAddress] = useState(false);
   return (
     <>
       <div className="px-5 lg:px-[7%] xl:px-[18%]">
@@ -26,15 +33,28 @@ export default function PaymentPage() {
                   </p>
                 </div>
                 <div className="flex items-center justify-between bg-gray-50 p-4">
-                  <button className="flex items-center text-pro-max font-bold cursor-pointer">
+                  <button
+                    onClick={() => setOpenModal(true)}
+                    className="flex items-center text-pro-max font-bold cursor-pointer"
+                  >
                     <FiPlus />
                     <p>أضف عنوان</p>
                   </button>
-                  <button className="text-pro-max underline font-bold cursor-pointer">
+                  <AddressForm
+                    open={openModal}
+                    onClose={() => setOpenModal(false)}
+                  />
+                  <button
+                    onClick={() => setShowAddress(true)}
+                    className="text-pro-max underline font-bold cursor-pointer"
+                  >
                     تغيير
                   </button>
                 </div>
               </div>
+              {showAddress && (
+                <SavedAddress onClose={() => setShowAddress(false)} />
+              )}
             </div>
             <div className="p-2 ps-6 shadow rounded-xl my-4">
               <h2 className="text-2xl font-semibold py-3">اختر طريقة الدفع</h2>
