@@ -9,10 +9,17 @@ import SavedAddress from "@/components/SavedAddress";
 import TotalOrder from "@/components/TotalOrder";
 import { useState } from "react";
 import { FiPlus } from "react-icons/fi";
+import Button from "@mui/material/Button";
+import { useRouter } from "next/navigation";
+import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
 
 export default function PaymentPage() {
   const [openModal, setOpenModal] = useState(false);
   const [showAddress, setShowAddress] = useState(false);
+  const router = useRouter();
+  const handleClick = () => {
+    router.push("/ordercomplete");
+  };
   return (
     <>
       <div className="px-5 lg:px-[7%] xl:px-[18%]">
@@ -73,6 +80,27 @@ export default function PaymentPage() {
             <div className="p-2 pb-0 shadow mt-3  rounded-xl">
               <OrderSummary />
               <TotalOrder />
+              <div className="">
+                <Button
+                  variant="contained"
+                  sx={{
+                    fontSize: "1.1rem",
+                    backgroundColor: "#14213d",
+                    "&:hover": { backgroundColor: "#0f1a31" },
+                    color: "#fff",
+                    gap: "10px",
+                    paddingX: "20px",
+                    paddingY: "10px",
+                    borderRadius: "10px",
+                    textTransform: "none",
+                    width:"100%"
+                  }}
+                  endIcon={<KeyboardBackspaceIcon />}
+                  onClick={handleClick}
+                >
+                  اتمام الشراء
+                </Button>
+              </div>
             </div>
           </div>
         </div>

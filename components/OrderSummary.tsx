@@ -41,7 +41,7 @@ export default function OrderSummary() {
             transition={{ duration: 0.4, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <OrderPayDetails />
+            <OrderPayDetails dateDeliver="18 نوفمبر - 20 نوفمبر" />
           </motion.div>
         )}
       </AnimatePresence>

@@ -10,10 +10,17 @@ import toast from "react-hot-toast";
 import { MdAddLocationAlt, MdOutlineKeyboardArrowLeft } from "react-icons/md";
 import { useState } from "react";
 import AddressForm from "@/components/AddressForm";
-
+import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
 import CoBon from "@/components/cobon";
 import TotalOrder from "@/components/TotalOrder";
+import Button from "@mui/material/Button";
+import { useRouter } from "next/navigation";
+
 export default function CartPage() {
+  const router = useRouter();
+  const handleClick = () => {
+    router.push("/payment");
+  };
   const [openModal, setOpenModal] = useState(false);
   const { cart, removeFromCart, changeQuantity, total } = useCart();
 
@@ -147,69 +154,30 @@ export default function CartPage() {
           </div>
 
           <AddressForm open={openModal} onClose={() => setOpenModal(false)} />
-          <div className="shadow p-4 pb-0 mt-4 text-[#605f5f] ">
+          <div className="shadow p-4 pb-0 mt-4 text-[#605f5f] mb-5">
             <CoBon />
-            {/* order */}
 
-            {/* <div className="my-4 gap-2 flex flex-col">
-              <h4 className="text-pro font-semibold my-2 text-xl">
-                ملخص الطلب
-              </h4>
-              <div className="flex items-center justify-between text-black ">
-                <p className="font-semibold">المجموع</p>
-                <p>
-                  2,435
-                  <span className="text-sm ms-1">جنيه</span>
-                </p>
-              </div>
-              <div className="flex items-center justify-between ">
-                <p className="font-semibold">إجمالي رسوم الشحن</p>
-                <p className="text-md">
-                  48
-                  <span className="text-sm ms-1">جنيه</span>
-                </p>
-              </div>
-              <div className="flex text-pro items-center justify-between border-b-2 border-gray-200  pb-3">
-                <p className="font-semibold">رسوم الدفع عند الإستلام</p>
-                <p className="text-md">
-                  50
-                  <span className="text-sm ms-1">جنيه</span>
-                </p>
-              </div>
-              <div className="flex items-center justify-between pb-3 pt-2">
-                <div className="flex gap-1 items-center">
-                  <p className="text-lg text-pro font-bold">الإجمالي :</p>
-                  <p className="text-[12px] font-semibold">
-                    (يشمل ضريبة القيمة المضافة)
-                  </p>
-                </div>
-
-                <p className="text-[15px] text-pro font-bold">
-                  {formattedTotal}
-                  <span>جنيه</span>
-                </p>
-              </div>
-              <Button
-                variant="contained"
-                sx={{
-                  fontSize: "1.1rem",
-                  backgroundColor: "#14213d",
-                  "&:hover": { backgroundColor: "#0f1a31" },
-                  color: "#fff",
-                  gap: "10px",
-                  paddingX: "20px",
-                  paddingY: "10px",
-                  borderRadius: "10px",
-                  textTransform: "none",
-                }}
-                endIcon={<KeyboardBackspaceIcon />}
-                onClick={handleClick}
-              >
-                تابع عملية الشراء
-              </Button>
-            </div> */}
-             <h4 className="text-pro font-semibold my-2 text-xl">ملخص الطلب</h4>
-            <TotalOrder/>
+            <h4 className="text-pro font-semibold my-2 text-xl">ملخص الطلب</h4>
+            <TotalOrder />
+            <Button
+              variant="contained"
+              sx={{
+                fontSize: "1.1rem",
+                backgroundColor: "#14213d",
+                "&:hover": { backgroundColor: "#0f1a31" },
+                color: "#fff",
+                gap: "10px",
+                paddingX: "20px",
+                paddingY: "10px",
+                borderRadius: "10px",
+                textTransform: "none",
+                 width:"100%"
+              }}
+              endIcon={<KeyboardBackspaceIcon />}
+              onClick={handleClick}
+            >
+              تابع عملية الشراء
+            </Button>
           </div>
         </div>
       </div>

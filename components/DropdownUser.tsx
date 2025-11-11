@@ -51,7 +51,7 @@ export default function DropdownUser() {
   };
 
   return (
-    <div className="relative" ref={menuRef}>
+    <div className="relative hidden1" ref={menuRef}>
       {/* user button */}
       <div
         className="flex items-center gap-3 bg-gray-100 text-gray-700 cursor-pointer p-2 rounded"
