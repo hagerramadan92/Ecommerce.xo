@@ -607,7 +607,7 @@ export const products:ProductIn [] = [
     price: "250",
     categorySlug: "lighting",
     categoryName: "الاضاءة",
-     quantity:2
+     quantity:0
   },
   {
     id: 4,
@@ -616,7 +616,7 @@ export const products:ProductIn [] = [
     price: "780",
     categorySlug: "fabrics-bedding",
     categoryName: "أقمشة و مفروشات",
-     quantity:2
+     quantity:0
   },
   {
     id: 5,
