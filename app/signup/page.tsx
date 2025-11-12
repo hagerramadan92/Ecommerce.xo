@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/context/AuthContext";
 import { BiSolidHide, BiSolidShow } from "react-icons/bi";
+import { log } from "console";
 
 // --- دالة قراءة الكوكي من المتصفح ---
 const getCookie = (name: string): string | null => {
@@ -59,17 +60,15 @@ export default function SignupPage() {
     try {
       setLoading(true);
 
-      // --- 1️⃣ جلب CSRF cookie من Laravel ---
-      await fetch(`${API_URL}/sanctum/csrf-cookie`, {
-        credentials: "include",
-      });
+    
+      // await fetch(`${API_URL}/sanctum/csrf-cookie`, {
+      //   credentials: "include",
+      // });
 
       // --- قراءة token من الكوكيز ---
-      const csrfToken = getCookie("XSRF-TOKEN");
-      if (!csrfToken) {
-        setMessage("رمز الأمان غير موجود بعد طلب CSRF، أعد المحاولة");
-        return;
-      }
+      const csrfToken = getCookie("next-auth.csrf-token");
+      console.log(csrfToken)
+
 
       // --- 2️⃣ إرسال بيانات التسجيل مع X-XSRF-TOKEN ---
       const res = await fetch(`${API_URL}/auth/register`, {
@@ -78,7 +77,7 @@ export default function SignupPage() {
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
-          "X-XSRF-TOKEN": csrfToken,
+          "X-XSRF-TOKEN": "eyJpdiI6IjN1K2hSbGdDbXJOZWk0MUFCWWJUREE9PSIsInZhbHVlIjoiNC9RWDh2WnJ6MkdaazNZWThndGh1YTBPUjh2N2pHWTVVd2NNS254NzFRRDUzVGpIcFpBVEZWdkJTV0k5b2kyOStvRmZ6K2orc0xPUm1hNWNnTGR1ME9YeTlkMGFHSUxWR2VDM2xYRWVpcWtSVEdNRXZvanB5OWsxRWp5L1MvQ0giLCJtYWMiOiJlZmY5OWI3OWUyNTkzZWQ3MjU5NTZkYTY2N2MzY2NlM2M0ZGMxMTBjZGVlYjVmMDQxNzEzNjM0ZDYxMzBkZTY3IiwidGFnIjoiIn0%3D",
         },
         body: JSON.stringify({
           name: `${firstName} ${lastName}`,
