@@ -7,7 +7,7 @@ interface AuthContextType {
   userName: string | null;
   userEmail: string | null;
   userImage: string | null;
-  fullName: string | null; 
+  fullName: string | null;
   login: (
     name: string,
     email?: string,
@@ -15,6 +15,12 @@ interface AuthContextType {
     fullName?: string
   ) => void;
   logout: () => void;
+  setAuthFromApi: (data: {
+    name: string;
+    email?: string;
+    image?: string;
+    fullName?: string;
+  }) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -29,27 +35,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-   
     if (status === "authenticated" && session?.user) {
-      setUserName(
-        session.user.name || localStorage.getItem("userName") || "مستخدم"
-      );
-      setUserEmail(
-        session.user.email || localStorage.getItem("userEmail") || null
-      );
-      setUserImage(session.user.image || localStorage.getItem("userImage") || "");
-      setFullName(localStorage.getItem("fullName") || session.user.name || "مستخدم");
+      const name = session.user.name || localStorage.getItem("userName") || "مستخدم";
+      const email = session.user.email || localStorage.getItem("userEmail") || null;
+      const image = session.user.image || localStorage.getItem("userImage") || "";
+      const full = localStorage.getItem("fullName") || session.user.name || "مستخدم";
 
-      localStorage.setItem("userName", session.user.name || "مستخدم");
-      if (session.user.email) localStorage.setItem("userEmail", session.user.email);
-      if (session.user.image) localStorage.setItem("userImage", session.user.image);
-      localStorage.setItem(
-        "fullName",
-        localStorage.getItem("fullName") || session.user.name || "مستخدم"
-      );
-    } 
-  
-    else {
+      setUserName(name);
+      setUserEmail(email);
+      setUserImage(image);
+      setFullName(full);
+
+      localStorage.setItem("userName", name);
+      if (email) localStorage.setItem("userEmail", email);
+      if (image) localStorage.setItem("userImage", image);
+      localStorage.setItem("fullName", full);
+    } else {
       const storedName = localStorage.getItem("userName");
       const storedEmail = localStorage.getItem("userEmail");
       const storedImage = localStorage.getItem("userImage");
@@ -71,12 +72,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUserName(name);
     setUserEmail(email || null);
     setUserImage(image || "");
-    setFullName(fullNameParam || null);
+    setFullName(fullNameParam || name);
 
     localStorage.setItem("userName", name);
     if (email) localStorage.setItem("userEmail", email);
     if (image) localStorage.setItem("userImage", image);
-    if (fullNameParam) localStorage.setItem("fullName", fullNameParam);
+    localStorage.setItem("fullName", fullNameParam || name);
+  };
+
+  // دالة جديدة لتسهيل التحديث من أي API
+  const setAuthFromApi = (data: { name: string; email?: string; image?: string; fullName?: string }) => {
+    login(data.name, data.email, data.image, data.fullName);
   };
 
   const logout = () => {
@@ -90,7 +96,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ userName, userEmail, userImage, fullName, login, logout }}
+      value={{ userName, userEmail, userImage, fullName, login, logout, setAuthFromApi }}
     >
       {children}
     </AuthContext.Provider>

@@ -1,17 +1,13 @@
 "use client";
-
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/context/AuthContext";
 import { BiSolidHide, BiSolidShow } from "react-icons/bi";
-import { log } from "console";
-
-// --- دالة قراءة الكوكي من المتصفح ---
-const getCookie = (name: string): string | null => {
-  if (typeof document === "undefined") return null;
-  const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
-  return match ? decodeURIComponent(match[2]) : null;
-};
+import Image from "next/image";
+import { signIn } from "next-auth/react";
+import { auth } from "@/lib/firebaseClient";
+import { FacebookAuthProvider, signInWithPopup } from "firebase/auth";
+import Link from "next/link";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -25,17 +21,15 @@ export default function SignupPage() {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [message, setMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-
   const router = useRouter();
   const { login } = useAuth();
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
+  const API_URL = "https://ecommecekhaled.renix4tech.com/api/v1";
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
     setErrors({});
 
-    // --- تحقق من الحقول ---
+    // --- التحقق من الحقول ---
     const newErrors: { [key: string]: string } = {};
     if (!firstName.trim()) newErrors.firstName = "الاسم الأول مطلوب";
     if (!lastName.trim()) newErrors.lastName = "الاسم الأخير مطلوب";
@@ -46,38 +40,17 @@ export default function SignupPage() {
       newErrors.password = "كلمة المرور يجب أن تكون 8 أحرف على الأقل";
     if (confirmPassword !== password)
       newErrors.confirmPassword = "كلمة المرور غير متطابقة";
-
     if (Object.keys(newErrors).length) {
       setErrors(newErrors);
       return;
     }
-
-    if (!API_URL) {
-      setMessage("خطأ: رابط API غير مُعرّف");
-      return;
-    }
-
     try {
       setLoading(true);
-
-    
-      // await fetch(`${API_URL}/sanctum/csrf-cookie`, {
-      //   credentials: "include",
-      // });
-
-      // --- قراءة token من الكوكيز ---
-      const csrfToken = getCookie("next-auth.csrf-token");
-      console.log(csrfToken)
-
-
-      // --- 2️⃣ إرسال بيانات التسجيل مع X-XSRF-TOKEN ---
       const res = await fetch(`${API_URL}/auth/register`, {
         method: "POST",
-        credentials: "include",
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
-          "X-XSRF-TOKEN": "eyJpdiI6IjN1K2hSbGdDbXJOZWk0MUFCWWJUREE9PSIsInZhbHVlIjoiNC9RWDh2WnJ6MkdaazNZWThndGh1YTBPUjh2N2pHWTVVd2NNS254NzFRRDUzVGpIcFpBVEZWdkJTV0k5b2kyOStvRmZ6K2orc0xPUm1hNWNnTGR1ME9YeTlkMGFHSUxWR2VDM2xYRWVpcWtSVEdNRXZvanB5OWsxRWp5L1MvQ0giLCJtYWMiOiJlZmY5OWI3OWUyNTkzZWQ3MjU5NTZkYTY2N2MzY2NlM2M0ZGMxMTBjZGVlYjVmMDQxNzEzNjM0ZDYxMzBkZTY3IiwidGFnIjoiIn0%3D",
         },
         body: JSON.stringify({
           name: `${firstName} ${lastName}`,
@@ -87,42 +60,59 @@ export default function SignupPage() {
           password_confirmation: confirmPassword,
         }),
       });
-
       const data = await res.json();
       console.log("Register response:", data);
-
       if (res.ok && data.status !== false) {
-        setMessage("تم التسجيل بنجاح ✅");
+        const token = data.data?.token;
+        if (token) {
+          localStorage.setItem("auth_token", token);
+        }
+        setMessage("تم التسجيل بنجاح");
         login(firstName, email, "", `${firstName} ${lastName}`);
         localStorage.setItem("userName", firstName);
         localStorage.setItem("fullName", `${firstName} ${lastName}`);
         localStorage.setItem("userEmail", email);
-        setTimeout(() => router.push("/"), 1500);
+        setTimeout(() => router.push("/"), 1000);
       } else {
-        setMessage(data.message || "حدث خطأ أثناء التسجيل ❌");
+        setMessage(data.message || "حدث خطأ أثناء التسجيل");
+        if (data.errors) {
+          const apiErrors: { [key: string]: string } = {};
+          Object.keys(data.errors).forEach((key) => {
+            apiErrors[key] = data.errors[key][0];
+          });
+          setErrors(apiErrors);
+        }
       }
     } catch (err: any) {
       console.error("Signup error:", err);
-      setMessage(err.message || "فشل الاتصال بالخادم ❌");
+      setMessage("فشل الاتصال بالخادم");
     } finally {
       setLoading(false);
     }
   };
-
-  // --- UI helpers ---
+  // --- UI Classes ---
   const inputClasses = (hasError: boolean) =>
     `peer w-full border rounded-lg px-3 pt-4 pb-4 text-gray-800 placeholder-transparent focus:outline-none transition-all ${
       hasError ? "border-red-500" : "focus:border-orange-500 border-gray-300"
     }`;
-
   const labelClasses = (hasError: boolean) =>
     `absolute right-3 text-base bg-white px-1 text-gray-500 transition-all duration-200
-     pointer-events-none 
-     peer-placeholder-shown:top-1/2 mb-2 peer-placeholder-shown:-translate-y-1/2 
+     pointer-events-none
+     peer-placeholder-shown:top-1/2 mb-2 peer-placeholder-shown:-translate-y-1/2
      peer-placeholder-shown:text-gray-400
      peer-focus:-top-2 peer-focus:text-sm peer-focus:text-orange-500
      ${hasError ? "text-red-500" : ""}`;
 
+  const signInWithFacebook = async () => {
+    try {
+      const provider = new FacebookAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+      console.log("Facebook user:", result.user);
+    } catch (err: any) {
+      console.error("Facebook sign-in error:", err);
+      alert("حدث خطأ أثناء تسجيل الدخول بـ Facebook");
+    }
+  };
   return (
     <div className="flex flex-col items-center bg-gray-50 px-6 py-10 md:px-[13%] xl:px-[35%]">
       <div className="bg-white shadow-md rounded-2xl p-8 w-full text-center">
@@ -130,8 +120,10 @@ export default function SignupPage() {
         <p className="text-gray-700 font-semibold text-[20px] mt-3">
           انضم إلى آلاف العملاء السعداء
         </p>
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-8 my-5 relative">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col gap-8 my-5  relative"
+        >
           {/* الاسم الأول والأخير */}
           <div className="flex items-center gap-3">
             <div className="relative w-full">
@@ -142,12 +134,15 @@ export default function SignupPage() {
                 className={inputClasses(!!errors.firstName)}
                 placeholder="الاسم الأول"
               />
-              <label className={labelClasses(!!errors.firstName)}>الاسم الأول</label>
+              <label className={labelClasses(!!errors.firstName)}>
+                الاسم الأول
+              </label>
               {errors.firstName && (
-                <p className="text-red-500 text-sm text-right mt-1">{errors.firstName}</p>
+                <p className="text-red-500 text-sm text-right mt-1">
+                  {errors.firstName}
+                </p>
               )}
             </div>
-
             <div className="relative w-full">
               <input
                 type="text"
@@ -156,13 +151,16 @@ export default function SignupPage() {
                 className={inputClasses(!!errors.lastName)}
                 placeholder="الاسم الأخير"
               />
-              <label className={labelClasses(!!errors.lastName)}>الاسم الأخير</label>
+              <label className={labelClasses(!!errors.lastName)}>
+                الاسم الأخير
+              </label>
               {errors.lastName && (
-                <p className="text-red-500 text-sm text-right mt-1">{errors.lastName}</p>
+                <p className="text-red-500 text-sm text-right mt-1">
+                  {errors.lastName}
+                </p>
               )}
             </div>
           </div>
-
           {/* البريد الإلكتروني */}
           <div className="relative w-full">
             <input
@@ -172,16 +170,19 @@ export default function SignupPage() {
               className={inputClasses(!!errors.email)}
               placeholder="البريد الإلكتروني"
             />
-            <label className={labelClasses(!!errors.email)}>البريد الإلكتروني</label>
+            <label className={labelClasses(!!errors.email)}>
+              البريد الإلكتروني
+            </label>
             {errors.email && (
-              <p className="text-red-500 text-sm text-right mt-1">{errors.email}</p>
+              <p className="text-red-500 text-sm text-right mt-1">
+                {errors.email}
+              </p>
             )}
           </div>
-
           {/* الهاتف */}
           <div className="relative w-full">
             <input
-              type="tel"
+              type="text"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               className={inputClasses(!!errors.phone)}
@@ -189,10 +190,11 @@ export default function SignupPage() {
             />
             <label className={labelClasses(!!errors.phone)}>رقم الهاتف</label>
             {errors.phone && (
-              <p className="text-red-500 text-sm text-right mt-1">{errors.phone}</p>
+              <p className="text-red-500 text-sm text-right mt-1">
+                {errors.phone}
+              </p>
             )}
           </div>
-
           {/* كلمة المرور */}
           <div className="relative w-full">
             <input
@@ -202,18 +204,25 @@ export default function SignupPage() {
               className={inputClasses(!!errors.password)}
               placeholder="إنشاء كلمة مرور"
             />
-            <label className={labelClasses(!!errors.password)}>إنشاء كلمة مرور</label>
+            <label className={labelClasses(!!errors.password)}>
+              إنشاء كلمة مرور
+            </label>
             <div
               onClick={() => setShowPassword(!showPassword)}
               className="absolute end-3 top-1/2 -translate-y-1/2 text-gray-700 cursor-pointer"
             >
-              {showPassword ? <BiSolidShow size={25} /> : <BiSolidHide size={25} />}
+              {showPassword ? (
+                <BiSolidShow size={25} />
+              ) : (
+                <BiSolidHide size={25} />
+              )}
             </div>
             {errors.password && (
-              <p className="text-red-500 text-sm text-right mt-1">{errors.password}</p>
+              <p className="text-red-500 text-sm text-right mt-1">
+                {errors.password}
+              </p>
             )}
           </div>
-
           {/* تأكيد كلمة المرور */}
           <div className="relative w-full">
             <input
@@ -223,27 +232,33 @@ export default function SignupPage() {
               className={inputClasses(!!errors.confirmPassword)}
               placeholder="تأكيد كلمة المرور"
             />
-            <label className={labelClasses(!!errors.confirmPassword)}>تأكيد كلمة المرور</label>
+            <label className={labelClasses(!!errors.confirmPassword)}>
+              تأكيد كلمة المرور
+            </label>
             <div
               onClick={() => setShowConfirm(!showConfirm)}
               className="absolute end-3 top-1/2 -translate-y-1/2 text-gray-700 cursor-pointer"
             >
-              {showConfirm ? <BiSolidShow size={25} /> : <BiSolidHide size={25} />}
+              {showConfirm ? (
+                <BiSolidShow size={25} />
+              ) : (
+                <BiSolidHide size={25} />
+              )}
             </div>
             {errors.confirmPassword && (
-              <p className="text-red-500 text-sm text-right mt-1">{errors.confirmPassword}</p>
+              <p className="text-red-500 text-sm text-right mt-1">
+                {errors.confirmPassword}
+              </p>
             )}
           </div>
-
           <button
             type="submit"
             disabled={loading}
-            className="bg-orange-500 text-white py-3 rounded-lg hover:bg-orange-600 transition-all disabled:opacity-70"
+            className="bg-blue-950 cursor-pointer text-white py-3 rounded-lg hover:bg-blue-900 transition-all disabled:opacity-70"
           >
-            {loading ? "جاري التسجيل..." : "تسجيل"}
+            {loading ? "جاري التسجيل..." : "انشاء حساب"}
           </button>
         </form>
-
         {message && (
           <p
             className={`text-center font-semibold mt-3 ${
@@ -253,6 +268,102 @@ export default function SignupPage() {
             {message}
           </p>
         )}
+        <div className="flex items-center justify-center mt-1  mb-9">
+          <p>لدي حساب بالفعل ؟</p>
+          <Link href="/login">
+            <p className=" underline ">تسجيل دخول</p>
+          </Link>
+        </div>
+        <div className="relative border-t border-gray-200 grid grid-cols-1 lg:grid-cols-2 gap-3 py-2 pt-8">
+          <label className="bg-white p-1 absolute top-[-19] left-[30%] text-gray-500">
+            أو سجل دخول عن طريق
+          </label>
+
+          <button onClick={signInWithFacebook}>
+            <div className="h-fit p-2 flex items-center justify-center gap-2  rounded-full border border-gray-200 hover:shadow transition duration-100 cursor-pointer">
+              <p>فيس بوك</p>
+              <Image
+                src="./images/f.avif"
+                alt="facebook"
+                width={22}
+                height={22}
+              />
+            </div>
+          </button>
+          <button
+            onClick={async () => {
+              try {
+                const response = await signIn("google", {
+                  redirect: false,
+                  prompt: "select_account",
+                });
+
+                if (response?.ok) {
+                  const session = await fetch("/api/auth/session").then((res) =>
+                    res.json()
+                  );
+                  const user = session.user;
+
+                  const payload = {
+                    google_id: user.sub || "", // الـ sub الخاص بجوجل
+                    email: user.email || "",
+                    name: user.name || "",
+                    avatar: user.image || "",
+                  };
+
+                  const apiRes = await fetch(`${API_URL}/auth/social-login`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload),
+                  });
+
+                  const apiData = await apiRes.json();
+
+                  if (apiRes.ok && apiData.status !== false) {
+                    const token = apiData.data?.token;
+                    if (token) localStorage.setItem("auth_token", token);
+
+                    localStorage.setItem("userName", payload.name);
+                    localStorage.setItem("userEmail", payload.email);
+                    localStorage.setItem("userImage", payload.avatar);
+                    localStorage.setItem("fullName", payload.name);
+
+                    login(
+                      payload.name,
+                      payload.email,
+                      payload.avatar,
+                      payload.name
+                    );
+
+                    router.push("/");
+                  } else {
+                    alert(apiData.message || "حدث خطأ أثناء التسجيل بجوجل");
+                  }
+                }
+              } catch (err) {
+                console.error("Google signup error:", err);
+                alert("فشل الاتصال بخادم Google");
+              }
+            }}
+          >
+            <div className="h-fit p-2 flex items-center justify-center gap-2 rounded-full border border-gray-200 hover:shadow transition duration-100 cursor-pointer">
+              <p>جوجل</p>
+              <Image
+                src="./images/g.png"
+                alt="Google"
+                width={28}
+                height={28}
+                style={{ height: "auto" }}
+              />
+            </div>
+          </button>
+          {/* <button onClick={signInWithApple}>
+                    <div className="h-fit p-2 flex items-center justify-center gap-2  rounded-full border border-gray-200 hover:shadow transition duration-100 cursor-pointer">
+                      <p>Apple</p>
+                      <Image src="./images/ap.png" alt="Apple" width={22} height={22} />
+                    </div>
+                  </button> */}
+        </div>
       </div>
     </div>
   );

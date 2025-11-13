@@ -5,8 +5,8 @@ import InStockSlider from "@/components/InStockSlider";
 import ProductCard from "@/components/ProductCard";
 import ShowAll from "@/components/ShowAll";
 import SliderComponent from "@/components/SliderComponent";
+import { useAppContext } from "@/src/context/AppContext";
 import {
-  cates2,
   inStock,
   pro,
   sliderImages,
@@ -24,12 +24,14 @@ import {
 } from "@/Types/data";
 
 export default function Home() {
+  const { homeData } = useAppContext();
+  const categories1 = homeData?.categories || [];
   return (
     <>
       <div className="px-5 lg:px-[18%] rounded-2xl py-6   flex flex-col gap-5">
         <SliderComponent src={sliderImages} href={sliderLinks} />
         <Discount src="/images/discount.jpg" href="/" />
-        <CategoriesSlider categories={cates2} />
+        <CategoriesSlider categories={categories1} />
         <Discount src="/images/d3.jpg" href="/" />
         <Discount src="/images/d2.jpg" href="/" />
         <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7">

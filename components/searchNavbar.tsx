@@ -14,8 +14,6 @@ import SearchComponent from "./SearchComponent";
 import CartSidebar from "./CartSideBar";
 import DropdownUser from "./DropdownUser";
 import { useAuth } from "@/src/context/AuthContext";
-import ButtonComponent from "./ButtonComponent";
-import { signOut } from "next-auth/react";
 export default function SearchNavbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);

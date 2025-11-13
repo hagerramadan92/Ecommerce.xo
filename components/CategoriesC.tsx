@@ -7,15 +7,12 @@ import "swiper/css";
 import "swiper/css/navigation";
 import Image from "next/image";
 import Link from "next/link";
+import { CategoriesI } from "@/Types/CategoriesI";
 
-interface Category {
-  title: string;
-  img: string;
-  link: string;
-}
+
 
 interface CategoriesSliderProps {
-  categories: Category[];
+  categories: CategoriesI[];
 }
 
 export default function CategoriesSlider({
@@ -54,18 +51,18 @@ export default function CategoriesSlider({
       >
         {categories.map((cat, index) => (
           <SwiperSlide key={index}>
-            <Link href={cat.link} aria-label={`Go to ${cat.title}`}>
+            <Link href={`/category/${cat.slug}`} aria-label={`Go to ${cat.name}`}>
               <div className="flex flex-col items-center gap-1 group">
                 <div className="relative w-14 h-14 md:w-[90px] md:h-[90px] bg-[#f0f4f7] rounded-full overflow-hidden transition-all duration-300">
                   <Image
-                    src={cat.img}
-                    alt={cat.title}
+                    src="/images/cat1.png"
+                    alt={cat.name}
                     fill
                     className="object-cover rounded-full"
                   />
                 </div>
                 <h2 className="text-[14px] mt-2 font-semibold text-pro capitalize text-center group-hover:text-pro-hover transition-colors">
-                  {cat.title}
+                  {cat.name}
                 </h2>
               </div>
             </Link>

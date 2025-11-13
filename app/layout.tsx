@@ -5,6 +5,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Toaster } from "react-hot-toast";
 import Providers from "./Providers";
+import { AppProvider } from "@/src/context/AppContext";
 
 export const metadata: Metadata = {
   title: "Ecommerce",
@@ -17,12 +18,14 @@ export default function RootLayout({
   return (
     <html lang="ar" dir="rtl">
       <body className="bg-white text-gray-900">
-        <Providers>
-          <Navbar />
-          {children}
-          <Toaster position="top-center" />
-          <Footer />
-        </Providers>
+        <AppProvider>
+          <Providers>
+            <Navbar />
+            {children}
+            <Toaster position="top-center" />
+            <Footer />
+          </Providers>
+        </AppProvider>
       </body>
     </html>
   );
