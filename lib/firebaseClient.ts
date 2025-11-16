@@ -1,9 +1,9 @@
-// /lib/firebaseClient.ts
+
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, GoogleAuthProvider, FacebookAuthProvider } from "firebase/auth";
 
 const firebaseConfig = {
- apiKey: "AIzaSyDofBQX5zsScMOpe0lX_mFkg6EWo8We4JA",
+  apiKey: "AIzaSyDofBQX5zsScMOpe0lX_mFkg6EWo8We4JA",
   authDomain: "ecommerce-9161a.firebaseapp.com",
   projectId: "ecommerce-9161a",
   storageBucket: "ecommerce-9161a.firebasestorage.app",
@@ -21,4 +21,8 @@ function initFirebase() {
 }
 
 initFirebase();
+
 export const auth = getAuth();
+
+export const googleProvider = new GoogleAuthProvider();
+export const facebookProvider = new FacebookAuthProvider();

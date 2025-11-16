@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/src/context/AuthContext";
@@ -8,6 +9,8 @@ import { signIn } from "next-auth/react";
 import { auth } from "@/lib/firebaseClient";
 import { FacebookAuthProvider, signInWithPopup } from "firebase/auth";
 import Link from "next/link";
+import { GoogleAuthProvider } from "firebase/auth";
+import LoginWithGoogle from "@/components/loginWithGoogle";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -29,15 +32,26 @@ export default function SignupPage() {
     setMessage(null);
     setErrors({});
 
-    // --- التحقق من الحقول ---
     const newErrors: { [key: string]: string } = {};
     if (!firstName.trim()) newErrors.firstName = "الاسم الأول مطلوب";
     if (!lastName.trim()) newErrors.lastName = "الاسم الأخير مطلوب";
     if (!email.trim()) newErrors.email = "البريد الإلكتروني مطلوب";
-    if (!phone.trim()) newErrors.phone = "رقم الهاتف مطلوب";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      newErrors.email = "البريد الإلكتروني غير صحيح";
+    }
+    if (!phone.trim()) {
+      newErrors.phone = "رقم الهاتف مطلوب";
+    } else if (!/^\d+$/.test(phone)) {
+      newErrors.phone = "رقم الهاتف يجب أن يحتوي على أرقام فقط";
+    } else if (phone.length < 11) {
+      newErrors.phone = "رقم الهاتف يجب أن يكون 11 رقم";
+    } else if (phone.length > 11) {
+      newErrors.phone = "رقم الهاتف يجب أن يكون 11 رقم";
+    }
     if (!password.trim()) newErrors.password = "كلمة المرور مطلوبة";
     else if (password.length < 8)
       newErrors.password = "كلمة المرور يجب أن تكون 8 أحرف على الأقل";
+
     if (confirmPassword !== password)
       newErrors.confirmPassword = "كلمة المرور غير متطابقة";
     if (Object.keys(newErrors).length) {
@@ -90,7 +104,53 @@ export default function SignupPage() {
       setLoading(false);
     }
   };
-  // --- UI Classes ---
+  const handleGoogleSignIn = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+
+      const user = result.user;
+      if (!user) throw new Error("فشل الحصول على بيانات المستخدم");
+
+      const payload = {
+        provider: "google",
+        provider_id: user.uid, // id الخاص بالمستخدم في Firebase
+        email: user.email || "",
+        name: user.displayName || "",
+      };
+
+      // إرسال البيانات للـ API
+      const apiRes = await fetch(`${API_URL}/auth/social-login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const apiData = await apiRes.json();
+      if (apiRes.ok && apiData.status !== false) {
+        // حفظ التوكن والبيانات محليًا
+        if (apiData.data?.token)
+          localStorage.setItem("auth_token", apiData.data.token);
+        localStorage.setItem("userName", payload.name);
+        localStorage.setItem("fullName", payload.name);
+        localStorage.setItem("userEmail", payload.email);
+
+        // تحديث حالة login في Context
+        const { login } = useAuth();
+        login(payload.name, payload.email, "", payload.name);
+
+        // تحويل للهوم بعد نجاح العملية
+        const router = useRouter();
+        router.push("/");
+      } else {
+        alert(apiData.message || "حدث خطأ أثناء تسجيل الدخول بجوجل");
+      }
+    } catch (err) {
+      console.error("Google signup error:", err);
+      alert("فشل الاتصال بخادم Google");
+    }
+  };
+
   const inputClasses = (hasError: boolean) =>
     `peer w-full border rounded-lg px-3 pt-4 pb-4 text-gray-800 placeholder-transparent focus:outline-none transition-all ${
       hasError ? "border-red-500" : "focus:border-orange-500 border-gray-300"
@@ -164,7 +224,7 @@ export default function SignupPage() {
           {/* البريد الإلكتروني */}
           <div className="relative w-full">
             <input
-              type="email"
+              type="text"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className={inputClasses(!!errors.email)}
@@ -278,91 +338,7 @@ export default function SignupPage() {
           <label className="bg-white p-1 absolute top-[-19] left-[30%] text-gray-500">
             أو سجل دخول عن طريق
           </label>
-
-          <button onClick={signInWithFacebook}>
-            <div className="h-fit p-2 flex items-center justify-center gap-2  rounded-full border border-gray-200 hover:shadow transition duration-100 cursor-pointer">
-              <p>فيس بوك</p>
-              <Image
-                src="./images/f.avif"
-                alt="facebook"
-                width={22}
-                height={22}
-              />
-            </div>
-          </button>
-          <button
-            onClick={async () => {
-              try {
-                const response = await signIn("google", {
-                  redirect: false,
-                  prompt: "select_account",
-                });
-
-                if (response?.ok) {
-                  const session = await fetch("/api/auth/session").then((res) =>
-                    res.json()
-                  );
-                  const user = session.user;
-
-                  const payload = {
-                    google_id: user.sub || "", // الـ sub الخاص بجوجل
-                    email: user.email || "",
-                    name: user.name || "",
-                    avatar: user.image || "",
-                  };
-
-                  const apiRes = await fetch(`${API_URL}/auth/social-login`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload),
-                  });
-
-                  const apiData = await apiRes.json();
-
-                  if (apiRes.ok && apiData.status !== false) {
-                    const token = apiData.data?.token;
-                    if (token) localStorage.setItem("auth_token", token);
-
-                    localStorage.setItem("userName", payload.name);
-                    localStorage.setItem("userEmail", payload.email);
-                    localStorage.setItem("userImage", payload.avatar);
-                    localStorage.setItem("fullName", payload.name);
-
-                    login(
-                      payload.name,
-                      payload.email,
-                      payload.avatar,
-                      payload.name
-                    );
-
-                    router.push("/");
-                  } else {
-                    alert(apiData.message || "حدث خطأ أثناء التسجيل بجوجل");
-                  }
-                }
-              } catch (err) {
-                console.error("Google signup error:", err);
-                alert("فشل الاتصال بخادم Google");
-              }
-            }}
-          >
-            <div className="h-fit p-2 flex items-center justify-center gap-2 rounded-full border border-gray-200 hover:shadow transition duration-100 cursor-pointer">
-              <p>جوجل</p>
-              <Image
-                src="./images/g.png"
-                alt="Google"
-                width={28}
-                height={28}
-                style={{ height: "auto" }}
-              />
-            </div>
-          </button>
-          {/* <button onClick={signInWithApple}>
-                    <div className="h-fit p-2 flex items-center justify-center gap-2  rounded-full border border-gray-200 hover:shadow transition duration-100 cursor-pointer">
-                      <p>Apple</p>
-                      <Image src="./images/ap.png" alt="Apple" width={22} height={22} />
-                    </div>
-                  </button> */}
+          <LoginWithGoogle />
         </div>
       </div>
     </div>

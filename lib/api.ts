@@ -4,18 +4,22 @@ export async function fetchHomeData() {
   try {
     const res = await fetch(`${API_URL}/home`, {
       method: "GET",
-      credentials: "include",
-      headers: { Accept: "application/json" },
+      headers: {
+        Accept: "application/json",
+      },
+      mode: "cors",
+      cache: "no-store",
     });
 
     if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
     const data = await res.json();
+
     if (!data.status) throw new Error(data.message || "فشل جلب البيانات");
 
-    return data.data; 
+    return data.data;
   } catch (err) {
     console.error("Error fetching home data:", err);
-    return null;
+    throw err; // علشان يظهر في الـ Context بدل ما يرجع null
   }
 }

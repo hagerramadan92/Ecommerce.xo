@@ -1,6 +1,6 @@
 "use client";
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
-import { fetchHomeData } from "@/lib/api"; // استدعاء الدالة من lib/api
+import { fetchHomeData } from "@/lib/api"; 
 import { CategoriesI } from "@/Types/CategoriesI";
 import { ProductsI } from "@/Types/ProductsI";
 
@@ -31,7 +31,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const loadHomeData = async () => {
       try {
-        const data = await fetchHomeData(); // استخدام الدالة من lib/api
+        const data = await fetchHomeData();
         setHomeData(data);
       } catch (err: any) {
         setError(err.message || "فشل تحميل البيانات");

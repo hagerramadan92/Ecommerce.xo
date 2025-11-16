@@ -14,13 +14,14 @@ import SearchComponent from "./SearchComponent";
 import CartSidebar from "./CartSideBar";
 import DropdownUser from "./DropdownUser";
 import { useAuth } from "@/src/context/AuthContext";
+
 export default function SearchNavbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const categories2 = link;
   const links2 = categories;
 
-  const { fullName  } = useAuth();
+  const { fullName } = useAuth(); // حالة تسجيل الدخول
 
   return (
     <>
@@ -84,10 +85,6 @@ export default function SearchNavbar() {
           </div>
 
           <div className="flex1 gap-4 items-center">
-            <div className="bg-[#4a4a4a] rounded-full p-2 text-white cursor-pointer">
-              <FaRegUser size={15} />
-            </div>
-
             <CategoriesDropdown
               categories={categories2}
               trigger={
@@ -123,8 +120,8 @@ export default function SearchNavbar() {
             />
           </div>
 
-          {/* ✅ Login / User Dropdown */}
-          {!fullName  ? (
+          {/* 👇 زر تسجيل الدخول أو DropdownUser */}
+          {!fullName ? (
             <Link
               href="/login"
               className="hidden1 flex gap-1 items-center rounded-4xl bg-pro text-white py-3 text-[0.9rem] px-4 cursor-pointer"
@@ -135,7 +132,6 @@ export default function SearchNavbar() {
           ) : (
             <DropdownUser />
           )}
-            
         </div>
       </div>
 

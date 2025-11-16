@@ -1,17 +1,16 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import ButtonComponent from "@/components/ButtonComponent";
-import { signIn, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
-import { auth } from "@/lib/firebaseClient";
-import { FacebookAuthProvider, signInWithPopup } from "firebase/auth";
 import { BiSolidHide, BiSolidShow } from "react-icons/bi";
 import Link from "next/link";
-import { useAuth } from "@/src/context/AuthContext"; // ✅ إضافة
+import { useAuth } from "@/src/context/AuthContext";
+import LoginWithGoogle from "@/components/loginWithGoogle";
 
 export default function Page() {
   const [value, setValue] = useState("");
+   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [password, setPassword] = useState("");
@@ -21,7 +20,7 @@ export default function Page() {
   const { data: session, status } = useSession();
   const API_URL = "https://ecommecekhaled.renix4tech.com/api/v1";
 
-  const { login: loginContext } = useAuth(); // ✅ استخدام Context
+  const { login: loginContext } = useAuth();
 
   const validateInput = (input: string) => {
     const trimmed = input.trim();
@@ -72,12 +71,11 @@ export default function Page() {
         const token = data.data?.token;
         if (token) localStorage.setItem("auth_token", token);
 
-        // ✅ تحديث Context بعد تسجيل الدخول
         loginContext(
           data.data.user.name,
           data.data.user.email,
           data.data.user.image,
-          data.data.user.name // أو fullName إذا موجود من API
+          data.data.user.name
         );
 
         router.push("/");
@@ -106,17 +104,6 @@ export default function Page() {
     }
   }, [status, session, router]);
 
-  const signInWithFacebook = async () => {
-    try {
-      const provider = new FacebookAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      console.log("Facebook user:", result.user);
-    } catch (err: any) {
-      console.error("Facebook sign-in error:", err);
-      alert("حدث خطأ أثناء تسجيل الدخول بـ Facebook");
-    }
-  };
-
   const inputClasses = (hasError: boolean) =>
     `peer w-full border rounded-lg px-3 pt-4 pb-4 text-gray-800 placeholder-transparent focus:outline-none transition-all ${
       hasError ? "border-red-500" : "focus:border-orange-500 border-gray-300"
@@ -141,25 +128,22 @@ export default function Page() {
         </p>
 
         <form className="space-y-6 my-2 mb-1.5" onSubmit={handleSubmit}>
-          <div className="relative w-full">
+         <div className="relative w-full">
             <input
-              id="userInput"
               type="text"
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              className={`peer w-full border ${
-                error ? "border-red-500" : "border-gray-300"
-              } rounded-lg px-3 pt-4 pb-2 text-gray-800 placeholder-transparent focus:outline-none focus:border-blue-500 transition-all`}
-              placeholder="أدخل بريدك الإلكتروني أو رقم الهاتف"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className={inputClasses(!!errors.email)}
+              placeholder="البريد الإلكتروني"
             />
-            <label
-              htmlFor="userInput"
-              className="absolute right-3 top-1/2 -translate-y-1/2 bg-white px-1 text-gray-500 text-base transition-all duration-200
-                peer-placeholder-shown:top-1/2 peer-placeholder-shown:text-gray-400 peer-placeholder-shown:text-base
-                peer-focus:-top-2 peer-focus:text-sm peer-focus:text-blue-500 peer-focus:px-1"
-            >
-              أدخل بريدك الإلكتروني أو رقم الهاتف
+            <label className={labelClasses(!!errors.email)}>
+              البريد الإلكتروني
             </label>
+            {errors.email && (
+              <p className="text-red-500 text-sm text-right mt-1">
+                {errors.email}
+              </p>
+            )}
           </div>
 
           {error && (
@@ -184,10 +168,16 @@ export default function Page() {
               onClick={() => setShowPassword(!showPassword)}
               className="absolute end-3 top-1/2 -translate-y-1/2 text-gray-700 cursor-pointer"
             >
-              {showPassword ? <BiSolidShow size={25} /> : <BiSolidHide size={25} />}
+              {showPassword ? (
+                <BiSolidShow size={25} />
+              ) : (
+                <BiSolidHide size={25} />
+              )}
             </div>
             {errors.password && (
-              <p className="text-red-500 text-sm text-right">{errors.password}</p>
+              <p className="text-red-500 text-sm text-right">
+                {errors.password}
+              </p>
             )}
           </div>
 
@@ -219,30 +209,7 @@ export default function Page() {
           <label className="bg-white p-1 absolute top-[-19] left-[27%] text-gray-500">
             أو سجل دخول عن طريق
           </label>
-          <button onClick={signInWithFacebook}>
-            <div className="h-fit p-2 flex items-center justify-center gap-2 rounded-full border border-gray-200 hover:shadow transition duration-100 cursor-pointer">
-              <p>فيس بوك</p>
-              <Image src="./images/f.avif" alt="facebook" width={22} height={22} />
-            </div>
-          </button>
-          <button
-            onClick={async () => {
-              try {
-                const response = await signIn("google", {
-                  prompt: "select_account",
-                  redirect: false,
-                });
-                console.log("Google SignIn response:", response);
-              } catch (error) {
-                console.error("Error during Google SignIn:", error);
-              }
-            }}
-          >
-            <div className="h-fit p-2 flex items-center justify-center gap-2 rounded-full border border-gray-200 hover:shadow transition duration-100 cursor-pointer">
-              <p>جوجل</p>
-              <Image src="./images/g.png" alt="Google" width={28} height={28} style={{ height: "auto" }} />
-            </div>
-          </button>
+          <LoginWithGoogle />
         </div>
       </div>
     </div>

@@ -1,16 +1,21 @@
 "use client";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function ForgetPasswordPage() {
   const [email, setEmail] = useState("");
   const [codeSent, setCodeSent] = useState(false);
-  const [code, setCode] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const router = useRouter();
+
+  // OTP state (6 digits)
+  const [otpDigits, setOtpDigits] = useState(Array(6).fill(""));
+
   const API_URL = "https://ecommecekhaled.renix4tech.com/api/v1";
 
-  // ارسال الايميل وطلب كود
+  // إرسال الكود
   const handleSendCode = async () => {
     if (!email.trim()) {
       setMessage("من فضلك أدخل بريدك الإلكتروني");
@@ -19,12 +24,15 @@ export default function ForgetPasswordPage() {
     try {
       setLoading(true);
       setMessage("");
-      const res = await fetch(`${API_URL}/auth/forget-password`, {
+
+      const res = await fetch(`${API_URL}/auth/send-otp`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
+
       const data = await res.json();
+
       if (res.ok) {
         setMessage("تم إرسال كود التحقق إلى بريدك الإلكتروني");
         setCodeSent(true);
@@ -32,7 +40,6 @@ export default function ForgetPasswordPage() {
         setMessage(data.message || "حدث خطأ أثناء الإرسال");
       }
     } catch (err) {
-      console.error(err);
       setMessage("فشل الاتصال بالخادم");
     } finally {
       setLoading(false);
@@ -41,26 +48,34 @@ export default function ForgetPasswordPage() {
 
   // تأكيد الكود
   const handleConfirmCode = async () => {
-    if (code.length !== 6) {
+    const finalCode = otpDigits.join(""); // دمج الخانات
+
+    if (finalCode.length !== 6) {
       setMessage("الرجاء إدخال الكود المكون من 6 أرقام");
       return;
     }
+
     try {
       setLoading(true);
       setMessage("");
+
       const res = await fetch(`${API_URL}/auth/verify-code`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, code }),
+        body: JSON.stringify({ email, code: finalCode }),
       });
+
       const data = await res.json();
-      if (res.ok) {
-        setMessage("تم التحقق بنجاح، يمكنك الآن إعادة تعيين كلمة المرور");
-      } else {
-        setMessage(data.message || "الكود غير صحيح");
-      }
+
+      setMessage("تم التحقق بنجاح، جاري الانتقال لإعادة تعيين كلمة المرور...");
+
+      router.push(
+        `/login/resetpassword?email=${encodeURIComponent(email)}&code=${encodeURIComponent(
+          finalCode
+        )}`
+      );
+
     } catch (err) {
-      console.error(err);
       setMessage("فشل الاتصال بالخادم");
     } finally {
       setLoading(false);
@@ -78,6 +93,9 @@ export default function ForgetPasswordPage() {
         </p>
 
         {!codeSent ? (
+          // =============================
+          //          EMAIL INPUT
+          // =============================
           <div className="flex flex-col gap-4">
             <input
               type="email"
@@ -95,17 +113,45 @@ export default function ForgetPasswordPage() {
             </button>
           </div>
         ) : (
+          // =============================
+          //          OTP INPUT
+          // =============================
           <div className="flex flex-col gap-4">
-            <p className="text-gray-600">
-              تم إرسال الكود إلى بريدك الإلكتروني، أدخله هنا:
-            </p>
-            <input
-              type="text"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              placeholder="الكود المكون من 6 أرقام"
-              className="w-full border rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500"
-            />
+            <p className="text-gray-600">تم إرسال الكود إلى بريدك الإلكتروني</p>
+
+            {/* OTP 6 DIGITS */}
+            <div className="flex justify-center gap-2">
+              {otpDigits.map((digit, index) => (
+                <input
+                  key={index}
+                  id={`otp-${index}`}
+                  type="text"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/\D/, ""); 
+                    const newOtp = [...otpDigits];
+                    newOtp[index] = value;
+                    setOtpDigits(newOtp);
+
+                    if (value && index < 5) {
+                      const next = document.getElementById(`otp-${index + 1}`);
+                      next?.focus();
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Backspace" && !otpDigits[index] && index > 0) {
+                      const prev = document.getElementById(`otp-${index - 1}`);
+                      prev?.focus();
+                    }
+                  }}
+                  className="w-12 h-12 text-center text-lg font-semibold 
+                            border border-gray-300 rounded-lg 
+                            focus:border-blue-600 focus:outline-none transition-all"
+                />
+              ))}
+            </div>
+
             <button
               onClick={handleConfirmCode}
               disabled={loading}
@@ -116,6 +162,7 @@ export default function ForgetPasswordPage() {
           </div>
         )}
 
+        {/* رسائل */}
         {message && (
           <p
             className={`mt-3 font-semibold ${

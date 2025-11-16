@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import React, { useEffect, useRef, useState } from "react";
-import { signOut, useSession } from "next-auth/react";
+import { signOut as nextAuthSignOut, useSession } from "next-auth/react";
 import {
   FaAngleDown,
   FaHeart,
@@ -18,6 +18,7 @@ import {
 
 import { useAuth } from "@/src/context/AuthContext";
 import Image from "next/image";
+import toast from "react-hot-toast";
 
 export default function DropdownUser() {
   const [open, setOpen] = useState(false);
@@ -26,11 +27,12 @@ export default function DropdownUser() {
   const { fullName, userImage, logout } = useAuth();
   const { data: session } = useSession();
 
+  // الاسم والصورة اللي هنعرضها
   const displayName = fullName || session?.user?.name || "مستخدم";
-
   const displayImage =
     userImage || session?.user?.image || "/images/default-user.png";
 
+  // إغلاق dropdown لما نضغط خارج
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -45,31 +47,46 @@ export default function DropdownUser() {
 
   const handleLinkClick = () => setOpen(false);
 
-  const handleLogout = () => {
-    logout();
-    signOut({ callbackUrl: "/login" });
+  const handleLogout = async () => {
+    try {
+      // تسجيل الخروج من Context أو Firebase
+      logout?.();
+      // تسجيل الخروج من NextAuth
+      await nextAuthSignOut({ redirect: false });
+      toast.success("تم تسجيل الخروج بنجاح!");
+      // إعادة التوجيه لصفحة تسجيل الدخول
+      window.location.href = "/login";
+    } catch (err) {
+      console.error("Logout error:", err);
+      toast.error("فشل تسجيل الخروج، حاول مرة أخرى");
+    }
   };
 
   return (
-    <div className="relative hidden1" ref={menuRef}>
-      {/* user button */}
+    <div className="relative" ref={menuRef}>
+      {/* زر المستخدم */}
       <div
         className="flex items-center gap-3 bg-gray-100 text-gray-700 cursor-pointer p-2 rounded"
         onClick={() => setOpen(!open)}
       >
-        <FaRegUser size={20} />
-
+        <Image
+          src={displayImage}
+          alt="User"
+          width={32}
+          height={32}
+          className="rounded-full"
+        />
         <div className="flex flex-col">
           <p>
-            أهلاً ,<span className=" capitalize "> {displayName}</span>
+            أهلاً , <span className="capitalize">{displayName}</span>
           </p>
         </div>
         <FaAngleDown />
       </div>
 
-      {/* dropdown menu */}
+      {/* Dropdown */}
       <div
-        className={`absolute top-[4.1rem] end-0 bg-white shadow-2xl rounded-xl p-2 z-50 w-47 flex flex-col transition-all duration-300 ${
+        className={`absolute top-[4.1rem] end-0 bg-white shadow-2xl rounded-xl p-2 z-50 w-48 flex flex-col transition-all duration-300 ${
           open
             ? "opacity-100 translate-y-0 pointer-events-auto"
             : "opacity-0 -translate-y-3 pointer-events-none"
