@@ -205,7 +205,7 @@ export default function Page() {
           </Link>
         </div>
 
-        <div className="relative border-t border-gray-200 grid grid-cols-1 lg:grid-cols-2 gap-3 py-2 pt-8">
+        <div className="relative border-t border-gray-200 grid grid-cols-1 gap-3 py-2 pt-8">
           <label className="bg-white p-1 absolute top-[-19] left-[27%] text-gray-500">
             أو سجل دخول عن طريق
           </label>

@@ -49,13 +49,16 @@ export default function LoginWithGoogle() {
   const handleSocialSignIn = async (providerType: "google" | "facebook") => {
     setLoading(true);
     try {
-      const provider = providerType === "google" ? googleProvider : facebookProvider;
+      const provider =
+        providerType === "google" ? googleProvider : facebookProvider;
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       await sendUserDataToBackend(user, providerType);
     } catch (error: any) {
       console.error(`${providerType} login error:`, error);
-      toast.error(`فشل تسجيل الدخول بـ${providerType === "google" ? "جوجل" : "الفيسبوك"}`);
+      toast.error(
+        `فشل تسجيل الدخول بـ${providerType === "google" ? "جوجل" : "الفيسبوك"}`
+      );
     } finally {
       setLoading(false);
     }
@@ -63,33 +66,24 @@ export default function LoginWithGoogle() {
 
   return (
     <>
-      <button
-        onClick={() => handleSocialSignIn("facebook")}
-        disabled={loading}
-      >
-        <div className={`h-fit p-2 flex items-center justify-center gap-2 rounded-full border border-gray-200 hover:shadow transition duration-100 cursor-pointer ${loading ? "opacity-50" : ""}`}>
-          {loading ? (
-            <p>جاري تسجيل الدخول...</p>
-          ) : (
-            <>
-              <p>فيس بوك</p>
-              <Image src="./images/f.avif" alt="facebook" width={22} height={22} />
-            </>
-          )}
-        </div>
-      </button>
-
-      <button
-        onClick={() => handleSocialSignIn("google")}
-        disabled={loading}
-      >
-        <div className={`h-fit p-2 flex items-center justify-center gap-2 rounded-full border border-gray-200 hover:shadow transition duration-100 cursor-pointer ${loading ? "opacity-50" : ""}`}>
+      <button onClick={() => handleSocialSignIn("google")} disabled={loading}>
+        <div
+          className={`h-fit p-2 flex items-center justify-center gap-2 rounded-full border border-gray-200 hover:shadow transition duration-100 cursor-pointer ${
+            loading ? "opacity-50" : ""
+          }`}
+        >
           {loading ? (
             <p>جاري تسجيل الدخول...</p>
           ) : (
             <>
               <p>جوجل</p>
-              <Image src="./images/g.png" alt="Google" width={28} height={28} style={{ height: "auto" }} />
+              <Image
+                src="./images/g.png"
+                alt="Google"
+                width={28}
+                height={28}
+                style={{ height: "auto" }}
+              />
             </>
           )}
         </div>

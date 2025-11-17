@@ -1,11 +1,13 @@
-export interface CategoriesI {
+export interface CategoryI {
   id: number;
   name: string;
   slug: string;
   description: string;
-  parent_id: null;
+  children?: CategoryI[];
   order: number;
-  status_id: number;
-  created_at?: string;
-  updated_at?: string;
+  image: string;
+  sub_image: string;
+   parent_id?: null;
+  is_parent: boolean;
+  status_id?: number;
 }

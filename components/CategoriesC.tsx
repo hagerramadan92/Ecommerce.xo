@@ -7,12 +7,12 @@ import "swiper/css";
 import "swiper/css/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { CategoriesI } from "@/Types/CategoriesI";
+import { CategoryI } from "@/Types/CategoriesI";
 
 
 
 interface CategoriesSliderProps {
-  categories: CategoriesI[];
+  categories: CategoryI[];
 }
 
 export default function CategoriesSlider({
@@ -55,7 +55,7 @@ export default function CategoriesSlider({
               <div className="flex flex-col items-center gap-1 group">
                 <div className="relative w-14 h-14 md:w-[90px] md:h-[90px] bg-[#f0f4f7] rounded-full overflow-hidden transition-all duration-300">
                   <Image
-                    src="/images/cat1.png"
+                    src={cat.image||"/images/cat1.png"}
                     alt={cat.name}
                     fill
                     className="object-cover rounded-full"

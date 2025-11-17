@@ -7,22 +7,43 @@ import Link from "next/link";
 import { categories, link } from "@/Types/data";
 import SubIcon from "./subIcon";
 import CategoriesDropdown from "./DropdownComponent";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AiOutlineCloseCircle } from "react-icons/ai";
 import SearchComponent from "./SearchComponent";
 import CartSidebar from "./CartSideBar";
 import DropdownUser from "./DropdownUser";
 import { useAuth } from "@/src/context/AuthContext";
+import { CategoryI } from "@/Types/CategoriesI";
+import { fetchApi } from "@/lib/api";
 
 export default function SearchNavbar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const categories2 = link;
-  const links2 = categories;
+  // const links2 = categories;
 
-  const { fullName } = useAuth(); // حالة تسجيل الدخول
+  const { fullName } = useAuth(); 
+ const [categories, setCategories] = useState<CategoryI[]>([]);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    const getCats = async () => {
+      try {
+        const data = await fetchApi("categories?type=parent");
+        setCategories(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.log("Error fetching categories:", error);
+        setCategories([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getCats();
+  }, []);
+
+  if (loading) return <div>Loading…</div>;
   return (
     <>
       {/* Navbar */}
@@ -120,7 +141,6 @@ export default function SearchNavbar() {
             />
           </div>
 
-          {/* 👇 زر تسجيل الدخول أو DropdownUser */}
           {!fullName ? (
             <Link
               href="/login"
@@ -135,7 +155,6 @@ export default function SearchNavbar() {
         </div>
       </div>
 
-      {/* ✅ Search Bar Animation */}
       <AnimatePresence>
         {searchOpen && (
           <motion.div
@@ -152,7 +171,6 @@ export default function SearchNavbar() {
         )}
       </AnimatePresence>
 
-      {/* ✅ Sidebar Menu Animation */}
       <AnimatePresence>
         {menuOpen && (
           <>
@@ -173,7 +191,7 @@ export default function SearchNavbar() {
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
               className="fixed top-0 right-0 w-full md:w-96 h-full bg-white z-50 shadow-lg flex flex-col py-2"
             >
-              {/* Close Button */}
+          
               <div className="flex justify-between shadow-2xl px-4 pb-3 mb-3">
                 <h1 className="text-2xl font-semibold">سوق</h1>
                 <button
@@ -189,25 +207,28 @@ export default function SearchNavbar() {
                 تسوق حسب الاقسام
               </p>
 
-              {/* Links */}
+        
               <nav className="grid grid-cols-2 gap-2 overflow-y-auto flex-1 px-4">
-                {links2.map((item, index) => (
+                {categories.map((item, index) => (
                   <Link
                     key={index}
                     href={`/category/${item.slug}`}
-                    className="hover:text-pro transition flex items-center gap-2 mb-2"
-                    aria-label={item.title}
+                    className="hover:text-pro transition  mb-2"
+                    aria-label={item.name}
                     onClick={() => setMenuOpen(false)}
                   >
+                 
                     <Image
-                      src={item.src}
+                      src={item.sub_image}
                       width={168}
                       height={80}
-                      alt={item.title}
+                      alt={item.name}
+                     
                     />
                   </Link>
                 ))}
               </nav>
+
             </motion.div>
           </>
         )}

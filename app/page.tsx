@@ -5,36 +5,61 @@ import InStockSlider from "@/components/InStockSlider";
 import ProductCard from "@/components/ProductCard";
 import ShowAll from "@/components/ShowAll";
 import SliderComponent from "@/components/SliderComponent";
+import { fetchApi } from "@/lib/api";
 import { useAppContext } from "@/src/context/AppContext";
+import { BannerI } from "@/Types/BannerI";
 import {
-  inStock,
-  pro,
   sliderImages,
   sliderLinks,
-  Ess,
-  Desc,
   sliderImages2,
-  inStock2,
   Desc2,
-  inStock3,
   Desc3,
   Desc4,
-  inStock4,
-  inStock5,
 } from "@/Types/data";
+import { useEffect, useState } from "react";
 
 export default function Home() {
   const { homeData } = useAppContext();
   const categories1 = homeData?.categories || [];
   const categories2 = homeData?.sub_categories || [];
+  const [mainSlider, setMainSlider] = useState<BannerI[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const getSlider1 = async () => {
+      try {
+        const data = await fetchApi("banners?type=main_slider");
+        setMainSlider(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.log("Error fetching Slider1:", error);
+        setMainSlider([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getSlider1();
+  }, []);
+
+  if (loading) return <div>Loading…</div>;
+
   return (
     <>
       <div className="px-5 lg:px-[18%] rounded-2xl py-6   flex flex-col gap-5">
-        <SliderComponent src={sliderImages} href={sliderLinks} />
+        {mainSlider.length > 0 && (
+          <SliderComponent
+            src={mainSlider[0].items.map((item) => item.image)}
+            href={sliderLinks}
+          />
+        )}
+
         <Discount src="/images/discount.jpg" href="/" />
+
         <CategoriesSlider categories={categories1} />
+
         <Discount src="/images/d3.jpg" href="/" />
         <Discount src="/images/d2.jpg" href="/" />
+
         {categories2.length > 0 && (
           <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7">
             {categories2[0].name}
@@ -162,7 +187,7 @@ export default function Home() {
           Anchor="مشاهدة المزيد"
           link="/"
         />
-      {categories2.length > 0 && categories2[2].products?.length > 0 && (
+        {categories2.length > 0 && categories2[2].products?.length > 0 && (
           <InStockSlider
             inStock={categories2[0].products}
             CardComponent={(props) => (

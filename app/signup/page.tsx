@@ -104,52 +104,7 @@ export default function SignupPage() {
       setLoading(false);
     }
   };
-  const handleGoogleSignIn = async () => {
-    try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
 
-      const user = result.user;
-      if (!user) throw new Error("فشل الحصول على بيانات المستخدم");
-
-      const payload = {
-        provider: "google",
-        provider_id: user.uid, // id الخاص بالمستخدم في Firebase
-        email: user.email || "",
-        name: user.displayName || "",
-      };
-
-      // إرسال البيانات للـ API
-      const apiRes = await fetch(`${API_URL}/auth/social-login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const apiData = await apiRes.json();
-      if (apiRes.ok && apiData.status !== false) {
-        // حفظ التوكن والبيانات محليًا
-        if (apiData.data?.token)
-          localStorage.setItem("auth_token", apiData.data.token);
-        localStorage.setItem("userName", payload.name);
-        localStorage.setItem("fullName", payload.name);
-        localStorage.setItem("userEmail", payload.email);
-
-        // تحديث حالة login في Context
-        const { login } = useAuth();
-        login(payload.name, payload.email, "", payload.name);
-
-        // تحويل للهوم بعد نجاح العملية
-        const router = useRouter();
-        router.push("/");
-      } else {
-        alert(apiData.message || "حدث خطأ أثناء تسجيل الدخول بجوجل");
-      }
-    } catch (err) {
-      console.error("Google signup error:", err);
-      alert("فشل الاتصال بخادم Google");
-    }
-  };
 
   const inputClasses = (hasError: boolean) =>
     `peer w-full border rounded-lg px-3 pt-4 pb-4 text-gray-800 placeholder-transparent focus:outline-none transition-all ${
@@ -163,16 +118,7 @@ export default function SignupPage() {
      peer-focus:-top-2 peer-focus:text-sm peer-focus:text-orange-500
      ${hasError ? "text-red-500" : ""}`;
 
-  const signInWithFacebook = async () => {
-    try {
-      const provider = new FacebookAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      console.log("Facebook user:", result.user);
-    } catch (err: any) {
-      console.error("Facebook sign-in error:", err);
-      alert("حدث خطأ أثناء تسجيل الدخول بـ Facebook");
-    }
-  };
+  
   return (
     <div className="flex flex-col items-center bg-gray-50 px-6 py-10 md:px-[13%] xl:px-[35%]">
       <div className="bg-white shadow-md rounded-2xl p-8 w-full text-center">
@@ -334,7 +280,7 @@ export default function SignupPage() {
             <p className=" underline ">تسجيل دخول</p>
           </Link>
         </div>
-        <div className="relative border-t border-gray-200 grid grid-cols-1 lg:grid-cols-2 gap-3 py-2 pt-8">
+        <div className="relative border-t border-gray-200 grid grid-cols-1  gap-3 py-2 pt-8">
           <label className="bg-white p-1 absolute top-[-19] left-[30%] text-gray-500">
             أو سجل دخول عن طريق
           </label>
