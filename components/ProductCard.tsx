@@ -1,19 +1,21 @@
 "use client";
 import { useState, useEffect } from "react";
 import HearComponent from "./HearComponent";
-import { ProductIn } from "@/Types/ProductIn";
 import PriceComponent from "./PriceComponent";
 import ImageComponent from "./ImageComponent";
 import Link from "next/link";
 import { BsCartPlus } from "react-icons/bs";
-import Toast from "./Toaster";
 import { useCart } from "@/src/context/CartContext";
 import { IoIosStar } from "react-icons/io";
 import { IoStarHalfSharp } from "react-icons/io5";
-import { MdOutlineStarOutline, MdStars } from "react-icons/md";
+import { MdOutlineStarOutline } from "react-icons/md";
 import { BsCart3 } from "react-icons/bs";
-import { PiTruckLight } from "react-icons/pi";
-interface ProductCardProps extends ProductIn {
+import BottomSlider from "./BottomSlider";
+import { useToast } from "../src/context/ToastContext";
+import { ProductI } from "@/Types/ProductsI";
+
+
+interface ProductCardProps extends ProductI {
   className?: string;
   className2?: string;
   className3?: string;
@@ -22,24 +24,21 @@ interface ProductCardProps extends ProductIn {
 
 export default function ProductCard({
   id,
-  img,
-  title,
+  image,
+  name,
   price,
-  oldPrice,
+  final_price,
   discount,
-  stock = 0,
+  stock,
   className,
   className2,
   className3,
   onFavoriteChange,
 }: ProductCardProps) {
   const [isFavorite, setIsFavorite] = useState(false);
-  const [toast, setToast] = useState<{
-    msg: string;
-    img?: string;
-    type: "success" | "warning" | "error";
-  } | null>(null);
+
   const code = 1;
+  const bestSeller = 0;
   const { cart, addToCart } = useCart();
 
   useEffect(() => {
@@ -70,24 +69,33 @@ export default function ProductCard({
     const existing = cart.find((item) => item.id === id);
 
     if (existing) {
+      if (existing.quantity >= 10) {
+        showToast({
+          msg: "لا يمكن إضافة أكثر من 10 قطع!",
+          type: "error",
+        });
+
+        return;
+      }
+
       addToCart({
         id,
-        title,
+        name,
         price,
-        img,
-        quantity: (existing.quantity || 0) + 1,
+        image,
+        quantity: existing.quantity + 1,
       });
     } else {
-      addToCart({ id, title, price, img, quantity: 1 });
+      addToCart({ id, name, price, image, quantity: 1 });
     }
 
-    setToast({
-      msg: "تمت إضافة المنتج إلى العربة بنجاح!",
+    showToast({
+      msg: "تمت إضافة المنتج إلى العربة!",
       type: "success",
-      img,
+      img : image|| "/images/c1.png",
     });
-    setTimeout(() => setToast(null), 3000);
   };
+  const { showToast } = useToast();
 
   return (
     <>
@@ -97,17 +105,13 @@ export default function ProductCard({
      border-gray-200  overflow-hidden pb-4
       hover:shadow-md transition-shadow duration-300 "
         >
-          {toast && (
-            <Toast message={toast.msg} type={toast.type} img={toast.img} />
-          )}
-
           <div className="relative w-full">
             <Link
               aria-label="product image"
               href={`/product/${id}`}
               className="block w-full h-full overflow-hidden"
             >
-              <ImageComponent image={img} />
+              <ImageComponent image={image || "/images/c1.png"} />
             </Link>
 
             <HearComponent liked={isFavorite} onToggleLike={toggleFavorite} />
@@ -148,15 +152,15 @@ export default function ProductCard({
           <div className="px-2 ">
             <Link href={`/product/${id}`}>
               <p className="text-[15px] text-[#252525] my-2 hover:text-[#2c2e2c] transition">
-                {title}
+                {name}
               </p>
             </Link>
 
             <div className="flex gap-1 items-center">
-              <PriceComponent price={price} />
-              {oldPrice && (
+              <PriceComponent final_price={final_price || 1} />
+              {price && (
                 <p className="text-gray-700 line-through text-[0.8rem] mx-1">
-                  {oldPrice}
+                  {price}
                 </p>
               )}
               {discount && (
@@ -164,23 +168,29 @@ export default function ProductCard({
                   className={`font-bold text-[1rem] flex text-[#08b63d] ${className3}`}
                 >
                   <span className="me-1">%</span>
-                  <p>{discount}</p>
+                  <p>{discount.value}</p>
                   <span>-</span>
                 </div>
               )}
             </div>
-            <div className="bestSeller start-0 absolute top-1 text-white bg-[#860808] rounded rounded-br-none rounded-tr-none text-sm w-fit p-1.5">
-              <p>الأكثر مبيعاََ</p>
-            </div>
+            {bestSeller > 0 && (
+              <div className="bestSeller start-0 absolute top-1 text-white bg-[#860808] rounded rounded-br-none rounded-tr-none text-sm w-fit p-1.5">
+                <p>الأكثر مبيعاََ</p>
+              </div>
+            )}
 
-            <div className="px-2 py-1 border border-gray-300 rounded w-fit">
+            <div className="px-2 py-1 border border-gray-300 rounded w-fit mt-3">
               <p className="text-gray-600">
                 <span>2</span>
                 مقاسات
               </p>
             </div>
             <button
-              onClick={handleAddToCart}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleAddToCart();
+              }}
               className={`${className2} mb-0 mt-2 text-end cursor-pointer w-full`}
             >
               <div className="flex text-pro rounded justify-center border-pro p-2 items-center border gap-2">
@@ -188,24 +198,20 @@ export default function ProductCard({
                 <BsCartPlus className="text-pro" />
               </div>
             </button>
-            <div className=" absolute end-1 top-45 bg-white p-1 rounded-full text-pro text-xl cursor-pointer hover:text-orange-300">
-              <BsCart3 className="text-blue-950 hover:text-orange-500 transition duration-150 " />
-            </div>
-            <div>
-              <div className="flex items-center ">
-                <PiTruckLight />
-                <p>شحن مجاني</p>
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                handleAddToCart();
+              }}
+            >
+              <div className=" absolute end-1 top-45 bg-white p-1 rounded-full text-pro text-xl cursor-pointer hover:text-orange-300">
+                <BsCart3 className="text-blue-950 hover:text-orange-500 transition duration-150 " />
               </div>
-              <div className="flex items-center ">
-                <MdStars />
-                <p>#1 في ديكورات الأطفال</p>
-              </div>
-              <div className="flex items-center ">
-                <p>!</p>
-                <p>
-                  متبقي <span>1</span> فقط في المخزن
-                </p>
-              </div>
+            </button>
+
+            <div className="mt-5">
+              <BottomSlider />
             </div>
           </div>
         </div>

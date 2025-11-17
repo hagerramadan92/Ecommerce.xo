@@ -39,14 +39,20 @@ const nextConfig: NextConfig = {
       port: "",
       pathname: "/**",
     },
+    {
+      protocol:"https",
+      hostname:"eg-rv.homzmart.net",
+      port:"",
+      pathname:"/**"
+    }
   ],
+  
   unoptimized: true,
   minimumCacheTTL: 86400,
   formats: ["image/avif", "image/webp"],
 },
 
-
-  reactStrictMode: true,
+ reactStrictMode: false,
   poweredByHeader: false,
 
   output: "standalone",

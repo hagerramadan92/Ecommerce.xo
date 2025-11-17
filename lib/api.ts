@@ -20,6 +20,6 @@ export async function fetchHomeData() {
     return data.data;
   } catch (err) {
     console.error("Error fetching home data:", err);
-    throw err; // علشان يظهر في الـ Context بدل ما يرجع null
+    throw err;
   }
 }

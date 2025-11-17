@@ -2,13 +2,15 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { fetchHomeData } from "@/lib/api"; 
 import { CategoriesI } from "@/Types/CategoriesI";
-import { ProductsI } from "@/Types/ProductsI";
+import { ProductI } from "@/Types/ProductsI";
+import { SubCategoriesI } from "@/Types/SubCategoriesI";
 
 
 
 interface HomeData {
   categories: CategoriesI[];
-  products: ProductsI[];
+  products: ProductI[];
+  sub_categories:SubCategoriesI[]
 }
 
 interface AppContextType {

@@ -5,12 +5,12 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
 import "swiper/css";
 import "swiper/css/navigation";
-import { ProductIn } from "@/Types/ProductIn";
+import { ProductI } from "@/Types/ProductsI";
 
 
 interface InStockSliderProps {
-  inStock: ProductIn[];
-   CardComponent: React.ComponentType<ProductIn>;
+  inStock: ProductI[];
+   CardComponent: React.ComponentType<ProductI>;
 }
 
 export default function InStockSlider({ inStock , CardComponent }: InStockSliderProps) {
@@ -85,10 +85,11 @@ export default function InStockSlider({ inStock , CardComponent }: InStockSlider
       >
         {inStock.map((des, index) => (
           <SwiperSlide key={index}>
-             <CardComponent id={des.id} img={des.img} title={des.title} price={des.price} stock={des.stock}  oldPrice={des.oldPrice}  discount={des.discount}/>
+             <CardComponent id={des.id} 
+             image={des.image} name={des.name} price={des.price} stock={des.stock}  final_price={des.final_price}  discount={des.discount}/>
           </SwiperSlide>
         ))}
-      </Swiper>
+      </Swiper>  
     </div>
   );
 }

@@ -1,7 +1,7 @@
 export interface ProductIn{
   id: number ;
-  img:string,
-  title:string,
+  image:string | null,
+  name:string,
   description?:string,
   stock?:number,
   price:string ,

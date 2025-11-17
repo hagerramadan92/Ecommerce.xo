@@ -26,6 +26,7 @@ import {
 export default function Home() {
   const { homeData } = useAppContext();
   const categories1 = homeData?.categories || [];
+  const categories2 = homeData?.sub_categories || [];
   return (
     <>
       <div className="px-5 lg:px-[18%] rounded-2xl py-6   flex flex-col gap-5">
@@ -34,43 +35,83 @@ export default function Home() {
         <CategoriesSlider categories={categories1} />
         <Discount src="/images/d3.jpg" href="/" />
         <Discount src="/images/d2.jpg" href="/" />
-        <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7">
-          غرفة سفرة و مطبخ
-        </h2>
+        {categories2.length > 0 && (
+          <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7">
+            {categories2[0].name}
+          </h2>
+        )}
+
         <Discount src="/images/k1.jpg" href="/" />
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 ">
-          {Desc.map((des, index) => (
-            <div className="flex" key={index}>
-              <Discount src={des.img} href={des.href} />
+
+        <div>
+          {categories2.length > 0 && categories2[0].products?.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 ">
+              {categories2[0].products.map((des, index) => (
+                <div className="flex" key={des.id || index}>
+                  <Discount
+                    src={des.image ? des.image : "images/c1.png"}
+                    href={des.slug ? `/${des.slug}` : "/"}
+                  />
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
-        <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7">
-          أساسيات غرفة السفرة
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3  gap-5">
-          {Ess.map((des, index) => (
-            <div className="flex" key={index}>
-              <Discount src={des.img} href={des.href} />
+
+        {categories2.length > 0 && (
+          <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7">
+            {categories2[1].name}
+          </h2>
+        )}
+
+        <div>
+          {categories2.length > 0 && categories2[1].products?.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 ">
+              {categories2[0].products.map((des, index) => (
+                <div className="flex" key={des.id || index}>
+                  <Discount
+                    src={des.image ? des.image : "images/c1.png"}
+                    href={des.slug ? `/${des.slug}` : "/"}
+                  />
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
-        <div className=" grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 mt-10">
-          {Ess.map((des, index) => (
-            <div className="flex" key={index}>
-              <Discount src={des.img} href={des.href} />
+        <div>
+          {categories2.length > 0 && categories2[3].products?.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-5 ">
+              {categories2[0].products.map((des, index) => (
+                <div className="flex" key={des.id || index}>
+                  <Discount
+                    src={des.image ? des.image : "images/c1.png"}
+                    href={des.slug ? `/${des.slug}` : "/"}
+                  />
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
-        <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7">
-          أجهزة هتسهل عليك حياتك
-        </h2>
-        <div className=" grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 ">
-          {pro.map((des, index) => (
-            <div className="flex" key={index}>
-              <Discount src={des.img} href={des.href} />
+
+        {categories2.length > 0 && (
+          <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7">
+            {categories2[2].name}
+          </h2>
+        )}
+
+        <div>
+          {categories2.length > 0 && categories2[3].products?.length > 0 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-5 ">
+              {categories2[0].products.map((des, index) => (
+                <div className="flex" key={des.id || index}>
+                  <Discount
+                    src={des.image ? des.image : "images/c1.png"}
+                    href={des.slug ? `/${des.slug}` : "/"}
+                  />
+                </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
         <ShowAll
           title="جدد مطبخك بأحدث الأجهزة"
@@ -78,10 +119,15 @@ export default function Home() {
           link="/"
         />
 
-        <InStockSlider
-          inStock={inStock}
-          CardComponent={(props) => <ProductCard {...props} className="flex" className2="hidden" />}
-        />
+        {categories2.length > 0 && categories2[0].products?.length > 0 && (
+          <InStockSlider
+            inStock={categories2[0].products}
+            CardComponent={(props) => (
+              <ProductCard {...props} className="flex" className2="hidden" />
+            )}
+          />
+        )}
+
         <SliderComponent src={sliderImages2} href={sliderLinks} />
         <Discount src="/images/d4.jpg" href="/" />
         <ShowAll
@@ -89,15 +135,21 @@ export default function Home() {
           Anchor="مشاهدة المزيد"
           link="/"
         />
-        <InStockSlider
-          inStock={inStock2}
-          CardComponent={(props) => (
-            <ProductCard {...props} className="hidden" className2="hidden"  />
-          )}
-        />
-        <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7">
-          جدّد قعدة بيتك دلوقتي
-        </h2>
+        {categories2.length > 0 && categories2[1].products?.length > 0 && (
+          <InStockSlider
+            inStock={categories2[0].products}
+            CardComponent={(props) => (
+              <ProductCard {...props} className="hidden" className2="hidden" />
+            )}
+          />
+        )}
+
+        {categories2.length > 0 && (
+          <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7">
+            {categories2[3].name}
+          </h2>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 ">
           {Desc2.map((des, index) => (
             <div className="flex" key={index}>
@@ -110,15 +162,21 @@ export default function Home() {
           Anchor="مشاهدة المزيد"
           link="/"
         />
-        <InStockSlider
-          inStock={inStock3}
-          CardComponent={(props) => (
-            <ProductCard {...props} className="hidden" className2="hidden"  />
-          )}
-        />
-        <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7">
-          كل التفاصيل اللي أوضة نومك محتاجها
-        </h2>
+      {categories2.length > 0 && categories2[2].products?.length > 0 && (
+          <InStockSlider
+            inStock={categories2[0].products}
+            CardComponent={(props) => (
+              <ProductCard {...props} className="hidden" className2="hidden" />
+            )}
+          />
+        )}
+
+        {categories2.length > 0 && (
+          <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7">
+            {categories2[4].name}
+          </h2>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 my-4">
           {Desc3.map((des, index) => (
             <div className="flex" key={index}>
@@ -127,9 +185,12 @@ export default function Home() {
           ))}
         </div>
         <Discount src="/images/d5.jpg" href="/" />
-        <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7 mt-2">
-          أكتشف أساس المكتب المثالي
-        </h2>
+        {categories2.length > 0 && (
+          <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7">
+            {categories2[5].name}
+          </h2>
+        )}
+
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-5 my-4">
           {Desc4.map((des, index) => (
             <div className="flex" key={index}>
@@ -137,35 +198,43 @@ export default function Home() {
             </div>
           ))}
         </div>
-        <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7 mt-2">
-          أكتشف أساس المكتب للأطفال
-        </h2>
-        <InStockSlider
-          inStock={inStock4}
-          CardComponent={(props) => (
-            <ProductCard {...props} className="hidden" className2="hidden"  />
-          )}
-        />
 
-        <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7 mt-2">
-          أكتشف معدات الرياضة دلوقتي
-        </h2>
+        {categories2.length > 0 && (
+          <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7">
+            {categories2[6].name}
+          </h2>
+        )}
+
+        {categories2.length > 0 && categories2[1].products?.length > 0 && (
+          <InStockSlider
+            inStock={categories2[0].products}
+            CardComponent={(props) => (
+              <ProductCard {...props} className="hidden" className2="hidden" />
+            )}
+          />
+        )}
+
+        {categories2.length > 0 && (
+          <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7">
+            {categories2[6].name}
+          </h2>
+        )}
+
         <Discount src="/images/d7.jpg" href="/" />
         <ShowAll
           title="اكتشف أفضل أجهزة الجري"
           Anchor="مشاهدة المزيد"
           link="/"
         />
-        <InStockSlider
-          inStock={inStock5}
-          CardComponent={(props) => <ProductCard {...props} className="flex" className2="hidden" />}
-        />
-      
+        {categories2.length > 0 && categories2[1].products?.length > 0 && (
+          <InStockSlider
+            inStock={categories2[0].products}
+            CardComponent={(props) => (
+              <ProductCard {...props} className="hidden" className2="hidden" />
+            )}
+          />
+        )}
       </div>
-
-      
-     
-   
     </>
   );
 }
