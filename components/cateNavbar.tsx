@@ -28,7 +28,7 @@ export default function CateNavbar() {
   if (loading) return <div>Loading…</div>;
 
   return (
-    <div className="hidden1 justify-between py-2.5 px-[5%] xl:px-[18%] shadow">
+    <div className="hidden1 justify-between py-2.5 px-[5%] xl:px-[15%] shadow">
       {categories.map((cat) => (
         <div key={cat.id} className="group relative px-3 cursor-pointer">
           <Link

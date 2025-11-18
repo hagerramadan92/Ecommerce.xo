@@ -17,11 +17,13 @@ import {
   Desc4,
 } from "@/Types/data";
 import { useEffect, useState } from "react";
+import Loading from "./loading";
 
 export default function Home() {
   const { homeData } = useAppContext();
   const categories1 = homeData?.categories || [];
   const categories2 = homeData?.sub_categories || [];
+  // const mainSlider = homeData?.sub_categories || [];
   const [mainSlider, setMainSlider] = useState<BannerI[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -41,7 +43,7 @@ export default function Home() {
     getSlider1();
   }, []);
 
-  if (loading) return <div>Loading…</div>;
+  if (loading) return <Loading/>;
 
   return (
     <>
@@ -56,7 +58,10 @@ export default function Home() {
         <Discount src="/images/discount.jpg" href="/" />
 
         <CategoriesSlider categories={categories1} />
+  
+        <Discount src="/images/d3.jpg" href="/" />
 
+          
         <Discount src="/images/d3.jpg" href="/" />
         <Discount src="/images/d2.jpg" href="/" />
 
@@ -148,7 +153,7 @@ export default function Home() {
           <InStockSlider
             inStock={categories2[0].products}
             CardComponent={(props) => (
-              <ProductCard {...props} className="flex" className2="hidden" />
+              <ProductCard {...props} className="flex" className2="hidden"  classNameHome="hidden"/>
             )}
           />
         )}
@@ -164,7 +169,7 @@ export default function Home() {
           <InStockSlider
             inStock={categories2[0].products}
             CardComponent={(props) => (
-              <ProductCard {...props} className="hidden" className2="hidden" />
+              <ProductCard {...props} className="hidden" className2="hidden" classNameHome="hidden" />
             )}
           />
         )}
@@ -191,7 +196,7 @@ export default function Home() {
           <InStockSlider
             inStock={categories2[0].products}
             CardComponent={(props) => (
-              <ProductCard {...props} className="hidden" className2="hidden" />
+              <ProductCard {...props} className="hidden" className2="hidden" classNameHome="hidden" />
             )}
           />
         )}
@@ -234,7 +239,7 @@ export default function Home() {
           <InStockSlider
             inStock={categories2[0].products}
             CardComponent={(props) => (
-              <ProductCard {...props} className="hidden" className2="hidden" />
+              <ProductCard {...props} className="hidden" className2="hidden" classNameHome="hidden"/>
             )}
           />
         )}
@@ -255,7 +260,7 @@ export default function Home() {
           <InStockSlider
             inStock={categories2[0].products}
             CardComponent={(props) => (
-              <ProductCard {...props} className="hidden" className2="hidden" />
+              <ProductCard {...props} className="hidden" className2="hidden" classNameHome="hidden" />
             )}
           />
         )}

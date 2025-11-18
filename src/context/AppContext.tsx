@@ -14,12 +14,14 @@ import { fetchApi } from "@/lib/api";
 import {  CategoryI } from "@/Types/CategoriesI";
 import { ProductI } from "@/Types/ProductsI";
 import { SubCategoriesI } from "@/Types/SubCategoriesI";
+import { BannerI } from "@/Types/BannerI";
 
 
 interface HomeData {
   categories: CategoryI[];
   products: ProductI[];
   sub_categories: SubCategoriesI[];
+  sliders:BannerI[]
 }
 
 
@@ -63,6 +65,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         // 3) Categories Child
         const children = await fetchApi("categories?type=child");
         setChildCategories(Array.isArray(children) ? children : []);
+
+        
 
       } catch (err: any) {
         setError(err.message || "فشل تحميل البيانات");

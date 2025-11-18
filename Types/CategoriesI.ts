@@ -10,4 +10,14 @@ export interface CategoryI {
    parent_id?: null;
   is_parent: boolean;
   status_id?: number;
+  category_banners?:any[]
 }
+ 
+              
+              
+               
+               
+      
+             
+              
+      
