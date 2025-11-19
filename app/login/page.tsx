@@ -9,7 +9,7 @@ import { useAuth } from "@/src/context/AuthContext";
 import LoginWithGoogle from "@/components/loginWithGoogle";
 
 export default function Page() {
-  const [value, setValue] = useState("");
+  // const [value, setValue] = useState("");
    const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -41,7 +41,7 @@ export default function Page() {
     setErrors({});
     setMessage(null);
 
-    const validationError = validateInput(value);
+    const validationError = validateInput(email);
     if (validationError) {
       setError(validationError);
       return;
@@ -59,7 +59,7 @@ export default function Page() {
           Accept: "application/json",
         },
         body: JSON.stringify({
-          email: value,
+          email: email,
           password,
         }),
       });

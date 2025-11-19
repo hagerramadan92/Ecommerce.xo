@@ -19,7 +19,7 @@ export interface ProductCategory {
 
 export interface ProductDiscount {
   value: string;
-  type: "percentage" | "fixed";
+  type: string;
 }
 
 export interface ProductDeliveryTime {
