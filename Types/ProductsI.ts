@@ -71,6 +71,7 @@ export interface ProductI {
   has_discount?: boolean;
   includes_tax?: boolean;
   includes_shipping?: boolean;
+  is_favorite?: boolean;
   stock: number;
   image: string | null;
   average_rating?: number;
@@ -84,7 +85,7 @@ export interface ProductI {
   sizes?: ProductSize[];
   offers?: ProductOffer[];
   materials?: ProductMaterial[];
-  quantity?:number
+
 }
 
 

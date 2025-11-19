@@ -4,9 +4,10 @@ import QuantityCounter from "@/components/QuantityCounter";
 import ButtonComponent from "./ButtonComponent";
 import ImageComponent from "./ImageComponent";
 import { ProductIn } from "@/Types/ProductIn";
+import { ProductI } from "@/Types/ProductsI";
 
 interface PlansPaymentProps {
-  product: ProductIn; 
+  product: ProductI; 
 }
 
 export default function PlansPayment({product}:PlansPaymentProps) {

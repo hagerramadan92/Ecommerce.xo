@@ -5,10 +5,11 @@ import ButtonComponent from "@/components/ButtonComponent";
 import Toast from "@/components/Toaster";
 import { useCart } from "@/src/context/CartContext";
 import { ProductIn } from "@/Types/ProductIn";
+import { ProductI } from "@/Types/ProductsI";
 
 
 interface QuantityCounterProps {
-  product: ProductIn
+  product: ProductI
 }
 
 export default function QuantityCounter({ product }: QuantityCounterProps) {
@@ -40,15 +41,15 @@ export default function QuantityCounter({ product }: QuantityCounterProps) {
    
     const exists = cart.find(item => item.id === product.id);
 
-    if (exists) {
+    // if (exists) {
    
-      addToCart({ ...product, quantity: quant });
-    } else {
+    //   addToCart({ ...product, quantity: quant });
+    // } else {
   
-      addToCart({ ...product, quantity: quant });
-    }
+    //   addToCart({ ...product, quantity: quant });
+    // }
 
-    showToast("تمت إضافة المنتج إلى العربة بنجاح!", "success", product.img);
+    showToast("تمت إضافة المنتج إلى العربة بنجاح!", "success", product.image || "");
   };
 
   return (

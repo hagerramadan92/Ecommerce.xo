@@ -1,22 +1,19 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import HearComponent from "./HearComponent";
 import PriceComponent from "./PriceComponent";
 import ImageComponent from "./ImageComponent";
 import Link from "next/link";
-import { BsCartPlus, BsEye } from "react-icons/bs";
+import { BsCartPlus, BsCart3 } from "react-icons/bs";
 import { useCart } from "@/src/context/CartContext";
-import { IoIosStar } from "react-icons/io";
-import { IoStarHalfSharp } from "react-icons/io5";
-import { MdOutlineStarOutline } from "react-icons/md";
-import { BsCart3 } from "react-icons/bs";
 import BottomSlider from "./BottomSlider";
 import { useToast } from "../src/context/ToastContext";
 import { ProductI } from "@/Types/ProductsI";
-import { BiShowAlt } from "react-icons/bi";
-import { GoEye } from "react-icons/go";
 import ShowImage from "./ShowImage";
 import RatingStars from "./RatingStars";
+import toast from "react-hot-toast";
+import { useAuth } from "@/src/context/AuthContext";
+import { GoEye } from "react-icons/go";
 
 interface ProductCardProps extends ProductI {
   className?: string;
@@ -24,7 +21,7 @@ interface ProductCardProps extends ProductI {
   className3?: string;
   classNameHome?: string;
   classNameCate?: string;
-  onFavoriteChange?: () => void;
+  onFavoriteChange?: (productId: number, newValue: boolean) => void; // تمرير ID والحالة الجديدة
 }
 
 export default function ProductCard({
@@ -41,207 +38,177 @@ export default function ProductCard({
   classNameCate,
   average_rating,
   reviews,
+  is_favorite,
   onFavoriteChange,
 }: ProductCardProps) {
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(is_favorite ?? false);
   const [showImage, setShowImage] = useState(false);
-  const code = 0;
-  const bestSeller = 0;
   const { cart, addToCart } = useCart();
-
-  useEffect(() => {
-    const favorites = JSON.parse(
-      localStorage.getItem("favorites") || "[]"
-    ) as string[];
-    setIsFavorite(favorites.includes(id.toString()));
-  }, [id]);
-
-  const toggleFavorite = () => {
-    const favorites = JSON.parse(
-      localStorage.getItem("favorites") || "[]"
-    ) as string[];
-    let updatedFavorites: string[];
-
-    if (isFavorite) {
-      updatedFavorites = favorites.filter((favId) => favId !== id.toString());
-    } else {
-      updatedFavorites = [...favorites, id.toString()];
-    }
-
-    localStorage.setItem("favorites", JSON.stringify(updatedFavorites));
-    setIsFavorite(!isFavorite);
-    onFavoriteChange?.();
-  };
+  const { showToast } = useToast();
+  const { authToken: token } = useAuth();
 
   const handleAddToCart = () => {
     const existing = cart.find((item) => item.id === id);
-
     if (existing) {
       if (existing.quantity >= 10) {
-        showToast({
-          msg: "لا يمكن إضافة أكثر من 10 قطع!",
-          type: "error",
-        });
-
+        showToast({ msg: "لا يمكن إضافة أكثر من 10 قطع!", type: "error" });
         return;
       }
-
-      addToCart({
-        id,
-        name,
-        price,
-        image,
-        quantity: existing.quantity + 1,
-      });
+      addToCart({ id, name, price, image, quantity: existing.quantity + 1 });
     } else {
       addToCart({ id, name, price, image, quantity: 1 });
     }
-
     showToast({
       msg: "تمت إضافة المنتج إلى العربة!",
       type: "success",
       img: image || "/images/c1.png",
     });
   };
-  const { showToast } = useToast();
+
+  const toggleFavorite = async (productId: number) => {
+    if (!token) {
+      toast.error("يجب تسجيل الدخول أولاً");
+      return;
+    }
+
+    const newValue = !isFavorite;
+    // تحديث الواجهة فورًا
+    setIsFavorite(newValue);
+    onFavoriteChange?.(productId, newValue); // تحديث حالة الأب فورًا
+
+    try {
+      const res = await fetch(
+        "https://ecommecekhaled.renix4tech.com/api/v1/favorites/toggle",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ product_id: productId }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok || !data.status) {
+        setIsFavorite(!newValue); 
+        onFavoriteChange?.(productId, !newValue);
+        toast.error(data.message || "فشل تحديث المفضلة");
+      } else {
+        toast.success(data.message || "تم تحديث المفضلة");
+      }
+    } catch (err) {
+      console.error(err);
+      setIsFavorite(!newValue); 
+      onFavoriteChange?.(productId, !newValue);
+      toast.error("حدث خطأ أثناء تحديث المفضلة");
+    }
+  };
 
   return (
-    <>
-      <div className=" relative ">
-        <div
-          className="flex flex-col border  rounded-xl
-                   border-gray-200  overflow-hidden pb-3
-                     hover:shadow-md transition-shadow duration-300 "
-        >
-          <div className="relative w-full">
-            <Link
-              aria-label="product image"
-              href={`/product/${id}`}
-              className="block w-full h-full overflow-hidden"
-            >
-              <ImageComponent image={image || "/images/c1.png"} />
-            </Link>
+    <div className="relative">
+      <div className="flex flex-col border rounded-xl border-gray-200 overflow-hidden pb-3 hover:shadow-md transition-shadow duration-300">
+        <div className="relative w-full">
+          <Link
+            href={`/product/${id}`}
+            className="block w-full h-full overflow-hidden"
+          >
+            <ImageComponent image={image || "/images/c1.png"} />
+          </Link>
 
-            <HearComponent liked={isFavorite} onToggleLike={toggleFavorite} />
+          <HearComponent
+            liked={isFavorite}
+            onToggleLike={() => toggleFavorite(id)}
+          />
 
-            {stock > 0 ? (
-              <div
-                className={` absolute bottom-0 text-white bg-[#62bd7c] rounded rounded-br-none rounded-tr-none text-sm w-fit px-1.5 `}
-              >
-                <p>متوفر</p>
-              </div>
-            ) : (
-              <div
-                className={` absolute bottom-[27px] text-white bg-[#b30404] rounded rounded-br-none rounded-tr-none text-sm w-fit p-1.5`}
-              >
-                <p>نفذت الكمية</p>
-              </div>
+          {stock > 0 ? (
+            <div className="absolute bottom-0 text-white bg-[#62bd7c] rounded rounded-br-none rounded-tr-none text-sm w-fit px-1.5">
+              <p>متوفر</p>
+            </div>
+          ) : (
+            <div className="absolute bottom-[27px] text-white bg-[#b30404] rounded rounded-br-none rounded-tr-none text-sm w-fit p-1.5">
+              <p>نفذت الكمية</p>
+            </div>
+          )}
+
+          <button
+            onClick={() => setShowImage(true)}
+            className={`flex absolute cursor-pointer end-1 hover:scale-105 bottom-0.5 bg-white/80 w-7 h-7 rounded-full items-center justify-center ${className2}`}
+          >
+            <GoEye size={20} className="text-pro cursor-pointer" />
+          </button>
+
+          {showImage && (
+            <ShowImage
+              onClose={() => setShowImage(false)}
+              src={image || "/images/c1.png"}
+            />
+          )}
+        </div>
+
+        <div className="px-2">
+          <Link href={`/product/${id}`}>
+            <p className="text-[15px] text-gray-600 my-2 hover:text-[#2c2e2c] transition font-bold">
+              {name}
+            </p>
+          </Link>
+
+          <div className={`flex gap-1 items-center ${classNameHome}`}>
+            <PriceComponent final_price={final_price || 1} />
+            {price && (
+              <p className="text-gray-700 line-through text-[0.72rem] mx-1">
+                {price}
+              </p>
             )}
-
-            {code > 0 && stock > 0 && (
+            {discount && (
               <div
-                className={` absolute top-2 py-2 text-white bg-[#880808] rounded rounded-br-none rounded-tr-none text-sm w-fit px-1.5`}
+                className={`font-bold text-[0.7rem] flex text-[#08b63d] ${className3}`}
               >
-                <p>
-                  {" "}
-                  استخدم كود: <span>B1G1</span>
-                </p>
+                <span className="me-1">%</span>
+                <p>{discount.value}</p>
+                <span>-</span>
               </div>
-            )}
-            {/* show image */}
-            <button
-              onClick={() => setShowImage(true)}
-              className={`flex absolute cursor-pointer end-1 hover:scale-105 bottom-0.5 bg-white/80 w-7 h-7 
-            rounded-full items-center
-             justify-center ${className2}`}
-            >
-              <GoEye size={20} className="text-pro cursor-pointer" />
-            </button>
-            {showImage && (
-              <ShowImage
-                onClose={() => setShowImage(false)}
-                src={image || "/images/c1.png"}
-              />
             )}
           </div>
 
-          <div className="px-2 ">
-            <Link href={`/product/${id}`}>
-              <p className="text-[15px] text-gray-600 my-2 hover:text-[#2c2e2c] transition font-bold">
-                {name}
-              </p>
-            </Link>
+          <RatingStars
+            average_ratingc={average_rating || 2}
+            reviewsc={reviews || []}
+          />
 
-            <div className={`flex gap-1 items-center ${classNameHome}`}>
-              <PriceComponent final_price={final_price || 1} />
-              {price && (
-                <p className="text-gray-700 line-through text-[0.72rem] mx-1">
-                  {price}
-                </p>
-              )}
-              {discount && (
-                <div
-                  className={`font-bold text-[0.7rem] flex text-[#08b63d] ${className3}`}
-                >
-                  <span className="me-1">%</span>
-                  <p>{discount.value}</p>
-                  <span>-</span>
-                </div>
-              )}
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleAddToCart();
+            }}
+            className={`${className2} hidden mb-0 mt-2 text-end cursor-pointer w-full`}
+          >
+            <div className="flex text-pro rounded justify-center border-pro p-2 items-center border gap-2">
+              <p className="text-pro">أضف الي العربة</p>
+              <BsCartPlus className="text-pro" />
             </div>
-            {/* average_rating */}
+          </button>
 
-            <RatingStars
-              average_ratingc={average_rating || 2}
-              reviewsc={reviews || []}
-            />
-
-            {bestSeller > 0 && (
-              <div className="bestSeller start-0 absolute top-1 text-white bg-[#860808] rounded rounded-br-none rounded-tr-none text-sm w-fit p-1.5">
-                <p>الأكثر مبيعاََ</p>
-              </div>
-            )}
-
-            <div
-              className={`px-2 py-1 border border-gray-300 rounded text-sm w-fit mt-3 ${classNameHome}`}
-            >
-              <p className="text-gray-600">
-                <span>2</span>
-                مقاسات
-              </p>
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleAddToCart();
+            }}
+            className={`${classNameCate} absolute end-1.5 bottom-52`}
+          >
+            <div className="bg-white p-1 rounded-full text-pro text-xl cursor-pointer hover:text-orange-300">
+              <BsCart3 className="text-blue-950 hover:text-orange-500 transition duration-150" />
             </div>
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleAddToCart();
-              }}
-              className={`${className2} hidden mb-0 mt-2 text-end cursor-pointer w-full`}
-            >
-              <div className="flex text-pro rounded justify-center border-pro p-2 items-center border gap-2">
-                <p className="text-pro">أضف الي العربة</p>
-                <BsCartPlus className="text-pro" />
-              </div>
-            </button>
-            <button
-              onClick={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                handleAddToCart();
-              }}
-              className={`${classNameCate} `}
-            >
-              <div className=" absolute end-1 top-45 bg-white p-1 rounded-full text-pro text-xl cursor-pointer hover:text-orange-300">
-                <BsCart3 className="text-blue-950 hover:text-orange-500 transition duration-150 " />
-              </div>
-            </button>
+          </button>
 
-            <div className="mt-5">
-              <BottomSlider />
-            </div>
+          <div className="mt-5">
+            <BottomSlider />
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 }

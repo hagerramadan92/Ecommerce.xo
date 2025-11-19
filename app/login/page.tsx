@@ -10,7 +10,7 @@ import LoginWithGoogle from "@/components/loginWithGoogle";
 
 export default function Page() {
   // const [value, setValue] = useState("");
-   const [email, setEmail] = useState("");
+  const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [password, setPassword] = useState("");
@@ -69,14 +69,27 @@ export default function Page() {
 
       if (res.ok && data.status !== false) {
         const token = data.data?.token;
-        if (token) localStorage.setItem("auth_token", token);
+        const userData = {
+          name: data.data.user.name,
+          email: data.data.user.email,
+          image: data.data.user.image,
+          fullName: data.data.user.name,
+        };
+        if (token)
+          loginContext(
+            token,
+            userData.name,
+            userData.email,
+            userData.image,
+            userData.fullName
+          );
 
-        loginContext(
-          data.data.user.name,
-          data.data.user.email,
-          data.data.user.image,
-          data.data.user.name
-        );
+        // loginContext(
+        //   data.data.user.name,
+        //   data.data.user.email,
+        //   data.data.user.image,
+        //   data.data.user.name
+        // );
 
         router.push("/");
       } else {
@@ -128,7 +141,7 @@ export default function Page() {
         </p>
 
         <form className="space-y-6 my-2 mb-1.5" onSubmit={handleSubmit}>
-         <div className="relative w-full">
+          <div className="relative w-full">
             <input
               type="text"
               value={email}

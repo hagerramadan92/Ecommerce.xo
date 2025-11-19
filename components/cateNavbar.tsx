@@ -29,6 +29,7 @@ export default function CateNavbar() {
 
   return (
     <div className="hidden1 justify-between py-2.5 px-[5%] xl:px-[15%] shadow">
+      <Link href={"/product"}>كل المنتاجات</Link>
       {categories.map((cat) => (
         <div key={cat.id} className="group relative px-3 cursor-pointer">
           <Link
