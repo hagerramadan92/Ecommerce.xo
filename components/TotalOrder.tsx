@@ -2,7 +2,7 @@
 import { useCart } from "@/src/context/CartContext";
 
 export default function TotalOrder() {
-  const { cart, removeFromCart, changeQuantity, total } = useCart();
+  const { cart, removeFromCart, total } = useCart();
   const formattedTotal = total.toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,

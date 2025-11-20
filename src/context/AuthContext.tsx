@@ -36,10 +36,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [fullName, setFullName] = useState<string | null>(null);
   const { data: session, status } = useSession();
 
+  // ----------------------------
+  // ⬇️ استرجاع بيانات المستخدم
+  // ----------------------------
   useEffect(() => {
     if (typeof window === "undefined") return;
 
-    // استرجاع البيانات من localStorage
     const storedToken = localStorage.getItem("auth_token");
     const storedName = localStorage.getItem("userName");
     const storedEmail = localStorage.getItem("userEmail");
@@ -52,7 +54,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (storedImage) setUserImage(storedImage);
     if (storedFullName) setFullName(storedFullName);
 
-    // تحديث من session إذا موجود
     if (status === "authenticated" && session?.user) {
       const name = session.user.name || storedName || "مستخدم";
       const email = session.user.email || storedEmail || null;
@@ -71,6 +72,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [session, status]);
 
+  // ----------------------------
+  // ⬇️ **مزامنة المفضلة عند تسجيل الدخول**
+  // ----------------------------
+  useEffect(() => {
+    if (!authToken) return;
+
+    const fetchFavorites = async () => {
+      try {
+        const res = await fetch(
+          "https://ecommecekhaled.renix4tech.com/api/v1/favorites",
+          {
+            headers: {
+              Authorization: `Bearer ${authToken}`,
+            },
+          }
+        );
+
+        const data = await res.json();
+
+        if (data.status && Array.isArray(data.data)) {
+          const ids = data.data.map((item: any) => item.id);
+          localStorage.setItem("favorites", JSON.stringify(ids));
+        }
+      } catch (err) {
+        console.error("Error loading favorites:", err);
+      }
+    };
+
+    fetchFavorites();
+  }, [authToken]); // ⬅️ لما التوكن يتغير (يعني لما تعملي Login)
+
+  // ----------------------------
+  // ⬇️ تسجيل الدخول
+  // ----------------------------
   const login = (
     token: string,
     name: string,
@@ -91,7 +126,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("fullName", fullNameParam || name);
   };
 
-  // دالة لتحديث auth من أي API response
+  // ⬇️ تحديث بيانات الدخول من API خارجي
   const setAuthFromApi = (data: {
     token: string;
     name: string;
@@ -102,6 +137,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     login(data.token, data.name, data.email, data.image, data.fullName);
   };
 
+  // ----------------------------
+  // ⬇️ تسجيل الخروج
+  // ----------------------------
   const logout = () => {
     setAuthToken(null);
     setUserName(null);
@@ -114,7 +152,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ authToken, userName, userEmail, userImage, fullName, login, logout, setAuthFromApi }}
+      value={{
+        authToken,
+        userName,
+        userEmail,
+        userImage,
+        fullName,
+        login,
+        logout,
+        setAuthFromApi,
+      }}
     >
       {children}
     </AuthContext.Provider>
@@ -123,6 +170,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used within an AuthProvider");
+  if (!context)
+    throw new Error("useAuth must be used within an AuthProvider");
   return context;
 };

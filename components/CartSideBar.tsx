@@ -110,15 +110,15 @@ const formattedTotal = total.toLocaleString("en-US", {
                     >
                       <div className="flex gap-3 py-3">
                         <Image
-                          src={item.img}
-                          alt={item.title}
+                          src={item.image || "images/o1.jpg"}
+                          alt={item.name}
                           width={80}
                           height={80}
                           className="p-2"
                         />
                         <div>
                           <p className="font-semibold text-[0.8rem] text-gray-700">
-                            {item.title}
+                            {item.name}
                           </p>
                           <p className="text-lg text-gray-900 font-bold mt-4">
                             <span className="font-normal text-sm me-2">جنيه</span>

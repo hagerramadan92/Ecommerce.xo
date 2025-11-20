@@ -116,10 +116,24 @@ export default function AllProductsPage() {
   if (loading) return <Loading />;
 
 const handleFavoriteChange = (productId: number, newValue: boolean) => {
+  // تحديث القائمة الأساسية
   setProducts(prev =>
-    prev.map(p => (p.id === productId ? { ...p, is_favorite: newValue } : p))
+    prev.map(p =>
+      p.id === productId ? { ...p, is_favorite: newValue } : p
+    )
   );
+
+  // تحديث قائمة الفلترة
+  setFilteredProducts(prev =>
+    prev.map(p =>
+      p.id === productId ? { ...p, is_favorite: newValue } : p
+    )
+  );
+
+  // الحل النهائي لإجبار الواجهة تتحدث
+  setFilteredProducts(prev => [...prev]);
 };
+
 
   const options = [
     { label: "الخيارات المميزة", value: "" },

@@ -22,7 +22,7 @@ export default function CartPage() {
     router.push("/payment");
   };
   const [openModal, setOpenModal] = useState(false);
-  const { cart, removeFromCart, changeQuantity, total } = useCart();
+  const { cart, removeFromCart, total } = useCart();
 
   if (cart.length === 0) {
     return (
@@ -56,10 +56,10 @@ export default function CartPage() {
                   <div className="flex gap-4">
                     {/* product-image */}
                     <div className="w-32 h-32 bg-gray-100 ms-4 rounded-md flex items-center justify-center overflow-hidden">
-                      {item.img && (
+                      {item.image && (
                         <Image
-                          src={item.img}
-                          alt={item.title}
+                          src={item.image}
+                          alt={item.name}
                           width={125}
                           height={125}
                           className="object-contain w-full h-full"
@@ -68,7 +68,7 @@ export default function CartPage() {
                     </div>
                     {/* product info */}
                     <div className="flex flex-col gap-1.5">
-                      <p className="text-black/75">{item.title}</p>
+                      <p className="text-black/75">{item.name}</p>
                       <p className="font-bold">{item.price} جنيه</p>
                       <div className="text-[#20a144] bg-[#f0fbf3] px-2 py-1 text-[0.9rem] rounded w-fit">
                         <p>ينتج عند الطلب</p>
@@ -94,7 +94,7 @@ export default function CartPage() {
                   </div>
                 </div>
                 {/* counter */}
-                <div className="flex items-center gap-3 absolute bottom-15 end-3">
+                {/* <div className="flex items-center gap-3 absolute bottom-15 end-3">
                   <button
                     className="px-1 py-1 bg-gray-50 rounded hover:bg-gray-100 transition cursor-pointer"
                     onClick={() =>
@@ -128,7 +128,7 @@ export default function CartPage() {
                   >
                     <FaPlus />
                   </button>
-                </div>
+                </div> */}
                 {/* free deliver */}
                 <div className="bg-[#fafafa] text-[#20a144] w-full py-3 text-center font-semibold mt-4">
                   <p>شحن مجاني</p>

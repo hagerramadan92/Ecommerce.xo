@@ -26,12 +26,14 @@ export default function Home() {
   // const mainSlider = homeData?.sub_categories || [];
   const [mainSlider, setMainSlider] = useState<BannerI[]>([]);
   const [loading, setLoading] = useState(true);
+    const [favorites, setFavorites] = useState<{ [key: number]: boolean }>({});
 
   useEffect(() => {
     const getSlider1 = async () => {
       try {
         const data = await fetchApi("banners?type=main_slider");
         setMainSlider(Array.isArray(data) ? data : []);
+        
       } catch (error) {
         console.log("Error fetching Slider1:", error);
         setMainSlider([]);
@@ -41,6 +43,7 @@ export default function Home() {
     };
 
     getSlider1();
+
   }, []);
 
   if (loading) return <Loading/>;

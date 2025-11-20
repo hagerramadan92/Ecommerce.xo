@@ -27,12 +27,10 @@ export default function DropdownUser() {
   const { fullName, userImage, logout } = useAuth();
   const { data: session } = useSession();
 
-  // الاسم والصورة اللي هنعرضها
   const displayName = fullName || session?.user?.name || "مستخدم";
   const displayImage =
     userImage || session?.user?.image || "/images/default-user.png";
 
-  // إغلاق dropdown لما نضغط خارج
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
@@ -49,24 +47,22 @@ export default function DropdownUser() {
 
   const handleLogout = async () => {
     try {
-      // تسجيل الخروج من Context أو Firebase
       logout?.();
-      // تسجيل الخروج من NextAuth
       await nextAuthSignOut({ redirect: false });
       toast.success("تم تسجيل الخروج بنجاح!");
-      // إعادة التوجيه لصفحة تسجيل الدخول
       window.location.href = "/login";
     } catch (err) {
       console.error("Logout error:", err);
       toast.error("فشل تسجيل الخروج، حاول مرة أخرى");
     }
+    localStorage.removeItem("favorites");
+
   };
 
   return (
     <div className="relative" ref={menuRef}>
-      {/* زر المستخدم */}
       <div
-        className="flex items-center gap-3 bg-gray-100 text-gray-700 cursor-pointer p-2 rounded"
+        className="flex items-center md:gap-3 bg-gray-100 text-gray-700 cursor-pointer md:p-2 rounded"
         onClick={() => setOpen(!open)}
       >
         <Image
@@ -76,12 +72,12 @@ export default function DropdownUser() {
           height={32}
           className="rounded-full"
         />
-        <div className="flex flex-col">
+        <div className="md:flex flex-col hidden">
           <p>
             أهلاً , <span className="capitalize">{displayName}</span>
           </p>
         </div>
-        <FaAngleDown />
+        <FaAngleDown/>
       </div>
 
       {/* Dropdown */}

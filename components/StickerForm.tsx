@@ -9,6 +9,8 @@ import {
   Typography,
   Button,
 } from "@mui/material";
+import { motion } from "framer-motion";
+
 
 export default function StickerForm() {
   const [size, setSize] = useState("");
@@ -73,7 +75,15 @@ export default function StickerForm() {
   );
 
   return (
-    <form onSubmit={handleSubmit}>
+      <motion.form
+    onSubmit={handleSubmit}
+    initial={{ opacity: 0, y: 20 }}     
+    animate={{ opacity: 1, y: 0 }}      
+    exit={{ opacity: 0, y: 20 }}       
+    transition={{ duration: 0.3, ease: "easeOut" }} 
+  >
+
+  <div>
       {renderSelect(
         "المقاس",
         size,
@@ -147,6 +157,8 @@ export default function StickerForm() {
       )}
 
     
-    </form>
+    </div>
+  </motion.form>
+  
   );
 }

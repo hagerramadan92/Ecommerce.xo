@@ -10,7 +10,7 @@ export interface ProductCategory {
   name: string;
   slug: string;
   description: string;
-  children: any[]; 
+  children: any[];
   order: number;
   image: string;
   sub_image: string;
@@ -43,6 +43,13 @@ export interface ProductReview {
   rating: number;
   comment: string;
   created_at: string;
+  user: {
+    id: number;
+    name: string;
+    email: string;
+    image: string;
+    created_at: string;
+  };
 }
 
 export interface ProductSize {
@@ -85,7 +92,13 @@ export interface ProductI {
   sizes?: ProductSize[];
   offers?: ProductOffer[];
   materials?: ProductMaterial[];
-
+  images: ImagesI[];
+    specifications?: string;
 }
-
-
+export interface ImagesI {
+  url: string;
+  alt: string;
+  type: string;
+  order: number;
+  active: number;
+}
