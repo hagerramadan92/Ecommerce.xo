@@ -1,6 +1,8 @@
+"use client";
+import { useAppContext } from "@/src/context/AppContext";
 import Link from "next/link";
+import { FaFacebookSquare } from "react-icons/fa";
 import { IoLocationSharp } from "react-icons/io5";
-
 
 export default function Footer() {
   const Links = [
@@ -14,7 +16,7 @@ export default function Footer() {
     },
     {
       title: "سياسة الأسترجاع",
-      href: "/policy",
+      href: "/returnsPolicy",
     },
     {
       title: "سياسة الخصوصية",
@@ -26,20 +28,17 @@ export default function Footer() {
     },
     {
       title: "أنضم كشريك",
-      href: "/contactUs",
+      href: "/partner",
     },
     {
-      title: "كودأكس للشركات",
-      href: "/contactUs",
+      title: " الفريق",
+      href: "/team",
     },
     {
-      title: "تواصل معانا",
+      title: "اتصل بنا",
       href: "/contactUs",
     },
-    {
-      title: "مركز المساعدة",
-      href: "/help-center",
-    },
+   
   ];
   const locations = [
     { title: "التجمع الخامس" },
@@ -48,58 +47,93 @@ export default function Footer() {
     { title: "أكتوبر" },
     { title: "الإسكندرية" },
   ];
+  const { socialMedia } = useAppContext();
+
+  const social_Media = socialMedia;
+
   return (
     <>
-    <div className="text-white bg-pro px-5 lg:px-[18%] pb-20 pt-10 gap-4">
+      <div className="text-white bg-pro px-5 lg:px-[18%] pb-20 pt-10 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 ">
+          <div>
+            <h4 className="font-semibold  mt-5 lg:mt-0">الشركة</h4>
+            <div className="flex flex-col gap-3 mt-4">
+              {Links.map((link, index) => (
+                <Link key={index} href={link.href}>
+                  {link.title}
+                </Link>
+              )).slice(0, 3)}
+            </div>
+          </div>
+          <div>
+            <h4 className="font-semibold  mt-5 lg:mt-0">روابط مهمة</h4>
+            <div className="flex flex-col gap-3 mt-4">
+              {Links.map((link, index) => (
+                <Link key={index} href={link.href}>
+                  {link.title}
+                </Link>
+              )).slice(3, 7)}
+            </div>
+          </div>
+          <div>
+            <h4 className="font-semibold  mt-5 lg:mt-0">تريد مساعده؟</h4>
+            <div className="flex flex-col gap-3 mt-4">
+              {Links.map((link, index) => (
+                <Link key={index} href={link.href}>
+                  {link.title}
+                </Link>
+              )).slice(7)}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 ">
-        <div>
-          <h4 className="font-semibold  mt-5 lg:mt-0">الشركة</h4>
-          <div className="flex flex-col gap-3 mt-4">
-            {Links.map((link, index) => (
-              <Link key={index} href={link.href}>
-                {link.title}
+              {social_Media.map((social, index) => (
+                <div key={index}>
+                  {social.key === "email" && <p>{social.value}</p>}
+                  {social.key === "phone" && <p>رقم الدعم: {social.value}</p>}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div>
+            <h4 className="font-semibold mt-5 lg:mt-0">الموقع</h4>
+            <div className="flex flex-col gap-3 mt-4">
+              {locations.map((link, index) => (
+                <div key={index} className="flex gap-1 items-center">
+                  <IoLocationSharp size={22} />
+                  <Link href="/" className=" underline ">
+                    {link.title}
+                  </Link>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 ">
+          <div>
+            <p>نحن نقبل</p>
+          </div>
+          <div>
+            <p className="mb-1">تابعنا</p>
+            <div className="flex gap-2 items-center">
+              {social_Media.slice(1, 5).map((social, index) => (
+                <div key={index}>
+                  <Link href={social.value}>
+                    <FaFacebookSquare size={20} />
+                  </Link>
+                  {/* <Link href='/'>
+              <FaTwitter size={20} />
               </Link>
-            )).slice(0, 3)}
-          </div>
-        </div>
-        <div>
-          <h4 className="font-semibold  mt-5 lg:mt-0">روابط مهمة</h4>
-          <div className="flex flex-col gap-3 mt-4">
-            {Links.map((link, index) => (
-              <Link key={index} href={link.href}>
-                {link.title}
+              <Link href='/'>
+              <FaInstagram size={20}/>
               </Link>
-            )).slice(3, 7)}
+              <Link href='/'>
+              <FaTelegram size={20}/>
+              </Link> */}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-        <div>
-          <h4 className="font-semibold  mt-5 lg:mt-0">تريد مساعده؟</h4>
-          <div className="flex flex-col gap-3 mt-4">
-            {Links.map((link, index) => (
-              <Link key={index} href={link.href}>
-                {link.title}
-              </Link>
-            )).slice(7)}
-            <p>hello@codexx.com</p>
-            <p>رقم الدعم: 15829</p>
-          </div>
-        </div>
-        <div>
-          <h4 className="font-semibold mt-5 lg:mt-0">الموقع</h4>
-          <div className="flex flex-col gap-3 mt-4">
-            {locations.map((link, index) => (
-              <div key={index} className="flex gap-1 items-center">
-                <IoLocationSharp size={22} />
-                <Link href="/" className=" underline ">{link.title}</Link>
-              </div>
-            ))}
-          </div>
-        </div>
+        <p className="text-center mt-15">Ⓒ جميع الحقوق محفوظة 2025</p>
       </div>
-      <p className="text-center mt-15">Ⓒ جميع الحقوق محفوظة 2025</p>
-    </div>
-  
     </>
   );
 }

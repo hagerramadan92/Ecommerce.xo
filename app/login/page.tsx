@@ -7,6 +7,8 @@ import { BiSolidHide, BiSolidShow } from "react-icons/bi";
 import Link from "next/link";
 import { useAuth } from "@/src/context/AuthContext";
 import LoginWithGoogle from "@/components/loginWithGoogle";
+import Swal from "sweetalert2";
+
 
 export default function Page() {
   // const [value, setValue] = useState("");
@@ -35,78 +37,92 @@ export default function Page() {
     return "من فضلك أدخل بريد إلكتروني أو رقم هاتف صالح";
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setErrors({});
-    setMessage(null);
+ const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setErrors({});
+  setError("");
 
-    const validationError = validateInput(email);
-    if (validationError) {
-      setError(validationError);
-      return;
-    }
-    if (!password.trim()) {
-      setErrors({ password: "كلمة المرور مطلوبة" });
-      return;
-    }
+  const validationError = validateInput(email);
+  if (validationError) {
+    Swal.fire({
+      icon: "error",
+      title: "خطأ",
+      text: validationError,
+      confirmButtonText: "حسناً",
+    });
+    return;
+  }
 
-    try {
-      const res = await fetch(`${API_URL}/auth/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({
-          email: email,
-          password,
-        }),
+  if (!password.trim()) {
+    Swal.fire({
+      icon: "error",
+      title: "خطأ",
+      text: "كلمة المرور مطلوبة",
+      confirmButtonText: "حسناً",
+    });
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_URL}/auth/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      body: JSON.stringify({
+        email: email,
+        password,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.status !== false) {
+      const token = data.data?.token;
+      const userData = {
+        name: data.data.user.name,
+        email: data.data.user.email,
+        image: data.data.user.image,
+        fullName: data.data.user.name,
+      };
+
+      if (token) {
+        loginContext(
+          token,
+          userData.name,
+          userData.email,
+          userData.image,
+          userData.fullName
+        );
+      }
+
+      Swal.fire({
+        icon: "success",
+        title: "تم تسجيل الدخول بنجاح",
+        timer: 1800,
+        showConfirmButton: false,
       });
 
-      const data = await res.json();
-      console.log("Login response:", data);
-
-      if (res.ok && data.status !== false) {
-        const token = data.data?.token;
-        const userData = {
-          name: data.data.user.name,
-          email: data.data.user.email,
-          image: data.data.user.image,
-          fullName: data.data.user.name,
-        };
-        if (token)
-          loginContext(
-            token,
-            userData.name,
-            userData.email,
-            userData.image,
-            userData.fullName
-          );
-
-        // loginContext(
-        //   data.data.user.name,
-        //   data.data.user.email,
-        //   data.data.user.image,
-        //   data.data.user.name
-        // );
-
-        router.push("/");
-      } else {
-        setMessage(data.message || "حدث خطأ أثناء تسجيل الدخول");
-        if (data.errors) {
-          const apiErrors: { [key: string]: string } = {};
-          Object.keys(data.errors).forEach((key) => {
-            apiErrors[key] = data.errors[key][0];
-          });
-          setErrors(apiErrors);
-        }
-      }
-    } catch (err) {
-      console.error("Login error:", err);
-      setMessage("فشل الاتصال بالخادم");
+      router.push("/");
+    } else {
+      Swal.fire({
+        icon: "error",
+        title: "خطأ",
+        text: data.message || "حدث خطأ أثناء تسجيل الدخول",
+        confirmButtonText: "موافق",
+      });
     }
-  };
+  } catch (err) {
+    Swal.fire({
+      icon: "error",
+      title: "خطأ",
+      text: "فشل الاتصال بالخادم",
+      confirmButtonText: "موافق",
+    });
+  }
+};
+;
 
   useEffect(() => {
     if (status === "authenticated" && session?.user) {

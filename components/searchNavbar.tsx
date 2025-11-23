@@ -16,6 +16,8 @@ import DropdownUser from "./DropdownUser";
 import { useAuth } from "@/src/context/AuthContext";
 import { CategoryI } from "@/Types/CategoriesI";
 import { fetchApi } from "@/lib/api";
+import Loading from "@/app/loading";
+import { useAppContext } from "@/src/context/AppContext";
 
 export default function SearchNavbar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -26,7 +28,8 @@ export default function SearchNavbar() {
   const { fullName } = useAuth(); 
  const [categories, setCategories] = useState<CategoryI[]>([]);
   const [loading, setLoading] = useState(true);
-
+ const {socialMedia} = useAppContext();
+ const social_media = socialMedia
   useEffect(() => {
     const getCats = async () => {
       try {
@@ -43,7 +46,7 @@ export default function SearchNavbar() {
     getCats();
   }, []);
 
-  if (loading) return <div>Loading…</div>;
+  if (loading) return <Loading/>;
   return (
     <>
       {/* Navbar */}
@@ -81,7 +84,7 @@ export default function SearchNavbar() {
             <p>أي استفسار؟</p>
             <div className="flex items-center gap-2 cursor-pointer text-pro-hover">
               <LuPhone size={20} strokeWidth={1.3} />
-              <p> +966114097500</p>
+              <p>{social_media?.[0]?.value|| '98098'}</p>
             </div>
           </div>
 

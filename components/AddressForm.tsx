@@ -9,24 +9,28 @@ import toast, { Toaster } from "react-hot-toast";
 import { IoCloseSharp } from "react-icons/io5";
 import Button from "@mui/material/Button";
 import { motion, AnimatePresence } from "framer-motion";
+import { AddressI } from "@/Types/AddressI";
+
+interface AddressFormProps {
+  open: boolean;
+  onClose: () => void;
+  initialData?: AddressI;
+  onSuccess?: (newAddress: AddressI) => void;
+}
 
 interface AddressFormInputs {
+  id?: number;
   firstName: string;
   lastName: string;
   building?: string;
   floor: string;
   apartment: string;
   details: string;
-  nickname?: string;
+  nickname: string;
   phone: string;
   city: string;
   area: string;
   addressType: string;
-}
-
-interface AddressFormProps {
-  open: boolean;
-  onClose: () => void;
 }
 
 const schema = yup.object().shape({
@@ -34,6 +38,7 @@ const schema = yup.object().shape({
   lastName: yup.string().required("الإسم الأخير مطلوب"),
   floor: yup.string().required("الدور مطلوب"),
   apartment: yup.string().required("رقم الشقة مطلوب"),
+  nickname: yup.string().required("العنوان مختصر مطلوب"),
   details: yup.string().required("تفاصيل العنوان مطلوبة"),
   phone: yup
     .string()
@@ -44,8 +49,16 @@ const schema = yup.object().shape({
   addressType: yup.string().required("نوع العنوان مطلوب"),
 });
 
-export default function AddressForm({ open, onClose }: AddressFormProps) {
+export default function AddressForm({
+  open,
+  onClose,
+  initialData,
+  onSuccess,
+}: AddressFormProps) {
+  const base_url = "https://ecommecekhaled.renix4tech.com/api/v1";
+  const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+
   useEffect(() => setMounted(true), []);
 
   const {
@@ -61,19 +74,85 @@ export default function AddressForm({ open, onClose }: AddressFormProps) {
 
   const selectedType = watch("addressType");
 
-  const onSubmit = (data: AddressFormInputs) => {
-    localStorage.setItem("address", JSON.stringify(data));
-    toast.success("تم حفظ العنوان بنجاح ", { position: "top-left" });
-    reset();
-    setTimeout(() => onClose(), 500);
+  useEffect(() => {
+    if (initialData) {
+      setValue("firstName", initialData.full_name.split(" ")[0] || "");
+      setValue("lastName", initialData.full_name.split(" ")[1] || "");
+      setValue("building", initialData.building || "");
+      setValue("floor", initialData.floor || "");
+      setValue("apartment", initialData.apartment_number || "");
+      setValue("details", initialData.details || "");
+      setValue("nickname", initialData.label || "");
+      setValue("phone", initialData.phone || "");
+      setValue("city", initialData.city);
+      setValue("area", initialData.area);
+      setValue("addressType", initialData.type);
+    } else {
+      reset(); // إضافة جديد
+    }
+  }, [initialData, setValue, reset]);
+
+  const handleAddAddress = async (data: AddressFormInputs) => {
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("auth_token");
+
+      const formData = {
+        first_name: data.firstName,
+        last_name: data.lastName,
+        phone: data.phone,
+        city: data.city,
+        area: data.area,
+        address_details: data.details,
+        label: data.nickname || `${data.firstName} ${data.lastName}`,
+        type: data.addressType,
+      };
+
+      let url = `${base_url}/addresses`;
+      let method = "POST";
+
+      if (initialData?.id) {
+        url = `${base_url}/addresses/${initialData.id}`;
+        method = "PUT";
+      }
+
+      const res = await fetch(url, {
+        method,
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const result = await res.json();
+
+      if (!res.ok || !result.status) {
+        throw new Error(result.message || "حدث خطأ");
+      }
+
+      toast.success(
+        initialData?.id ? "تم تعديل العنوان بنجاح" : "تم إضافة العنوان بنجاح",
+        { duration: 1000 }
+      );
+
+      if (onSuccess) onSuccess(result.data);
+
+      reset();
+      setTimeout(() => onClose(), 100);
+    } catch (err: any) {
+      toast.error(err.message || "حدث خطأ أثناء حفظ العنوان");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  if (!mounted) return null;
+  if (!open || !mounted) return null;
 
   return createPortal(
     <>
-      <Toaster />
-
+   
       <AnimatePresence>
         {open && (
           <motion.div
@@ -103,70 +182,96 @@ export default function AddressForm({ open, onClose }: AddressFormProps) {
               </div>
 
               {/* Form */}
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+              <form
+                onSubmit={handleSubmit(handleAddAddress)}
+                className="space-y-6"
+              >
                 <div className="h-[60vh] overflow-y-scroll flex flex-col gap-4 mt-7 px-4">
+                  {/* First + Last Name */}
                   <div className="grid md:grid-cols-2 gap-5">
-                    {[
-                      { name: "firstName", label: "الإسم الأول" },
-                      { name: "lastName", label: "الإسم الأخير" },
-                    ].map((field) => (
-                      <div key={field.name}>
-                        <label className="block text-gray-700 mb-1 font-semibold">
-                          {field.label}
-                        </label>
-                        <input
-                          {...register(field.name as keyof AddressFormInputs)}
-                          className={`border rounded-lg w-full p-3 focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none transition ${
-                            errors[field.name as keyof AddressFormInputs]
-                              ? "border-red-400"
-                              : "border-gray-300"
-                          }`}
-                        />
-                        <p className="text-red-500 text-sm mt-1">
-                          {
-                            errors[field.name as keyof AddressFormInputs]
-                              ?.message as string
-                          }
-                        </p>
-                      </div>
-                    ))}
+                    <div>
+                      <label className="block text-gray-700 mb-1 font-semibold">
+                        الإسم الأول
+                      </label>
+                      <input
+                        {...register("firstName")}
+                        className={`border rounded-lg w-full p-3 ${
+                          errors.firstName
+                            ? "border-red-400"
+                            : "border-gray-300"
+                        }`}
+                      />
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.firstName?.message}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-gray-700 mb-1 font-semibold">
+                        الإسم الأخير
+                      </label>
+                      <input
+                        {...register("lastName")}
+                        className={`border rounded-lg w-full p-3 ${
+                          errors.lastName ? "border-red-400" : "border-gray-300"
+                        }`}
+                      />
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.lastName?.message}
+                      </p>
+                    </div>
                   </div>
 
+                  {/* Building, floor, apartment */}
                   <div className="grid md:grid-cols-3 gap-5">
-                    {[
-                      { name: "building", label: "المبنى (اختياري)" },
-                      { name: "floor", label: "الدور" },
-                      { name: "apartment", label: "رقم الشقة" },
-                    ].map((field) => (
-                      <div key={field.name}>
-                        <label className="block text-gray-700 mb-1 font-semibold">
-                          {field.label}
-                        </label>
-                        <input
-                          {...register(field.name as keyof AddressFormInputs)}
-                          className={`border rounded-lg w-full p-3 focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none transition ${
-                            errors[field.name as keyof AddressFormInputs]
-                              ? "border-red-400"
-                              : "border-gray-300"
-                          }`}
-                        />
-                        <p className="text-red-500 text-sm mt-1">
-                          {
-                            errors[field.name as keyof AddressFormInputs]
-                              ?.message as string
-                          }
-                        </p>
-                      </div>
-                    ))}
+                    <div>
+                      <label className="block text-gray-700 mb-1 font-semibold">
+                        المبنى (اختياري)
+                      </label>
+                      <input
+                        {...register("building")}
+                        className="border rounded-lg w-full p-3 border-gray-300"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-gray-700 mb-1 font-semibold">
+                        الدور
+                      </label>
+                      <input
+                        {...register("floor")}
+                        className={`border rounded-lg w-full p-3 ${
+                          errors.floor ? "border-red-400" : "border-gray-300"
+                        }`}
+                      />
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.floor?.message}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-gray-700 mb-1 font-semibold">
+                        رقم الشقة
+                      </label>
+                      <input
+                        {...register("apartment")}
+                        className={`border rounded-lg w-full p-3 ${
+                          errors.apartment
+                            ? "border-red-400"
+                            : "border-gray-300"
+                        }`}
+                      />
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.apartment?.message}
+                      </p>
+                    </div>
                   </div>
 
+                  {/* Details */}
                   <div>
                     <label className="block text-gray-700 mb-1 font-semibold">
                       تفاصيل العنوان
                     </label>
                     <textarea
                       {...register("details")}
-                      className={`border rounded-lg w-full p-3 focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none transition ${
+                      className={`border rounded-lg w-full p-3 ${
                         errors.details ? "border-red-400" : "border-gray-300"
                       }`}
                       rows={3}
@@ -176,92 +281,93 @@ export default function AddressForm({ open, onClose }: AddressFormProps) {
                     </p>
                   </div>
 
+                  {/* Nickname + phone */}
                   <div className="grid md:grid-cols-2 gap-5">
-                    {[
-                      { name: "nickname", label: "اسم مختصر" },
-                      { name: "phone", label: "رقم الهاتف" },
-                    ].map((field) => (
-                      <div key={field.name}>
-                        <label className="block text-gray-700 mb-1 font-semibold">
-                          {field.label}
-                        </label>
-                        <input
-                          {...register(field.name as keyof AddressFormInputs)}
-                          className={`border rounded-lg w-full p-3 focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none transition ${
-                            errors[field.name as keyof AddressFormInputs]
-                              ? "border-red-400"
-                              : "border-gray-300"
-                          }`}
-                        />
-                        <p className="text-red-500 text-sm mt-1">
-                          {
-                            errors[field.name as keyof AddressFormInputs]
-                              ?.message as string
-                          }
-                        </p>
-                      </div>
-                    ))}
+                    <div>
+                      <label className="block text-gray-700 mb-1 font-semibold">
+                        اسم مختصر
+                      </label>
+                      <input
+                        {...register("nickname")}
+                        className="border rounded-lg w-full p-3 border-gray-300"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-gray-700 mb-1 font-semibold">
+                        رقم الهاتف
+                      </label>
+                      <input
+                        {...register("phone")}
+                        className={`border rounded-lg w-full p-3 ${
+                          errors.phone ? "border-red-400" : "border-gray-300"
+                        }`}
+                      />
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.phone?.message}
+                      </p>
+                    </div>
                   </div>
 
+                  {/* City + Area */}
                   <div className="grid md:grid-cols-2 gap-5">
-                    {[
-                      {
-                        name: "city",
-                        label: "المدينة",
-                        options: ["القاهرة", "الإسكندرية", "الجيزة"],
-                      },
-                      {
-                        name: "area",
-                        label: "المنطقة",
-                        options: ["مدينة نصر", "الدقي", "المهندسين"],
-                      },
-                    ].map((select) => (
-                      <div key={select.name}>
-                        <label className="block text-gray-700 mb-1 font-semibold">
-                          {select.label}
-                        </label>
-                        <select
-                          {...register(select.name as keyof AddressFormInputs)}
-                          className={`border rounded-lg w-full p-3 focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none transition ${
-                            errors[select.name as keyof AddressFormInputs]
-                              ? "border-red-400"
-                              : "border-gray-300"
-                          }`}
-                        >
-                          <option value="">اختر {select.label}</option>
-                          {select.options.map((opt) => (
-                            <option key={opt} value={opt}>
-                              {opt}
-                            </option>
-                          ))}
-                        </select>
-                        <p className="text-red-500 text-sm mt-1">
-                          {
-                            errors[select.name as keyof AddressFormInputs]
-                              ?.message as string
-                          }
-                        </p>
-                      </div>
-                    ))}
+                    <div>
+                      <label className="block text-gray-700 mb-1 font-semibold">
+                        المدينة
+                      </label>
+                      <select
+                        {...register("city")}
+                        className={`border rounded-lg w-full p-3 ${
+                          errors.city ? "border-red-400" : "border-gray-300"
+                        }`}
+                      >
+                        <option value="">اختر المدينة</option>
+                        <option value="القاهرة">القاهرة</option>
+                        <option value="الإسكندرية">الإسكندرية</option>
+                        <option value="الجيزة">الجيزة</option>
+                      </select>
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.city?.message}
+                      </p>
+                    </div>
+                    <div>
+                      <label className="block text-gray-700 mb-1 font-semibold">
+                        المنطقة
+                      </label>
+                      <select
+                        {...register("area")}
+                        className={`border rounded-lg w-full p-3 ${
+                          errors.area ? "border-red-400" : "border-gray-300"
+                        }`}
+                      >
+                        <option value="">اختر المنطقة</option>
+                        <option value="مدينة نصر">مدينة نصر</option>
+                        <option value="الدقي">الدقي</option>
+                        <option value="المهندسين">المهندسين</option>
+                      </select>
+                      <p className="text-red-500 text-sm mt-1">
+                        {errors.area?.message}
+                      </p>
+                    </div>
                   </div>
 
+                  {/* Address Type */}
                   <div>
                     <label className="block text-gray-700 mb-2 font-semibold">
                       نوع العنوان
                     </label>
                     <div className="flex gap-4">
                       {[
-                        { value: "home", label: " منزل" },
+                        { value: "home", label: "منزل" },
                         { value: "work", label: "عمل" },
                       ].map((btn) => (
                         <button
                           key={btn.value}
                           type="button"
                           onClick={() => setValue("addressType", btn.value)}
-                          className={`px-6 py-2 rounded-lg font-semibold border transition-all duration-300 ${
+                          className={`px-6 py-2 rounded-lg font-semibold border ${
                             selectedType === btn.value
-                              ? "bg-orange-500 text-white border-orange-500 shadow-md"
-                              : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50"
+                              ? "bg-orange-500 text-white border-orange-500"
+                              : "bg-white text-gray-700 border-gray-300"
                           }`}
                         >
                           {btn.label}
@@ -274,23 +380,23 @@ export default function AddressForm({ open, onClose }: AddressFormProps) {
                   </div>
                 </div>
 
+                {/* Submit */}
                 <div className="flex justify-end pt-4 border-t border-gray-200">
                   <Button
                     variant="contained"
                     type="submit"
+                    disabled={loading}
                     sx={{
                       fontSize: "1.1rem",
                       backgroundColor: "#14213d",
                       "&:hover": { backgroundColor: "#0f1a31" },
-                      color: "#fff",
-                      gap: "10px",
                       paddingX: "60px",
                       paddingY: "8px",
                       borderRadius: "10px",
                       textTransform: "none",
                     }}
                   >
-                    حفظ العنوان
+                    {loading ? "جارٍ الحفظ..." : "حفظ العنوان"}
                   </Button>
                 </div>
               </form>

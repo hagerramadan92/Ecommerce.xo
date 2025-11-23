@@ -1,24 +1,24 @@
+
+import UserNameWelcome from "@/components/UserNameWelcome";
 import Link from "next/link";
-import React from "react";
-import { RiArrowGoBackFill } from "react-icons/ri";
+
 import { TfiMenuAlt } from "react-icons/tfi";
 import { TiMessages } from "react-icons/ti";
 export default function page() {
+   
   return (
     <>
       <div className="rounded-2xl shadow-md  px-4 py-8 flex flex-col gap-3 help">
         <div className="-scale-x-100">
           <h4 className="font-semibold text-2xl mb-3">مركز المساعدة</h4>
-          <p className="text-xl">
-            مرحبا
-            <span>Hager</span>, كيف يمكننا مساعدتك؟
-          </p>
+          {/* welcome */}
+          <UserNameWelcome/>
         </div>
       </div>
       <div className="rounded-2xl shadow-md   px-4 py-8 bg-white my-4">
         <h4 className="text-3xl font-semibold mb-5">المقالات الشائعة</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3  gap-4">
-          <Link href="/help-center" aria-label="help center">
+          <Link href="/FAQ" aria-label="help center">
             <div className="flex items-center rounded-xl border border-gray-300  py-3 px-3 gap-3">
               <div className="bg-[#eff6ff] text-[#233a7d] p-2.5 rounded-lg">
                 <TiMessages size={25} />
@@ -33,23 +33,9 @@ export default function page() {
               </div>
             </div>
           </Link>
-          <Link href="help/returns" aria-label="returns">
-            <div className="flex items-center rounded-xl border border-gray-300  py-3 px-3 gap-3">
-              <div className="bg-[#eff6ff] text-[#233a7d] p-2.5 rounded-lg">
-                <RiArrowGoBackFill className=" scale-y-[-1] " size={23} />
-              </div>
-              <div>
-                <h5 className="font-semibold text-xl text-black/80">
-                  المرتجعات
-                </h5>
-                <p className="text-gray-600 my-1 text-md">
-                  أنشئ عملية إرجاع، وتتبع المرتجعات والمزيد
-                </p>
-              </div>
-            </div>
-          </Link>
+       
 
-          <Link href="/policy" aria-label="policy">
+          <Link href="/returnsPolicy" aria-label="policy">
             <div className="flex items-center rounded-xl border border-gray-300  py-3 px-3 gap-3">
               <div className="bg-[#eff6ff] text-[#233a7d] p-2.5 rounded-lg">
                 <TfiMenuAlt size={21} />

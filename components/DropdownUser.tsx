@@ -7,7 +7,6 @@ import {
   FaAngleDown,
   FaHeart,
   FaQuestionCircle,
-  FaRegUser,
 } from "react-icons/fa";
 import {
   FaArrowRightFromBracket,
@@ -15,7 +14,7 @@ import {
   FaMapLocationDot,
   FaUser,
 } from "react-icons/fa6";
-
+import Swal from "sweetalert2";
 import { useAuth } from "@/src/context/AuthContext";
 import Image from "next/image";
 import toast from "react-hot-toast";
@@ -46,18 +45,32 @@ export default function DropdownUser() {
   const handleLinkClick = () => setOpen(false);
 
   const handleLogout = async () => {
-    try {
-      logout?.();
-      await nextAuthSignOut({ redirect: false });
-      toast.success("تم تسجيل الخروج بنجاح!");
-      window.location.href = "/login";
-    } catch (err) {
-      console.error("Logout error:", err);
-      toast.error("فشل تسجيل الخروج، حاول مرة أخرى");
-    }
+  try {
+    logout?.();
+    await nextAuthSignOut({ redirect: false });
     localStorage.removeItem("favorites");
 
-  };
+    Swal.fire({
+      icon: "success",
+      title: "تم تسجيل الخروج",
+      text: "تم تسجيل الخروج بنجاح!",
+      timer: 1800,
+      showConfirmButton: false,
+    });
+
+    setTimeout(() => {
+      window.location.href = "/login";
+    }, 1800);
+  } catch (err) {
+    console.error("Logout error:", err);
+    Swal.fire({
+      icon: "error",
+      title: "خطأ",
+      text: "فشل تسجيل الخروج، حاول مرة أخرى",
+      confirmButtonText: "حسنًا",
+    });
+  }
+};
 
   return (
     <div className="relative" ref={menuRef}>

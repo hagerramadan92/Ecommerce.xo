@@ -1,4 +1,3 @@
-
 export const API_URL = "https://ecommecekhaled.renix4tech.com/api/v1";
 
 export async function fetchApi(endpoint: string) {
@@ -24,7 +23,6 @@ export async function fetchApi(endpoint: string) {
     throw err;
   }
 }
-
 
 export async function fetchHomeData() {
   try {

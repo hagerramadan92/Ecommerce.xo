@@ -9,12 +9,8 @@ import { fetchApi } from "@/lib/api";
 import { useAppContext } from "@/src/context/AppContext";
 import { BannerI } from "@/Types/BannerI";
 import {
-  sliderImages,
   sliderLinks,
-  sliderImages2,
-  Desc2,
-  Desc3,
-  Desc4,
+
 } from "@/Types/data";
 import { useEffect, useState } from "react";
 import Loading from "./loading";
@@ -58,15 +54,15 @@ export default function Home() {
           />
         )}
 
-        <Discount src="/images/discount.jpg" href="/" />
+        {/* <Discount src="/images/discount.jpg" href="/" /> */}
 
         <CategoriesSlider categories={categories1} />
   
-        <Discount src="/images/d3.jpg" href="/" />
+        {/* <Discount src="/images/d3.jpg" href="/" /> */}
 
           
-        <Discount src="/images/d3.jpg" href="/" />
-        <Discount src="/images/d2.jpg" href="/" />
+        {/* <Discount src="/images/d3.jpg" href="/" /> */}
+        {/* <Discount src="/images/d2.jpg" href="/" /> */}
 
         {categories2.length > 0 && (
           <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7">
@@ -74,7 +70,7 @@ export default function Home() {
           </h2>
         )}
 
-        <Discount src="/images/k1.jpg" href="/" />
+        {/* <Discount src="/images/k1.jpg" href="/" /> */}
 
         <div>
           {categories2.length > 0 && categories2[0].products?.length > 0 && (
@@ -82,7 +78,7 @@ export default function Home() {
               {categories2[0].products.map((des, index) => (
                 <div className="flex" key={des.id || index}>
                   <Discount
-                    src={des.image ? des.image : "images/c1.png"}
+                    src={des.image ? des.image : ""}
                     href={des.slug ? `/${des.slug}` : "/"}
                   />
                 </div>
@@ -146,11 +142,11 @@ export default function Home() {
             </div>
           )}
         </div>
-        <ShowAll
+        {/* <ShowAll
           title="جدد مطبخك بأحدث الأجهزة"
           Anchor="مشاهدة المزيد"
           link="/"
-        />
+        /> */}
 
         {categories2.length > 0 && categories2[0].products?.length > 0 && (
           <InStockSlider
@@ -161,13 +157,13 @@ export default function Home() {
           />
         )}
 
-        <SliderComponent src={sliderImages2} href={sliderLinks} />
-        <Discount src="/images/d4.jpg" href="/" />
-        <ShowAll
+        {/* <SliderComponent src={sliderImages2} href={sliderLinks} /> */}
+        {/* <Discount src="/images/d4.jpg" href="/" /> */}
+        {/* <ShowAll
           title="اكتشف مجموعتنا من الترابيزات"
           Anchor="مشاهدة المزيد"
-          link="/"
-        />
+          link="/product"
+        /> */}
         {categories2.length > 0 && categories2[1].products?.length > 0 && (
           <InStockSlider
             inStock={categories2[0].products}
@@ -183,7 +179,7 @@ export default function Home() {
           </h2>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 ">
+        {/* <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 ">
           {Desc2.map((des, index) => (
             <div className="flex" key={index}>
               <Discount src={des.img} href={des.href} />
@@ -194,7 +190,7 @@ export default function Home() {
           title="وحدة تلفزيون تناسب كل مساحة"
           Anchor="مشاهدة المزيد"
           link="/"
-        />
+        /> */}
         {categories2.length > 0 && categories2[2].products?.length > 0 && (
           <InStockSlider
             inStock={categories2[0].products}
@@ -209,28 +205,28 @@ export default function Home() {
             {categories2[4].name}
           </h2>
         )}
-
+{/* 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 my-4">
           {Desc3.map((des, index) => (
             <div className="flex" key={index}>
               <Discount src={des.img} href={des.href} />
             </div>
           ))}
-        </div>
-        <Discount src="/images/d5.jpg" href="/" />
+        </div> */}
+        {/* <Discount src="/images/d5.jpg" href="/" /> */}
         {categories2.length > 0 && (
           <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7">
             {categories2[5].name}
           </h2>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-5 my-4">
+        {/* <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-5 my-4">
           {Desc4.map((des, index) => (
             <div className="flex" key={index}>
               <Discount src={des.img} href={des.href} />
             </div>
           ))}
-        </div>
+        </div> */}
 
         {categories2.length > 0 && (
           <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7">
@@ -253,12 +249,12 @@ export default function Home() {
           </h2>
         )}
 
-        <Discount src="/images/d7.jpg" href="/" />
-        <ShowAll
+        {/* <Discount src="/images/d7.jpg" href="/" /> */}
+        {/* <ShowAll
           title="اكتشف أفضل أجهزة الجري"
           Anchor="مشاهدة المزيد"
           link="/"
-        />
+        /> */}
         {categories2.length > 0 && categories2[1].products?.length > 0 && (
           <InStockSlider
             inStock={categories2[0].products}

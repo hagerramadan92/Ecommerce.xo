@@ -17,7 +17,6 @@ interface GalleryProps {
 export default function ProductGallery({ mainImage, images }: GalleryProps) {
   const [thumbsSwiper, setThumbsSwiper] = useState<any>(null);
 
-  // دمج الصورة الأساسية مع باقي الصور
   const allImages = [{ url: mainImage, alt: "Main Product" }, ...images];
 
   return (
