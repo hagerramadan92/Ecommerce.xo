@@ -26,12 +26,12 @@ export default function ProductGallery({ mainImage, images }: GalleryProps) {
         modules={[Navigation, Thumbs]}
         navigation
         thumbs={{ swiper: thumbsSwiper }}
-        className="rounded-xl overflow-hidden"
+        className="overflow-hidden"
         spaceBetween={10}
       >
         {allImages.map((img, i) => (
           <SwiperSlide key={i}>
-            <div className="w-full h-96 relative bg-white rounded-xl overflow-hidden">
+            <div className="w-full h-132 relative bg-white  overflow-hidden">
               <Image
                 src={img.url??
                   "images/c1.jpg"
@@ -49,21 +49,21 @@ export default function ProductGallery({ mainImage, images }: GalleryProps) {
       {/* Thumbnails */}
       <Swiper
         onSwiper={setThumbsSwiper}
-        spaceBetween={10}
+        spaceBetween={70}
         slidesPerView={4}
         watchSlidesProgress
         className="mt-3"
-        style={{ height: "70px" }} 
+        style={{ height: "120px"  }} 
       >
         {allImages.map((img, i) => (
           <SwiperSlide key={i} className="cursor-pointer w-16! h-16!">
-            <div className="w-16 h-16 p-1 border border-gray-200 rounded overflow-hidden hover:border-orange-300">
+            <div className="w-30 h-20 flex gap-6 p-1 border border-gray-200 rounded overflow-hidden hover:border-orange-500">
               <Image
                 src={img.url??"images/o1.jpg"}
                 alt={img.alt || `Thumb ${i}`}
-                className="object-cover w-full h-full"
-                width={64}
-                height={64}
+                className="object-cover w-[110px] h-20 hover:opacity-75 duration-100 transition"
+                width={110}
+                height={80}
               />
             </div>
           </SwiperSlide>

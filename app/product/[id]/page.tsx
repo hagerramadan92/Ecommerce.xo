@@ -117,7 +117,7 @@ export default function ProductPageClient() {
 
   return (
     <>
-      <div className=" lg:ms-[15%] gap-20 grid grid-cols-1 md:grid-cols-3 p-5">
+      <div className=" lg:ms-[15%] gap-20 grid grid-cols-1 md:grid-cols-3">
         <div className="w-full col-span-1 ">
           <h2 className="text-[#43454c] mb-3 text-xl font-bold">
             {product.name}
