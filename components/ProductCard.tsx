@@ -50,7 +50,7 @@ export default function ProductCard({
   const { cart, addToCart } = useCart();
   const { authToken: token } = useAuth();
 
-  // ⭐ تحميل المفضلة من API + LocalStorage
+
   useEffect(() => {
     const loadFavorites = () => {
       const saved = JSON.parse(localStorage.getItem("favorites") || "[]") as number[];
@@ -65,7 +65,7 @@ export default function ProductCard({
     return () => window.removeEventListener("storage", syncFavorites);
   }, [id, is_favorite]);
 
-  // ⭐ المفضلة
+
   const toggleFavorite = async (productId: number) => {
     if (!token) {
       toast.error("يجب تسجيل الدخول أولاً");
@@ -74,11 +74,11 @@ export default function ProductCard({
 
     const newState = !isFavorite;
 
-    // تحديث UI لحظيًا
+   
     setIsFavorite(newState);
     onFavoriteChange?.(productId, newState);
 
-    // تحديث localStorage
+ 
     let saved = JSON.parse(localStorage.getItem("favorites") || "[]") as number[];
 
     if (newState) {
@@ -88,11 +88,11 @@ export default function ProductCard({
     }
 
     localStorage.setItem("favorites", JSON.stringify(saved));
-
-    // إرسال للـ API
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
+    
     try {
       const res = await fetch(
-        "https://ecommecekhaled.renix4tech.com/api/v1/favorites/toggle",
+        `${API_URL}/favorites/toggle`,
         {
           method: "POST",
           headers: {

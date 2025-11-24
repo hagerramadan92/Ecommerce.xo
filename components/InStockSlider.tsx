@@ -29,7 +29,7 @@ export default function InStockSlider({ inStock , CardComponent }: InStockSlider
   }, []);
 
   return (
-    <div className="relative w-full py-6 md:px-7">
+    <div className="relative w-full py-6 ">
       <div
         ref={prevRef}
         className="hidden absolute left-0 top-1/2 -translate-y-1/2 bg-pro-hover hover:text-white bg-gray-100 text-black  rounded-full w-10 h-10 md:flex items-center justify-center cursor-pointer z-20"
@@ -81,7 +81,7 @@ export default function InStockSlider({ inStock , CardComponent }: InStockSlider
           768: { slidesPerView: 3 },
           1280: { slidesPerView: 5 },
         }}
-        className="max-w-[95%] mx-auto" 
+        className="max-w-[99%] mx-auto" 
       >
         {inStock.map((des, index) => (
           <SwiperSlide key={index}>

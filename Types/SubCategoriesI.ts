@@ -1,3 +1,4 @@
+import { CategoryBannerI } from "./CategoryBannerI";
 import { ProductI } from "./ProductsI";
 
 export interface SubCategoriesI {
@@ -11,4 +12,7 @@ export interface SubCategoriesI {
   sub_image: string;
   is_parent: boolean;
   products: ProductI[];
+  category_banners:CategoryBannerI[]
 }
+
+ 

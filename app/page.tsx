@@ -8,28 +8,25 @@ import SliderComponent from "@/components/SliderComponent";
 import { fetchApi } from "@/lib/api";
 import { useAppContext } from "@/src/context/AppContext";
 import { BannerI } from "@/Types/BannerI";
-import {
-  sliderLinks,
-
-} from "@/Types/data";
+import { sliderLinks } from "@/Types/data";
 import { useEffect, useState } from "react";
 import Loading from "./loading";
+import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   const { homeData } = useAppContext();
   const categories1 = homeData?.categories || [];
   const categories2 = homeData?.sub_categories || [];
-  // const mainSlider = homeData?.sub_categories || [];
   const [mainSlider, setMainSlider] = useState<BannerI[]>([]);
   const [loading, setLoading] = useState(true);
-    const [favorites, setFavorites] = useState<{ [key: number]: boolean }>({});
+  const [favorites, setFavorites] = useState<{ [key: number]: boolean }>({});
 
   useEffect(() => {
     const getSlider1 = async () => {
       try {
         const data = await fetchApi("banners?type=main_slider");
         setMainSlider(Array.isArray(data) ? data : []);
-        
       } catch (error) {
         console.log("Error fetching Slider1:", error);
         setMainSlider([]);
@@ -39,10 +36,10 @@ export default function Home() {
     };
 
     getSlider1();
-
   }, []);
 
-  if (loading) return <Loading/>;
+  if (loading) return <Loading />;
+  console.log(categories2);
 
   return (
     <>
@@ -53,61 +50,19 @@ export default function Home() {
             href={sliderLinks}
           />
         )}
-
-        {/* <Discount src="/images/discount.jpg" href="/" /> */}
-
         <CategoriesSlider categories={categories1} />
-  
-        {/* <Discount src="/images/d3.jpg" href="/" /> */}
 
-          
-        {/* <Discount src="/images/d3.jpg" href="/" /> */}
-        {/* <Discount src="/images/d2.jpg" href="/" /> */}
-
-        {categories2.length > 0 && (
+        {/* {categories2.length > 0 && (
           <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7">
             {categories2[0].name}
           </h2>
-        )}
+        )} */}
+        {/* <Image src="images/banner1.jpg" alt="banner" />
+            <h2>categoryName</h2>
+            <Link href="/">All</Link>
+            <ProductCard/> */}
 
-        {/* <Discount src="/images/k1.jpg" href="/" /> */}
-
-        <div>
-          {categories2.length > 0 && categories2[0].products?.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 ">
-              {categories2[0].products.map((des, index) => (
-                <div className="flex" key={des.id || index}>
-                  <Discount
-                    src={des.image ? des.image : ""}
-                    href={des.slug ? `/${des.slug}` : "/"}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {categories2.length > 0 && (
-          <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7">
-            {categories2[1].name}
-          </h2>
-        )}
-
-        <div>
-          {categories2.length > 0 && categories2[1].products?.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 ">
-              {categories2[0].products.map((des, index) => (
-                <div className="flex" key={des.id || index}>
-                  <Discount
-                    src={des.image ? des.image : "images/c1.png"}
-                    href={des.slug ? `/${des.slug}` : "/"}
-                  />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-        <div>
+        {/* <div>
           {categories2.length > 0 && categories2[3].products?.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-5 ">
               {categories2[0].products.map((des, index) => (
@@ -120,16 +75,16 @@ export default function Home() {
               ))}
             </div>
           )}
-        </div>
+        </div> */}
 
-        {categories2.length > 0 && (
+        {/* {categories2.length > 0 && (
           <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7">
             {categories2[2].name}
           </h2>
-        )}
-
+        )} */}
+        {/* 
         <div>
-          {categories2.length > 0 && categories2[3].products?.length > 0 && (
+          {categories2.length > 0 && categories2[4].products?.length > 0 && (
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-5 ">
               {categories2[0].products.map((des, index) => (
                 <div className="flex" key={des.id || index}>
@@ -141,21 +96,22 @@ export default function Home() {
               ))}
             </div>
           )}
-        </div>
+        </div> */}
+
         {/* <ShowAll
           title="جدد مطبخك بأحدث الأجهزة"
           Anchor="مشاهدة المزيد"
           link="/"
         /> */}
 
-        {categories2.length > 0 && categories2[0].products?.length > 0 && (
+        {/* {categories2.length > 0 && categories2[0].products?.length > 0 && (
           <InStockSlider
             inStock={categories2[0].products}
             CardComponent={(props) => (
               <ProductCard {...props} className="flex" className2="hidden"  classNameHome="hidden"/>
             )}
           />
-        )}
+        )} */}
 
         {/* <SliderComponent src={sliderImages2} href={sliderLinks} /> */}
         {/* <Discount src="/images/d4.jpg" href="/" /> */}
@@ -164,20 +120,56 @@ export default function Home() {
           Anchor="مشاهدة المزيد"
           link="/product"
         /> */}
-        {categories2.length > 0 && categories2[1].products?.length > 0 && (
-          <InStockSlider
-            inStock={categories2[0].products}
-            CardComponent={(props) => (
-              <ProductCard {...props} className="hidden" className2="hidden" classNameHome="hidden" />
-            )}
-          />
-        )}
+        {categories2.map((category, index) => {
+          if (!category.products || category.products.length === 0) return null;
 
-        {categories2.length > 0 && (
+          return (
+            <div key={category.id} className="mb-10">
+              {category.category_banners?.length > 0 && (
+                <Image
+                  src={category.category_banners[0].image ?? "/images/d4.jpg"}
+                  alt={category.name}
+                  width={800}
+                  height={100}
+                  className="w-full h-45 object-cover rounded-md"
+                />
+              )}
+
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7">
+                {category.name}
+              </h2>
+
+              <div className="text-center mb-5">
+                <Link
+                  href={`/category/${category.slug}`}
+                  className="text-blue-500 hover:underline"
+                >
+                   الكل 
+                </Link>
+              </div>
+              </div>
+
+              <InStockSlider
+                inStock={category.products}
+                CardComponent={(props) => (
+                  <ProductCard
+                    {...props}
+                    className="hidden"
+                    className2="hidden"
+                    classNameHome="hidden"
+                  />
+                )}
+              />
+            </div>
+          );
+        })}
+
+        {/* {categories2.length > 0 && (
           <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7">
             {categories2[3].name}
           </h2>
-        )}
+        )} */}
 
         {/* <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 ">
           {Desc2.map((des, index) => (
@@ -191,21 +183,21 @@ export default function Home() {
           Anchor="مشاهدة المزيد"
           link="/"
         /> */}
-        {categories2.length > 0 && categories2[2].products?.length > 0 && (
+        {/* {categories2.length > 0 && categories2[2].products?.length > 0 && (
           <InStockSlider
             inStock={categories2[0].products}
             CardComponent={(props) => (
               <ProductCard {...props} className="hidden" className2="hidden" classNameHome="hidden" />
             )}
           />
-        )}
+        )} */}
 
-        {categories2.length > 0 && (
+        {/* {categories2.length > 0 && (
           <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7">
             {categories2[4].name}
           </h2>
-        )}
-{/* 
+        )} */}
+        {/* 
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 my-4">
           {Desc3.map((des, index) => (
             <div className="flex" key={index}>
@@ -214,11 +206,11 @@ export default function Home() {
           ))}
         </div> */}
         {/* <Discount src="/images/d5.jpg" href="/" /> */}
-        {categories2.length > 0 && (
+        {/* {categories2.length > 0 && (
           <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7">
             {categories2[5].name}
           </h2>
-        )}
+        )} */}
 
         {/* <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-5 my-4">
           {Desc4.map((des, index) => (
@@ -228,7 +220,7 @@ export default function Home() {
           ))}
         </div> */}
 
-        {categories2.length > 0 && (
+        {/* {categories2.length > 0 && (
           <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7">
             {categories2[6].name}
           </h2>
@@ -247,7 +239,7 @@ export default function Home() {
           <h2 className="text-xl md:text-4xl font-bold text-pro text-center py-7">
             {categories2[6].name}
           </h2>
-        )}
+        )} */}
 
         {/* <Discount src="/images/d7.jpg" href="/" /> */}
         {/* <ShowAll
@@ -255,14 +247,14 @@ export default function Home() {
           Anchor="مشاهدة المزيد"
           link="/"
         /> */}
-        {categories2.length > 0 && categories2[1].products?.length > 0 && (
+        {/* {categories2.length > 0 && categories2[1].products?.length > 0 && (
           <InStockSlider
             inStock={categories2[0].products}
             CardComponent={(props) => (
               <ProductCard {...props} className="hidden" className2="hidden" classNameHome="hidden" />
             )}
           />
-        )}
+        )} */}
       </div>
     </>
   );

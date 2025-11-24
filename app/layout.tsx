@@ -7,6 +7,14 @@ import { Toaster } from "react-hot-toast";
 import Providers from "./Providers";
 import { AppProvider } from "@/src/context/AppContext";
 import { ToastProvider } from "@/src/context/ToastContext";
+import { Cairo } from 'next/font/google';
+
+const cairo = Cairo({
+  subsets: ['arabic'],
+  weight: ['300', '400', '600', '700'],
+  display: 'swap',
+});
+
 
 export const metadata: Metadata = {
   title: "Ecommerce",
@@ -17,8 +25,8 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="ar" dir="rtl">
-      <body className="bg-white text-gray-900">
+    <html lang="ar" dir="rtl" className={cairo.className}>
+      <body className="bg-white">
         <AppProvider>
           <ToastProvider>
        <Providers>
