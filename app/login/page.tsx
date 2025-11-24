@@ -20,7 +20,7 @@ export default function Page() {
   const [message, setMessage] = useState<string | null>(null);
   const router = useRouter();
   const { data: session, status } = useSession();
-  const API_URL = "https://ecommecekhaled.renix4tech.com/api/v1";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   const { login: loginContext } = useAuth();
 

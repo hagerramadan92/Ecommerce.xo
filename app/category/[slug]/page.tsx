@@ -53,7 +53,7 @@ interface Filters {
 }
 
 export default function CategoryPage() {
-  const API_URL = "https://ecommecekhaled.renix4tech.com/api/v1";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
   const params = useParams();
   const slug = Array.isArray(params.slug) ? params.slug[0] : params.slug ?? "";
 

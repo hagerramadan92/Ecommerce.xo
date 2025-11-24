@@ -26,7 +26,7 @@ interface Filters {
 }
 
 export default function AllProductsPage() {
-  const API_URL = "https://ecommecekhaled.renix4tech.com/api/v1";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   const [loading, setLoading] = useState(true);
 

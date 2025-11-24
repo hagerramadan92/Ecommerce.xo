@@ -26,7 +26,7 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { login } = useAuth();
-  const API_URL = "https://ecommecekhaled.renix4tech.com/api/v1";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);

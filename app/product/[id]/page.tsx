@@ -30,7 +30,7 @@ export default function ProductPageClient() {
   const [error, setError] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   // const [activeTab, setActiveTab] = useState("sticker");
-  const API_URL = "https://ecommecekhaled.renix4tech.com/api/v1";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   // -----------------------
   // Fetch product when id or token changes
@@ -53,7 +53,7 @@ export default function ProductPageClient() {
         const prod = data.data ?? null;
         setProduct(prod);
 
-        // تحديث حالة المفضلة مباشرة من localStorage
+    
         const savedFavorites = JSON.parse(
           localStorage.getItem("favorites") || "[]"
         ) as number[];
@@ -189,7 +189,7 @@ export default function ProductPageClient() {
         <div className=" w-full">
           <div className="sticky top-20">
             {" "}
-            {/* top-20 تحدد المسافة من أعلى الشاشة */}
+     
             <ProductGallery
               mainImage={product.image || "images/o1.jpg"}
               images={

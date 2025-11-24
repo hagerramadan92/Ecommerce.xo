@@ -11,7 +11,7 @@ export default function Page() {
   const [editingAddress, setEditingAddress] = useState<AddressI | null>(null);
   const [addresses, setAddresses] = useState<AddressI[]>([]);
   const [token, setToken] = useState<string | null>(null);
-  const base_url = "https://ecommecekhaled.renix4tech.com/api/v1";
+  const base_url =process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
     const t = localStorage.getItem("auth_token");

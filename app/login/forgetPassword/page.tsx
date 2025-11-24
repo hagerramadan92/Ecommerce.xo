@@ -13,7 +13,7 @@ export default function ForgetPasswordPage() {
   // OTP state (6 digits)
   const [otpDigits, setOtpDigits] = useState(Array(6).fill(""));
 
-  const API_URL = "https://ecommecekhaled.renix4tech.com/api/v1";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   // إرسال الكود
   const handleSendCode = async () => {
