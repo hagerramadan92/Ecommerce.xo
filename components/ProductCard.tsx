@@ -43,7 +43,7 @@ export default function ProductCard({
   onFavoriteChange,
 }: ProductCardProps) {
   
-  // ⭐ حالة المفضلة
+ 
   const [isFavorite, setIsFavorite] = useState(false);
   const [showImage, setShowImage] = useState(false);
 

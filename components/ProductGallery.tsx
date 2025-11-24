@@ -33,7 +33,9 @@ export default function ProductGallery({ mainImage, images }: GalleryProps) {
           <SwiperSlide key={i}>
             <div className="w-full h-96 relative bg-white rounded-xl overflow-hidden">
               <Image
-                src={img.url}
+                src={img.url??
+                  "images/c1.jpg"
+                }
                 alt={img.alt || `Product ${i}`}
                 className="object-cover w-full h-full"
                 fill
@@ -56,7 +58,7 @@ export default function ProductGallery({ mainImage, images }: GalleryProps) {
           <SwiperSlide key={i} className="cursor-pointer !w-16 !h-16">
             <div className="w-16 h-16 p-1 border border-gray-200 rounded overflow-hidden hover:border-orange-300">
               <Image
-                src={img.url}
+                src={img.url??"images/o1.jpg"}
                 alt={img.alt || `Thumb ${i}`}
                 className="object-cover w-full h-full"
                 width={64}

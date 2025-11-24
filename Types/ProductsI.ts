@@ -92,13 +92,13 @@ export interface ProductI {
   sizes?: ProductSize[];
   offers?: ProductOffer[];
   materials?: ProductMaterial[];
-  images: ImagesI[];
+  images?: ImagesI[];
     specifications?: string;
 }
 export interface ImagesI {
-  url: string;
-  alt: string;
-  type: string;
-  order: number;
-  active: number;
+  url?: string;
+  alt?: string;
+  type?: string;
+  order?: number;
+  active?: number;
 }

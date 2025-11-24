@@ -115,25 +115,24 @@ export default function AllProductsPage() {
 
   if (loading) return <Loading />;
 
-const handleFavoriteChange = (productId: number, newValue: boolean) => {
-  // تحديث القائمة الأساسية
-  setProducts(prev =>
-    prev.map(p =>
-      p.id === productId ? { ...p, is_favorite: newValue } : p
-    )
-  );
+  const handleFavoriteChange = (productId: number, newValue: boolean) => {
+    // تحديث القائمة الأساسية
+    setProducts((prev) =>
+      prev.map((p) =>
+        p.id === productId ? { ...p, is_favorite: newValue } : p
+      )
+    );
 
-  // تحديث قائمة الفلترة
-  setFilteredProducts(prev =>
-    prev.map(p =>
-      p.id === productId ? { ...p, is_favorite: newValue } : p
-    )
-  );
+    // تحديث قائمة الفلترة
+    setFilteredProducts((prev) =>
+      prev.map((p) =>
+        p.id === productId ? { ...p, is_favorite: newValue } : p
+      )
+    );
 
-  // الحل النهائي لإجبار الواجهة تتحدث
-  setFilteredProducts(prev => [...prev]);
-};
-
+    // الحل النهائي لإجبار الواجهة تتحدث
+    setFilteredProducts((prev) => [...prev]);
+  };
 
   const options = [
     { label: "الخيارات المميزة", value: "" },
@@ -157,8 +156,10 @@ const handleFavoriteChange = (productId: number, newValue: boolean) => {
             <div className="md:text-end ">
               <FormControl sx={{ width: 200 }}>
                 <Select
-                sx={{
-                  textAlign: "right", p:0}}
+                  sx={{
+                    textAlign: "right",
+                    p: 0,
+                  }}
                   value={priceOrder}
                   onChange={(e) =>
                     setPriceOrder(
@@ -170,7 +171,7 @@ const handleFavoriteChange = (productId: number, newValue: boolean) => {
                   renderValue={(selected) => {
                     const found = options.find((o) => o.value === selected);
                     return found?.label || <em>الخيارات المميزة</em>;
-                  }}    
+                  }}
                 >
                   {options.map((option) => (
                     <MenuItem key={option.value} value={option.value}>
@@ -195,6 +196,11 @@ const handleFavoriteChange = (productId: number, newValue: boolean) => {
                   id={product.id}
                   name={product.name}
                   image={product.image || "/images/c1.png"}
+                  images={
+                    product.images?.length
+                      ? product.images
+                      : [{ url: "/images/c1.png", alt: "default image" }]
+                  }
                   price={(product.price ?? 1).toString()}
                   final_price={product.final_price}
                   discount={
@@ -209,8 +215,8 @@ const handleFavoriteChange = (productId: number, newValue: boolean) => {
                   average_rating={product.average_rating}
                   reviews={product.reviews}
                   className2="hidden"
-                   is_favorite={product.is_favorite}
-                    onFavoriteChange={handleFavoriteChange}
+                  is_favorite={product.is_favorite}
+                  onFavoriteChange={handleFavoriteChange}
                 />
               ))}
             </div>
@@ -226,7 +232,6 @@ const handleFavoriteChange = (productId: number, newValue: boolean) => {
                 color="primary"
                 sx={{
                   "& .MuiPaginationItem-icon": { transform: "scaleX(-1)" },
-                  
                 }}
               />
             </Stack>

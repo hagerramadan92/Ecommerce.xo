@@ -130,7 +130,6 @@ export default function ProductPageClient() {
           <h2 className="text-[#43454c] mb-3 text-xl font-bold">
             {product.name}
           </h2>
-    
 
           <div className="my-3 flex items-center gap-4">
             <HearComponent liked={isFavorite} onToggleLike={toggleFavorite} />
@@ -143,8 +142,11 @@ export default function ProductPageClient() {
             </div>
           </div>
           <h6 className="font-bold text-xl">مواصفات المنتج</h6>
-          <p className="text-sm mt-1 text-gray-700" dangerouslySetInnerHTML={{ __html: product.description || '' }} />
-         
+          <p
+            className="text-sm mt-1 text-gray-700"
+            dangerouslySetInnerHTML={{ __html: product.description || "" }}
+          />
+
           <div className="flex items-center justify-between border border-gray-300 rounded-lg p-2 my-3">
             <div className="flex items-center gap-1">
               <FaBarcode size={19} className="text-pro-max" />
@@ -178,21 +180,26 @@ export default function ProductPageClient() {
               </div>
             </div>
 
-           
             <div className="m-4">
               {activeTab === "options" && <StickerForm />}
-              {activeTab === "reviews" && <POVComponent product={product}/>}
+              {activeTab === "reviews" && <POVComponent product={product} />}
             </div>
           </div>
         </div>
-       <div className=" w-full">
-  <div className="sticky top-20"> {/* top-20 تحدد المسافة من أعلى الشاشة */}
-    <ProductGallery 
-      mainImage={product.image || "images/o1.jpg"} 
-      images={product.images} 
-    />
-  </div>
-</div>
+        <div className=" w-full">
+          <div className="sticky top-20">
+            {" "}
+            {/* top-20 تحدد المسافة من أعلى الشاشة */}
+            <ProductGallery
+              mainImage={product.image || "images/o1.jpg"}
+              images={
+                product.images?.length
+                  ? product.images
+                  : [{ url: "/images/c1.png", alt: "default image" }]
+              }
+            />
+          </div>
+        </div>
       </div>
     </>
   );

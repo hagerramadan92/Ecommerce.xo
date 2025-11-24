@@ -408,6 +408,7 @@ export default function CategoryPage() {
                   id={product.id}
                   name={product.name}
                   image={product.image || "/images/c1.png"}
+                  
                   price={(product.price ?? 1).toString()}
                   final_price={product.final_price}
                   discount={
