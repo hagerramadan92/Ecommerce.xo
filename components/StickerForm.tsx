@@ -7,7 +7,7 @@ import {
   Select,
   MenuItem,
   Typography,
-  Button,
+
 } from "@mui/material";
 import { motion } from "framer-motion";
 
@@ -43,7 +43,7 @@ export default function StickerForm() {
     description: string = "أختر"
   ) => (
     <Box display="flex" gap={2} alignItems="center" mb={3}>
-      {/* Label Box: ثلث المساحة */}
+
       <Box flex={1}>
         <Box display="flex" alignItems="center" gap={0.5}>
           <Typography variant="subtitle1" color="text.secondary" fontWeight="bold" sx={{color:"#344"}}>
@@ -58,7 +58,7 @@ export default function StickerForm() {
         </Typography>
       </Box>
 
-      {/* Select Box: باقي المساحة */}
+  
       <Box flex={2}>
         <FormControl fullWidth>
           <InputLabel sx={{ textAlign: "right" }}>{label}</InputLabel>

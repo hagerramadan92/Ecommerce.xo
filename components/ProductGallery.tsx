@@ -52,10 +52,10 @@ export default function ProductGallery({ mainImage, images }: GalleryProps) {
         slidesPerView={4}
         watchSlidesProgress
         className="mt-3"
-        style={{ height: "70px" }} // ارتفاع ثابت للثامب
+        style={{ height: "70px" }} 
       >
         {allImages.map((img, i) => (
-          <SwiperSlide key={i} className="cursor-pointer !w-16 !h-16">
+          <SwiperSlide key={i} className="cursor-pointer w-16! h-16!">
             <div className="w-16 h-16 p-1 border border-gray-200 rounded overflow-hidden hover:border-orange-300">
               <Image
                 src={img.url??"images/o1.jpg"}

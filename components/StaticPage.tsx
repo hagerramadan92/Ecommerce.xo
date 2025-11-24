@@ -21,7 +21,7 @@ export default function StaticPage({ slug }: { slug: string }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const base_url = "https://ecommecekhaled.renix4tech.com/api/v1/static-pages";
+  const base_url = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
     const fetchData = async () => {

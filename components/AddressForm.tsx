@@ -55,7 +55,7 @@ export default function AddressForm({
   initialData,
   onSuccess,
 }: AddressFormProps) {
-  const base_url = "https://ecommecekhaled.renix4tech.com/api/v1";
+  const base_url = process.env.NEXT_PUBLIC_API_URL;
   const [loading, setLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
 

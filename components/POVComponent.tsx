@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import Image from "next/image";
 import { FaStar } from "react-icons/fa";
 interface POVProps {
-  product: ProductI; // هنا بنحدد النوع
+  product: ProductI; 
 }
 export default function POVComponent({ product }: POVProps) {
   const reviews = product?.reviews || [];

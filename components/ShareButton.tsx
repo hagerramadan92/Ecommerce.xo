@@ -9,7 +9,7 @@ export default function ShareButton() {
     const title = document.title;
 
     if (navigator.share) {
-      // إذا كان المتصفح يدعم المشاركة الأصلية
+      
       try {
         await navigator.share({ title, url });
         toast.success("تمت المشاركة بنجاح!");
@@ -18,7 +18,7 @@ export default function ShareButton() {
         toast.error("فشل المشاركة");
       }
     } else {
-      // إذا لم يدعم المشاركة، يتم نسخ الرابط
+     
       try {
         await navigator.clipboard.writeText(url);
         toast.success("تم نسخ رابط الصفحة!");
