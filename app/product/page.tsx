@@ -217,6 +217,7 @@ export default function AllProductsPage() {
                   className2="hidden"
                   is_favorite={product.is_favorite}
                   onFavoriteChange={handleFavoriteChange}
+                   Bottom="bottom-41.5"
                 />
               ))}
             </div>

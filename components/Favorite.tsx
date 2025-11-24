@@ -33,7 +33,7 @@ export default function Favorite() {
 
       const dataJson = await res.json();
 
-      // تحويل الشكل {id, product_id, product} إلى ProductI
+    
       const favoritesWithFlag: ProductI[] = (dataJson.data || []).map((fav: any) => ({
         ...fav.product,
         is_favorite: true,
@@ -62,12 +62,14 @@ export default function Favorite() {
   return (
     <div className="p-4">
       <h2 className="text-2xl font-bold mb-4">منتجاتي المفضلة</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
         {favoriteProducts.map(product => (
           <ProductCard
             key={product.id}
             {...product}
             onFavoriteChange={() => removeFavoriteLocally(product.id)}
+             Bottom="bottom-41"
+             className2="hidden"
           />
         ))}
       </div>

@@ -29,12 +29,9 @@ export default function ProductPageClient() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
-  // const [activeTab, setActiveTab] = useState("sticker");
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-  // -----------------------
-  // Fetch product when id or token changes
-  // -----------------------
+
   useEffect(() => {
     async function fetchProduct() {
       if (!id) return;
@@ -69,9 +66,6 @@ export default function ProductPageClient() {
     fetchProduct();
   }, [id, token]);
 
-  // -----------------------
-  // Toggle favorite
-  // -----------------------
   const toggleFavorite = async () => {
     if (!token) {
       toast.error("يجب تسجيل الدخول أولاً");
@@ -83,7 +77,6 @@ export default function ProductPageClient() {
     const newState = !isFavorite;
     setIsFavorite(newState);
 
-    // تحديث localStorage فورًا
     let saved = JSON.parse(
       localStorage.getItem("favorites") || "[]"
     ) as number[];
@@ -94,7 +87,6 @@ export default function ProductPageClient() {
     }
     localStorage.setItem("favorites", JSON.stringify(saved));
 
-    // إرسال للـ API
     try {
       const res = await fetch(`${API_URL}/favorites/toggle`, {
         method: "POST",
@@ -108,14 +100,14 @@ export default function ProductPageClient() {
       const data = await res.json();
 
       if (!res.ok || !data.status) {
-        setIsFavorite(!newState); // رجوع للوضع القديم
+        setIsFavorite(!newState); 
         toast.error(data.message || "فشل تحديث المفضلة");
       } else {
         toast.success(data.message || "تم تحديث المفضلة");
       }
     } catch (err) {
       console.error(err);
-      setIsFavorite(!newState); // رجوع للوضع القديم
+      setIsFavorite(!newState);
       toast.error("حدث خطأ أثناء تحديث المفضلة");
     }
   };
@@ -125,8 +117,8 @@ export default function ProductPageClient() {
 
   return (
     <>
-      <div className=" lg:ms-[15%] gap-5 grid grid-cols-1 md:grid-cols-2 p-5">
-        <div className="lg:w-[75%] w-full ">
+      <div className=" lg:ms-[15%] gap-20 grid grid-cols-1 md:grid-cols-3 p-5">
+        <div className="w-full col-span-1 ">
           <h2 className="text-[#43454c] mb-3 text-xl font-bold">
             {product.name}
           </h2>
@@ -186,7 +178,7 @@ export default function ProductPageClient() {
             </div>
           </div>
         </div>
-        <div className=" w-full">
+        <div className=" w-full col-span-2">
           <div className="sticky top-20">
             {" "}
      

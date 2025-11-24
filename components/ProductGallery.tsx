@@ -38,7 +38,8 @@ export default function ProductGallery({ mainImage, images }: GalleryProps) {
                 }
                 alt={img.alt || `Product ${i}`}
                 className="object-cover w-full h-full"
-                fill
+                width={120}
+                height={120}
               />
             </div>
           </SwiperSlide>

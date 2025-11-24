@@ -22,6 +22,7 @@ interface ProductCardProps extends ProductI {
   className3?: string;
   classNameHome?: string;
   classNameCate?: string;
+  Bottom?:string;
   onFavoriteChange?: (productId: number, newValue: boolean) => void;
 }
 
@@ -40,20 +41,20 @@ export default function ProductCard({
   average_rating,
   reviews,
   is_favorite,
+  Bottom,
   onFavoriteChange,
 }: ProductCardProps) {
-  
- 
   const [isFavorite, setIsFavorite] = useState(false);
   const [showImage, setShowImage] = useState(false);
 
   const { cart, addToCart } = useCart();
   const { authToken: token } = useAuth();
 
-
   useEffect(() => {
     const loadFavorites = () => {
-      const saved = JSON.parse(localStorage.getItem("favorites") || "[]") as number[];
+      const saved = JSON.parse(
+        localStorage.getItem("favorites") || "[]"
+      ) as number[];
       setIsFavorite(saved.includes(id) || (is_favorite ?? false));
     };
 
@@ -65,7 +66,6 @@ export default function ProductCard({
     return () => window.removeEventListener("storage", syncFavorites);
   }, [id, is_favorite]);
 
-
   const toggleFavorite = async (productId: number) => {
     if (!token) {
       toast.error("يجب تسجيل الدخول أولاً");
@@ -74,12 +74,12 @@ export default function ProductCard({
 
     const newState = !isFavorite;
 
-   
     setIsFavorite(newState);
     onFavoriteChange?.(productId, newState);
 
- 
-    let saved = JSON.parse(localStorage.getItem("favorites") || "[]") as number[];
+    let saved = JSON.parse(
+      localStorage.getItem("favorites") || "[]"
+    ) as number[];
 
     if (newState) {
       if (!saved.includes(productId)) saved.push(productId);
@@ -88,25 +88,21 @@ export default function ProductCard({
     }
 
     localStorage.setItem("favorites", JSON.stringify(saved));
-  const API_URL = process.env.NEXT_PUBLIC_API_URL;
-    
+    const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
     try {
-      const res = await fetch(
-        `${API_URL}/favorites/toggle`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ product_id: productId }),
-        }
-      );
+      const res = await fetch(`${API_URL}/favorites/toggle`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ product_id: productId }),
+      });
 
       const data = await res.json();
 
       if (!res.ok || !data.status) {
-        // رجوع للوضع القديم
         setIsFavorite(!newState);
         onFavoriteChange?.(productId, !newState);
 
@@ -117,7 +113,6 @@ export default function ProductCard({
     } catch (err) {
       console.error(err);
 
-      // رجوع للوضع القديم
       setIsFavorite(!newState);
       onFavoriteChange?.(productId, !newState);
 
@@ -130,20 +125,21 @@ export default function ProductCard({
   return (
     <div className="relative">
       <div className="flex flex-col border rounded-xl border-gray-200 overflow-hidden pb-3 hover:shadow-md transition-shadow duration-300">
-        
-        {/* الصورة */}
         <div className="relative w-full">
-          <Link href={`/product/${id}`} className="block w-full h-full overflow-hidden">
+          <Link
+            href={`/product/${id}`}
+            className="block w-full h-full overflow-hidden"
+          >
             <ImageComponent image={image || "/images/c1.png"} />
           </Link>
 
-          {/* ❤️ قلب المفضلة */}
           <div className="absolute top-1 end-1">
-          <HearComponent liked={isFavorite} onToggleLike={() => toggleFavorite(id)} />
-
+            <HearComponent
+              liked={isFavorite}
+              onToggleLike={() => toggleFavorite(id)}
+            />
           </div>
 
-          {/* حالة المخزون */}
           {stock > 0 ? (
             <div className="absolute bottom-0 text-white bg-[#62bd7c] rounded rounded-br-none rounded-tr-none text-sm w-fit px-1.5">
               <p>متوفر</p>
@@ -154,7 +150,6 @@ export default function ProductCard({
             </div>
           )}
 
-          {/* عرض الصورة */}
           <button
             onClick={() => setShowImage(true)}
             className={`flex absolute cursor-pointer end-1 hover:scale-105 bottom-0.5 bg-white/80 w-7 h-7 rounded-full items-center justify-center ${className2}`}
@@ -162,10 +157,14 @@ export default function ProductCard({
             <GoEye size={20} className="text-pro cursor-pointer" />
           </button>
 
-          {showImage && <ShowImage onClose={() => setShowImage(false)} src={image || "/images/c1.png"} />}
+          {showImage && (
+            <ShowImage
+              onClose={() => setShowImage(false)}
+              src={image || "/images/c1.png"}
+            />
+          )}
         </div>
 
-        {/* المعلومات */}
         <div className="px-2">
           <Link href={`/product/${id}`}>
             <p className="text-[15px] text-gray-600 my-2 hover:text-[#2c2e2c] transition font-bold">
@@ -173,12 +172,17 @@ export default function ProductCard({
             </p>
           </Link>
 
-          {/* السعر */}
           <div className={`flex gap-1 items-center ${classNameHome}`}>
             <PriceComponent final_price={final_price || 1} />
-            {price && <p className="text-gray-700 line-through text-[0.72rem] mx-1">{price}</p>}
+            {price && (
+              <p className="text-gray-700 line-through text-[0.72rem] mx-1">
+                {price}
+              </p>
+            )}
             {discount && (
-              <div className={`font-bold text-[0.7rem] flex text-[#08b63d] ${className3}`}>
+              <div
+                className={`font-bold text-[0.7rem] flex text-[#08b63d] ${className3}`}
+              >
                 <span className="me-1">%</span>
                 <p>{discount.value}</p>
                 <span>-</span>
@@ -186,10 +190,11 @@ export default function ProductCard({
             )}
           </div>
 
-          {/* التقييم */}
-          <RatingStars average_ratingc={average_rating || 2} reviewsc={reviews || []} />
+          <RatingStars
+            average_ratingc={average_rating || 2}
+            reviewsc={reviews || []}
+          />
 
-          {/* زر إضافة للعربة */}
           <button
             onClick={(e) => {
               e.preventDefault();
@@ -204,25 +209,23 @@ export default function ProductCard({
             </div>
           </button>
 
-          {/* زر السلة – في مكان الكاتيجوري */}
-          <button
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleAddToCart();
-            }}
-            className={`${classNameCate} absolute end-1.5 bottom-52`}
-          >
-            <div className="bg-white p-1 rounded-full text-pro text-xl cursor-pointer hover:text-orange-300">
-              <BsCart3 className="text-blue-950 hover:text-orange-500 transition duration-150" />
-            </div>
-          </button>
-
           <div className="mt-5">
             <BottomSlider />
           </div>
         </div>
       </div>
+      <button
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          handleAddToCart();
+        }}
+        className={`${classNameCate} absolute end-1.5 ${Bottom}`}
+      >
+        <div className="bg-white p-1 rounded-full text-pro text-xl cursor-pointer hover:text-orange-300">
+          <BsCart3 className="text-blue-950 hover:text-orange-500 transition duration-150" />
+        </div>
+      </button>
     </div>
   );
 }

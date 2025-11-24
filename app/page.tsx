@@ -158,6 +158,7 @@ export default function Home() {
                     className="hidden"
                     className2="hidden"
                     classNameHome="hidden"
+                    Bottom="bottom-32"
                   />
                 )}
               />
