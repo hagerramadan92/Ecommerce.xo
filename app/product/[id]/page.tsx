@@ -14,6 +14,8 @@ import { FaBarcode } from "react-icons/fa";
 import StickerForm from "@/components/StickerForm";
 import POVComponent from "@/components/POVComponent";
 import ProductGallery from "@/components/ProductGallery";
+import CustomSeparator from "@/components/Breadcrumbs";
+import Image from "next/image";
 
 export default function ProductPageClient() {
   const params = useParams();
@@ -30,7 +32,6 @@ export default function ProductPageClient() {
   const [error, setError] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
 
   useEffect(() => {
     async function fetchProduct() {
@@ -50,7 +51,6 @@ export default function ProductPageClient() {
         const prod = data.data ?? null;
         setProduct(prod);
 
-    
         const savedFavorites = JSON.parse(
           localStorage.getItem("favorites") || "[]"
         ) as number[];
@@ -100,7 +100,7 @@ export default function ProductPageClient() {
       const data = await res.json();
 
       if (!res.ok || !data.status) {
-        setIsFavorite(!newState); 
+        setIsFavorite(!newState);
         toast.error(data.message || "فشل تحديث المفضلة");
       } else {
         toast.success(data.message || "تم تحديث المفضلة");
@@ -118,8 +118,12 @@ export default function ProductPageClient() {
   return (
     <>
       <div className=" lg:ms-[15%] gap-20 grid grid-cols-1 md:grid-cols-3">
-        <div className="w-full col-span-1 ">
-          <h2 className="text-[#43454c] mb-3 text-xl font-bold">
+        <div className="w-full col-span-1 mt-5">
+          <div className="py-5">
+            <CustomSeparator proName={product.name} />
+          </div>
+
+          <h2 className="text-[#1d1e24] mb-3 text-2xl font-bold">
             {product.name}
           </h2>
 
@@ -181,7 +185,6 @@ export default function ProductPageClient() {
         <div className=" w-full col-span-2">
           <div className="sticky top-20">
             {" "}
-     
             <ProductGallery
               mainImage={product.image || "images/o1.jpg"}
               images={
@@ -190,6 +193,31 @@ export default function ProductPageClient() {
                   : [{ url: "/images/c1.png", alt: "default image" }]
               }
             />
+          </div>
+        </div>
+      </div>
+      <div className="flex items-center justify-between py-5 px-2 ">
+        {/* product image */}
+        <div className="flex">
+          <Image
+            src={product.image ?? "images/o1.jpg"}
+            alt={product.name ?? "product"}
+            width={100}
+            height={100}
+          />
+          <div>
+            <p>{product.description?.slice(0, 20)}</p>
+            <h3>{product.name}</h3>
+          </div>
+        </div>
+        {/* cart */}
+        <div className="flex">
+          <div>
+            <h4>_</h4>
+            <p>السعر يشمل الضريبة</p>
+          </div>
+          <div>
+            <button>اضافة للسلة</button>
           </div>
         </div>
       </div>

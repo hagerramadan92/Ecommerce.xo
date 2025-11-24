@@ -57,7 +57,7 @@ export default function ProductGallery({ mainImage, images }: GalleryProps) {
       >
         {allImages.map((img, i) => (
           <SwiperSlide key={i} className="cursor-pointer w-16! h-16!">
-            <div className="w-30 h-20 flex gap-6 p-1 border border-gray-200 rounded overflow-hidden hover:border-orange-500">
+            <div className="w-30 h-20 flex gap-6 p-1 border border-gray-200 rounded overflow-hidden hover:border-orange-400">
               <Image
                 src={img.url??"images/o1.jpg"}
                 alt={img.alt || `Thumb ${i}`}
