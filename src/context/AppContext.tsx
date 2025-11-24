@@ -16,7 +16,7 @@ import { ProductI } from "@/Types/ProductsI";
 import { SubCategoriesI } from "@/Types/SubCategoriesI";
 import { BannerI } from "@/Types/BannerI";
 import { SocialMediaI } from "@/Types/SocialMediaI";
-import { AddressI } from "@/Types/AddressI";
+
 
 interface HomeData {
   categories: CategoryI[];
@@ -60,7 +60,7 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
       try {
         setLoading(true);
 
-        // 1) بيانات الـ HOME
+        // 1)   HOME
         const home = await fetchHomeData();
         setHomeData(home);
 
@@ -77,6 +77,8 @@ export const AppProvider = ({ children }: { children: ReactNode }) => {
         
       } catch (err: any) {
         setError(err.message || "فشل تحميل البيانات");
+          console.error("Error loading data:", err);
+
       } finally {
         setLoading(false);
       }

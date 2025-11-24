@@ -1,4 +1,4 @@
-export const API_URL = "https://ecommecekhaled.renix4tech.com/api/v1";
+export const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export async function fetchApi(endpoint: string) {
   try {

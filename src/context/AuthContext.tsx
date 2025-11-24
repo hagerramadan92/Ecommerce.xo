@@ -36,9 +36,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [fullName, setFullName] = useState<string | null>(null);
   const { data: session, status } = useSession();
 
-  // ----------------------------
-  // ⬇️ استرجاع بيانات المستخدم
-  // ----------------------------
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -72,16 +69,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [session, status]);
 
-  // ----------------------------
-  // ⬇️ **مزامنة المفضلة عند تسجيل الدخول**
-  // ----------------------------
   useEffect(() => {
     if (!authToken) return;
 
     const fetchFavorites = async () => {
       try {
         const res = await fetch(
-          "https://ecommecekhaled.renix4tech.com/api/v1/favorites",
+          `${process.env.NEXT_PUBLIC_API_URL}/favorites`,
           {
             headers: {
               Authorization: `Bearer ${authToken}`,
@@ -101,11 +95,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     fetchFavorites();
-  }, [authToken]); // ⬅️ لما التوكن يتغير (يعني لما تعملي Login)
+  }, [authToken]); 
 
-  // ----------------------------
-  // ⬇️ تسجيل الدخول
-  // ----------------------------
   const login = (
     token: string,
     name: string,
@@ -126,7 +117,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("fullName", fullNameParam || name);
   };
 
-  // ⬇️ تحديث بيانات الدخول من API خارجي
+
   const setAuthFromApi = (data: {
     token: string;
     name: string;
@@ -137,9 +128,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     login(data.token, data.name, data.email, data.image, data.fullName);
   };
 
-  // ----------------------------
-  // ⬇️ تسجيل الخروج
-  // ----------------------------
+
   const logout = () => {
     setAuthToken(null);
     setUserName(null);
@@ -170,7 +159,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
-  if (!context)
-    throw new Error("useAuth must be used within an AuthProvider");
+  if (!context) throw new Error("useAuth must be used within an AuthProvider");
   return context;
 };
