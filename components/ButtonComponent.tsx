@@ -45,7 +45,7 @@ export default function ButtonComponent({ title, onClick }: TitleProps) {
         if (onClick) onClick(e);
       }}
       disabled={isLoading}
-      className={`relative overflow-hidden flex items-center justify-center gap-2 h-14 cursor-pointer text-white rounded w-full mt-3 bg-pro hover:bg-pro-max transition-all duration-300`}
+      className={`relative overflow-hidden flex items-center px-6 justify-center gap-2 h-14 cursor-pointer text-white rounded w-full mt-3 bg-pro hover:bg-pro-max transition-all duration-300`}
     >
    
       {showRipple && (

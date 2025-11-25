@@ -10,6 +10,9 @@ module.exports = {
         pro: "#ff7300",
         "pro-hover": "#ffa655",
       },
+      fontFamily: {
+        cairo: ['Cairo', 'sans-serif'],
+      },
       keyframes: {
         ripple: {
           "0%": { transform: "scale(0)", opacity: "0.5" },

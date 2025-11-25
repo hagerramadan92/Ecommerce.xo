@@ -137,6 +137,7 @@ export default function ProductCard({
             <HearComponent
               liked={isFavorite}
               onToggleLike={() => toggleFavorite(id)}
+              ClassName="text-pro"
             />
           </div>
 

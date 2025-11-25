@@ -16,6 +16,7 @@ import POVComponent from "@/components/POVComponent";
 import ProductGallery from "@/components/ProductGallery";
 import CustomSeparator from "@/components/Breadcrumbs";
 import Image from "next/image";
+import ButtonComponent from "@/components/ButtonComponent";
 
 export default function ProductPageClient() {
   const params = useParams();
@@ -32,7 +33,9 @@ export default function ProductPageClient() {
   const [error, setError] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
+  const handleSubmit =()=>{
+    console.log("added to cart successfully")
+  }
   useEffect(() => {
     async function fetchProduct() {
       if (!id) return;
@@ -117,19 +120,27 @@ export default function ProductPageClient() {
 
   return (
     <>
-      <div className=" lg:ms-[15%] gap-20 grid grid-cols-1 md:grid-cols-3">
-        <div className="w-full col-span-1 mt-5">
-          <div className="py-5">
+      <div className=" xl:ms-[15%] ms-5 sm:ms-10 md:gap-5 lg:flex md:grid md:grid-cols-2">
+        <div className="lg:w-[35%]  mt-5 mb-4">
+          <div className="py-5 font-family-cairo">
             <CustomSeparator proName={product.name} />
           </div>
 
-          <h2 className="text-[#1d1e24] mb-3 text-2xl font-bold">
+          <h2 className="text-[#373944] mb-5 mt-3 text-3xl font-bold">
             {product.name}
           </h2>
 
-          <div className="my-3 flex items-center gap-4">
-            <HearComponent liked={isFavorite} onToggleLike={toggleFavorite} />
-            <ShareButton />
+          <div className="my-3 flex items-center gap-7">
+            <div className="flex gap-3">
+              <HearComponent
+                liked={isFavorite}
+                onToggleLike={toggleFavorite}
+                ClassName="text-gray-400"
+                ClassNameP="border border-gray-300"
+              />
+              <ShareButton />
+            </div>
+
             <div className="flex gap-3 items-center mb-2">
               <RatingStars
                 average_ratingc={product.average_rating || 2}
@@ -137,7 +148,9 @@ export default function ProductPageClient() {
               />
             </div>
           </div>
-          <h6 className="font-bold text-xl">مواصفات المنتج</h6>
+          <h6 className="font-bold text-3xl my-7 text-gray-600">
+            مواصفات المنتج
+          </h6>
           <p
             className="text-sm mt-1 text-gray-700"
             dangerouslySetInnerHTML={{ __html: product.description || "" }}
@@ -182,7 +195,8 @@ export default function ProductPageClient() {
             </div>
           </div>
         </div>
-        <div className=" w-full col-span-2">
+        <div className="lg:w-[5%] hidden lg:flex"></div>
+        <div className=" lg:w-[60%] ">
           <div className="sticky top-20">
             {" "}
             <ProductGallery
@@ -196,28 +210,30 @@ export default function ProductPageClient() {
           </div>
         </div>
       </div>
-      <div className="flex items-center justify-between py-5 px-2 ">
+      <div className="flex items-center justify-between z-50 py-4 px-7  shadow-gray-700 shadow-2xl  fixed bottom-0 start-0 end-0 bg-white">
         {/* product image */}
-        <div className="flex">
+        <div className="flex gap-5 items-center">
           <Image
             src={product.image ?? "images/o1.jpg"}
             alt={product.name ?? "product"}
             width={100}
             height={100}
+            className="rounded-xl w-19 h-19"
           />
           <div>
-            <p>{product.description?.slice(0, 20)}</p>
-            <h3>{product.name}</h3>
+            <p className="text-sm text-gray-600">{product.name?.slice(0, 20)}</p>
+            <h3 className="text-xl font-bold">{product.name}</h3>
           </div>
         </div>
         {/* cart */}
-        <div className="flex">
-          <div>
-            <h4>_</h4>
-            <p>السعر يشمل الضريبة</p>
+        <div className="flex items-center gap-3  max-w-max">
+          <div className="flex flex-col items-center ">
+            <h4 className="text-xl font-bold">-</h4>
+            <p className="text-gray-500 text-[12px]">السعر يشمل الضريبة</p>
           </div>
-          <div>
-            <button>اضافة للسلة</button>
+          <div className=" ">
+            {/* <button>اضافة للسلة</button> */}
+              <ButtonComponent title="اضافة للسلة" onClick={handleSubmit} />
           </div>
         </div>
       </div>

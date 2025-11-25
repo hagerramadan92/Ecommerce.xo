@@ -30,6 +30,9 @@
 .border-pro-max {
   border: 1px solid var(--pro-max);
 }
+.font-family-cairo{
+  font-family: "Cairo", sans-serif;
+}
 @keyframes slideDown {
   0% {
     opacity: 0;
