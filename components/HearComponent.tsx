@@ -17,6 +17,7 @@ export default function HearComponent({
 }: HearComponentProps) {
   return (
     <button
+    aria-label="heart icon"
       onClick={(e) => {
         e.preventDefault();
         e.stopPropagation();
