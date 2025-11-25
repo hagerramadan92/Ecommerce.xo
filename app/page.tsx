@@ -39,7 +39,6 @@ export default function Home() {
   }, []);
 
   if (loading) return <Loading />;
-  console.log(categories2);
 
   return (
     <>

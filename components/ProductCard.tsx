@@ -22,8 +22,17 @@ interface ProductCardProps extends ProductI {
   className3?: string;
   classNameHome?: string;
   classNameCate?: string;
-  Bottom?:string;
+  Bottom?: string;
   onFavoriteChange?: (productId: number, newValue: boolean) => void;
+
+  selectedSizeId?: number | null;
+  selectedColorId?: number | null;
+  selectedPrintingMethodId?: number | null;
+  selectedPrintLocations?: number[];
+  selectedEmbroiderLocations?: number[];
+  selectedOptions?: { option_name: string; option_value: string }[];
+  selectedDesignServiceId?: number | null;
+  isSample?: boolean;
 }
 
 export default function ProductCard({
@@ -43,12 +52,22 @@ export default function ProductCard({
   is_favorite,
   Bottom,
   onFavoriteChange,
+  selectedSizeId,
+  selectedColorId,
+  selectedPrintingMethodId,
+  selectedPrintLocations = [],
+  selectedEmbroiderLocations = [],
+  selectedOptions = [],
+  selectedDesignServiceId,
+  isSample = false,
 }: ProductCardProps) {
   const [isFavorite, setIsFavorite] = useState(false);
   const [showImage, setShowImage] = useState(false);
+  const [isAdding, setIsAdding] = useState(false);
 
-  const { cart, addToCart } = useCart();
+  // const { addToCart, refreshCart } = useCart();
   const { authToken: token } = useAuth();
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
     const loadFavorites = () => {
@@ -59,11 +78,8 @@ export default function ProductCard({
     };
 
     loadFavorites();
-
-    const syncFavorites = () => loadFavorites();
-    window.addEventListener("storage", syncFavorites);
-
-    return () => window.removeEventListener("storage", syncFavorites);
+    window.addEventListener("storage", loadFavorites);
+    return () => window.removeEventListener("storage", loadFavorites);
   }, [id, is_favorite]);
 
   const toggleFavorite = async (productId: number) => {
@@ -73,22 +89,15 @@ export default function ProductCard({
     }
 
     const newState = !isFavorite;
-
     setIsFavorite(newState);
     onFavoriteChange?.(productId, newState);
 
     let saved = JSON.parse(
       localStorage.getItem("favorites") || "[]"
     ) as number[];
-
-    if (newState) {
-      if (!saved.includes(productId)) saved.push(productId);
-    } else {
-      saved = saved.filter((id) => id !== productId);
-    }
-
+    if (newState) saved.push(productId);
+    else saved = saved.filter((id) => id !== productId);
     localStorage.setItem("favorites", JSON.stringify(saved));
-    const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
     try {
       const res = await fetch(`${API_URL}/favorites/toggle`, {
@@ -105,26 +114,46 @@ export default function ProductCard({
       if (!res.ok || !data.status) {
         setIsFavorite(!newState);
         onFavoriteChange?.(productId, !newState);
-
         toast.error(data.message || "فشل تحديث المفضلة");
       } else {
-        toast.success(data.message || "تم تحديث المفضلة");
+        toast.success("تم تحديث المفضلة بنجاح");
       }
     } catch (err) {
-      console.error(err);
-
       setIsFavorite(!newState);
       onFavoriteChange?.(productId, !newState);
-
       toast.error("حدث خطأ أثناء تحديث المفضلة");
     }
   };
+  const { addToCart } = useCart();
 
-  const handleAddToCart = () => {};
+  const handleAddToCart = async () => {
+    if (!token) {
+      toast.error("يجب تسجيل الدخول أولاً");
+      return;
+    }
 
+    if (isAdding || stock === 0) return;
+    setIsAdding(true);
+
+    const success = await addToCart(id, {
+      quantity: 1,
+      size_id: selectedSizeId ?? null,
+      color_id: selectedColorId ?? null,
+      printing_method_id: selectedPrintingMethodId ?? null,
+      print_locations:
+        selectedPrintLocations.length > 0 ? selectedPrintLocations : [],
+      embroider_locations:
+        selectedEmbroiderLocations.length > 0 ? selectedEmbroiderLocations : [],
+      selected_options: selectedOptions.length > 0 ? selectedOptions : [],
+      design_service_id: selectedDesignServiceId ?? null,
+      is_sample: isSample,
+    });
+
+    setIsAdding(false);
+  };
   return (
-    <div className="relative">
-      <div className="flex flex-col border rounded-xl border-gray-200 overflow-hidden pb-3 hover:shadow-md transition-shadow duration-300">
+    <div className="relative group">
+      <div className="flex flex-col border rounded-xl border-gray-200 overflow-hidden pb-3 hover:shadow-lg transition-all duration-300">
         <div className="relative w-full">
           <Link
             href={`/product/${id}`}
@@ -133,7 +162,7 @@ export default function ProductCard({
             <ImageComponent image={image || "/images/c1.png"} />
           </Link>
 
-          <div className="absolute top-1 end-1">
+          <div className="absolute top-2 end-2 z-10">
             <HearComponent
               liked={isFavorite}
               onToggleLike={() => toggleFavorite(id)}
@@ -152,7 +181,7 @@ export default function ProductCard({
           )}
 
           <button
-          aria-label="show product "
+            aria-label="show product "
             onClick={() => setShowImage(true)}
             className={`flex absolute cursor-pointer end-1 hover:scale-105 bottom-0.5 bg-white/80 w-7 h-7 rounded-full items-center justify-center ${className2}`}
           >
@@ -174,62 +203,62 @@ export default function ProductCard({
             </p>
           </Link>
 
-          <div className={`flex gap-1 items-center ${classNameHome}`}>
+          <div className={`flex items-center gap-2 mt-2 ${classNameHome}`}>
             <PriceComponent final_price={final_price || 1} />
-            {price && (
-              <p className="text-gray-700 line-through text-[0.72rem] mx-1">
-                {price}
-              </p>
+            {price && Number(price) !== final_price && (
+              <p className="text-gray-500 line-through text-sm">{price} ج.م</p>
             )}
             {discount && (
-              <div
-                className={`font-bold text-[0.7rem] flex text-[#08b63d] ${className3}`}
-              >
-                <span className="me-1">%</span>
-                <p>{discount.value}</p>
-                <span>-</span>
+              <div className="bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded">
+                -{discount.value}%
               </div>
             )}
           </div>
 
           <RatingStars
-            average_ratingc={average_rating || 2}
+            average_ratingc={average_rating || 0}
             reviewsc={reviews || []}
           />
 
-          <button
-          aria-label="add to cart"
-            onClick={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleAddToCart();
-            }}
-            className={`${className2} hidden mb-0 mt-2 text-end cursor-pointer w-full`}
-          >
-            <div className="flex text-pro rounded justify-center border-pro p-2 items-center border gap-2">
-              <p className="text-pro">أضف الي العربة</p>
-              <BsCartPlus className="text-pro" />
-            </div>
-          </button>
-
-          <div className="mt-5">
+          <div className="mt-4">
             <BottomSlider />
           </div>
         </div>
       </div>
+
       <button
-      aria-label="add to cart"
+        aria-label="add to cart"
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();
           handleAddToCart();
         }}
-        className={`${classNameCate} absolute end-1.5 ${Bottom}`}
+        disabled={isAdding || stock === 0}
+        className={`${classNameCate} absolute end-1.5 ${Bottom} z-20 transition-all duration-300`}
       >
         <div className="bg-white p-1 rounded-full text-pro text-xl cursor-pointer hover:text-orange-300">
-          <BsCart3 className="text-blue-950 hover:text-orange-500 transition duration-150" />
+          {isAdding ? (
+            <div className="w-5 h-5 border-2 border-t-transparent border-gray-700 rounded-full animate-spin"></div>
+          ) : (
+            <BsCart3 size={24} className="cursor-pointer" />
+          )}
         </div>
       </button>
+      {/* 
+      
+      
+      
+      <button>
+        <div className="bg-white p-1 rounded-full text-gray-700 hover:text-orange-500 transition-all duration-200">
+          {isAdding ? (
+            <div className="w-5 h-5 border-2 border-t-transparent border-gray-700 rounded-full animate-spin"></div>
+          ) : (
+            <BsCart3 size={24} className="cursor-pointer" />
+          )}
+        </div>
+      </button>
+      
+      */}
     </div>
   );
 }

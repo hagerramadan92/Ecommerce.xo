@@ -154,7 +154,7 @@ export default function AllProductsPage() {
 
             {/* Price Filter Dropdown */}
             <div className="md:text-end ">
-              <FormControl sx={{ width: 200 }}>
+              <FormControl sx={{ width: 200 , fontFamily:"cairo"}}>
                 <Select
                   sx={{
                     textAlign: "right",

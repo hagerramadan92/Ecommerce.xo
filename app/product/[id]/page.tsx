@@ -17,6 +17,10 @@ import ProductGallery from "@/components/ProductGallery";
 import CustomSeparator from "@/components/Breadcrumbs";
 import Image from "next/image";
 import ButtonComponent from "@/components/ButtonComponent";
+import ProductCard from "@/components/ProductCard";
+import InStockSlider from "@/components/InStockSlider";
+import Link from "next/link";
+import { useAppContext } from "@/src/context/AppContext";
 
 export default function ProductPageClient() {
   const params = useParams();
@@ -27,16 +31,18 @@ export default function ProductPageClient() {
   const [activeTab, setActiveTab] = useState<"options" | "reviews" | null>(
     "options"
   );
-
+  const { homeData } = useAppContext();
+  const categories2 = homeData?.sub_categories || [];
   const [product, setProduct] = useState<ProductI | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
-  const handleSubmit =()=>{
-    console.log("added to cart successfully")
-  toast.success('تم إضافة المنتج إلى السلة بنجاح ');
-  }
+  const handleSubmit = () => {
+    console.log("added to cart successfully");
+    toast.success("تم إضافة المنتج إلى السلة بنجاح ");
+  };
+
   useEffect(() => {
     async function fetchProduct() {
       if (!id) return;
@@ -222,7 +228,9 @@ export default function ProductPageClient() {
             className="rounded-xl w-19 h-19"
           />
           <div>
-            <p className="text-sm text-gray-600">{product.name?.slice(0, 20)}</p>
+            <p className="text-sm text-gray-600">
+              {product.name?.slice(0, 20)}
+            </p>
             <h3 className="text-xl font-bold">{product.name}</h3>
           </div>
         </div>
@@ -233,9 +241,71 @@ export default function ProductPageClient() {
             <p className="text-gray-500 text-[12px]">السعر يشمل الضريبة</p>
           </div>
           <div className=" ">
-              <ButtonComponent title="اضافة للسلة" onClick={handleSubmit} />
+            <ButtonComponent title="اضافة للسلة" onClick={handleSubmit} />
           </div>
         </div>
+      </div>
+      <div className="mx-6 md:mx-[4%] xl:mx-[14%] my-6">
+        {product && categories2.length > 0 && (
+          <section className="">
+            {(() => {
+              const currentCategory = categories2.find((cat) =>
+                cat.products?.some((p) => p.id === product.id)
+              );
+              if (
+                currentCategory &&
+                currentCategory.products &&
+                currentCategory.products.length > 1
+              ) {
+                const similarProducts = currentCategory.products.filter(
+                  (p) => p.id !== product.id
+                );
+
+                return (
+                  <div key={currentCategory.id} className="mb-16">
+                    <InStockSlider
+                    title="منتجات قد تعجبك"
+                      inStock={similarProducts}
+                      CardComponent={(props) => (
+                        <ProductCard
+                          {...props}
+                          classNameHome="hidden"
+                         className2="hidden"
+                        />
+                      )}
+                    />
+                  </div>
+                );
+              }
+
+              const fallbackProducts = categories2
+                .flatMap((cat) => cat.products || [])
+                .filter((p) => p.id !== product.id)
+                .slice(0, 12);
+
+              if (fallbackProducts.length > 0) {
+                return (
+                  <div>
+                    <InStockSlider
+                    title="منتجات قد تعجبك"
+                      inStock={fallbackProducts}
+                      CardComponent={(props) => (
+                        <ProductCard
+                          {...props}
+                          classNameHome="hidden"
+                          className2="hidden"
+                          
+                        />
+                      )}
+                    />
+                  </div>
+                );
+              }
+
+              return null;
+            })()}
+          </section>
+        )}
       </div>
     </>
   );

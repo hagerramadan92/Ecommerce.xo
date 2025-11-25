@@ -18,19 +18,22 @@ import { useRouter } from "next/navigation";
 
 export default function CartPage() {
   const router = useRouter();
+  const [openModal, setOpenModal] = useState(false);
+
+  const { cart, cartCount, total, removeFromCart, updateQuantity, loading } =
+    useCart();
+
   const handleClick = () => {
     router.push("/payment");
   };
-  const [openModal, setOpenModal] = useState(false);
-  const { cart, removeFromCart, total } = useCart();
 
   if (cart.length === 0) {
     return (
-      <div className="p-10 text-center">
-        <h2 className="text-2xl font-bold mb-4">العربة فارغة</h2>
+      <div className="p-10 text-center min-h-screen flex flex-col items-center justify-center">
+        <h2 className="text-2xl font-bold mb-6 text-gray-700">العربة فارغة</h2>
         <Link
           href="/"
-          className="bg-pro text-white py-2 px-6 rounded hover:bg-pro-max transition"
+          className="bg-pro text-white py-3 px-8 rounded-lg hover:bg-pro-max transition text-lg font-medium"
         >
           العودة للتسوق
         </Link>
@@ -39,142 +42,144 @@ export default function CartPage() {
   }
 
   return (
-    <div className="px-5 lg:px-[7%] xl:px-[18%]">
+    <div className="px-5 lg:px-[7%] xl:px-[18%] py-8">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-        <div className="col-span-1 lg:col-span-2 h-fit">
-          <div className="p-2 ps-6 shadow rounded-xl my-4">
-            <h2 className="text-2xl font-semibold py-3">عربة التسوق</h2>
+        <div className="col-span-1 lg:col-span-2">
+          <div className="p-2 ps-6 shadow rounded-xl my-4 bg-white">
+            <h2 className="text-2xl font-semibold py-3">
+              عربة التسوق ({cartCount})
+            </h2>
           </div>
 
-          <div className="flex flex-col shadow rounded-xl my-4 p-6 gap-3">
+          <div className="flex flex-col shadow-lg rounded-xl my-4 bg-white overflow-hidden">
             {cart.map((item) => (
               <div
-                key={item.id}
-                className="rounded-xl border border-gray-100 overflow-hidden pt-5 gap-4 relative"
+                key={item.cart_item_id}
+                className="border-b border-gray-100 last:border-b-0 p-6 relative hover:bg-gray-50/50 transition"
               >
-                <div className="flex flex-col lg:flex-row w-full">
-                  <div className="flex gap-4">
-                    {/* product-image */}
-                    <div className="w-32 h-32 bg-gray-100 ms-4 rounded-md flex items-center justify-center overflow-hidden">
-                      {item.image && (
-                        <Image
-                          src={item.image}
-                          alt={item.name}
-                          width={125}
-                          height={125}
-                          className="object-contain w-full h-full"
-                        />
-                      )}
+                <div className="flex flex-col lg:flex-row gap-6">
+                  <div className="w-32 h-32 bg-gray-100 rounded-lg overflow-hidden shrink-0 lg:mx-0">
+                    <Image
+                      src={item.product.image || "/images/placeholder.png"}
+                      alt={item.product.name}
+                      width={128}
+                      height={128}
+                      className="w-full h-full object-contain"
+                    />
+                  </div>
+
+                  <div className="flex-1 flex flex-col justify-between">
+                    <div>
+                      <h3 className="font-bold text-md text-gray-800">
+                        {item.product.name}
+                      </h3>
+
+                      <p className="text-md font-bold text-pro mt-1">
+                        {item.price_per_unit} جنيه
+                      </p>
                     </div>
-                    {/* product info */}
-                    <div className="flex flex-col gap-1.5">
-                      <p className="text-black/75">{item.name}</p>
-                      <p className="font-bold">{item.price} جنيه</p>
-                      <div className="text-[#20a144] bg-[#f0fbf3] px-2 py-1 text-[0.9rem] rounded w-fit">
-                        <p>ينتج عند الطلب</p>
-                      </div>
-                      <div className="flex gap-1">
-                        <FaTruckFast className="h-4.5 w-4.5 text-pro mt-1 scale-x-[-1]" />
-                        <p className="text-gray-700 text-[0.95rem]">
-                          توصيل{" "}
-                          <span className="text-gray-800">
-                            06 نوفمبر - 16 نوفمبر{" "}
-                          </span>
-                          باستثناء الإجازات
-                        </p>
-                      </div>
-                      <div className="flex items-center text-[#177998] font-bold">
-                        <button onClick={() => removeFromCart(item.id)}>
-                          الحذف
-                        </button>
-                        <PiLineVerticalThin className="opacity-50" />
-                        <button>حفظ لوقت لاحق</button>
-                      </div>
+
+                    <div className="flex items-center gap-4 mt-4 text-pro font-medium">
+                      <button
+                        onClick={() => removeFromCart(item.cart_item_id)}
+                        className="hover:underline flex items-center gap-1 "
+                      >
+                        <BsTrash3 size={16} />
+                        حذف
+                      </button>
+                      <PiLineVerticalThin className="text-gray-300" />
                     </div>
                   </div>
-                </div>
-                {/* counter */}
-                {/* <div className="flex items-center gap-3 absolute bottom-15 end-3">
-                  <button
-                    className="px-1 py-1 bg-gray-50 rounded hover:bg-gray-100 transition cursor-pointer"
-                    onClick={() =>
-                      item.quantity === 1
-                        ? removeFromCart(item.id)
-                        : changeQuantity(item.id, (item.quantity || 1) - 1)
-                    }
-                  >
-                    {item.quantity > 1 ? (
-                      <FaMinus className="text-gray-400" />
-                    ) : (
-                      <BsTrash3 className="text-gray-400" />
-                    )}
-                  </button>
 
-                  <span className="font-bold py-1 rounded text-center text-[1.1rem]">
-                    {item.quantity || 1}
-                  </span>
-
-                  <button
-                    className="px-1 py-1 text-gray-400 bg-gray-50 rounded hover:bg-gray-100 transition cursor-pointer"
-                    onClick={() => {
-                      if ((item.quantity || 1) >= 10) {
-                        toast.error(
-                          "لقد وصلت للحد الأقصى (10 منتجات). تواصل مع الدعم لمزيد من الكمية."
-                        );
-                      } else {
-                        changeQuantity(item.id, (item.quantity || 1) + 1);
-                      }
-                    }}
+                  <div
+                    className="absolute bottom-6 left-6 
+                   flex items-center gap-3 bg-gray-50 rounded-full px-4 py-2"
                   >
-                    <FaPlus />
-                  </button>
-                </div> */}
-                {/* free deliver */}
-                <div className="bg-[#fafafa] text-[#20a144] w-full py-3 text-center font-semibold mt-4">
-                  <p>شحن مجاني</p>
+                    <button
+                      onClick={() => {
+                        if (item.quantity <= 1) {
+                          removeFromCart(item.cart_item_id);
+                        } else {
+                          updateQuantity(item.cart_item_id, item.quantity - 1);
+                        }
+                      }}
+                      className="w-9 h-9 rounded-full bg-white shadow hover:shadow-md transition flex items-center justify-center"
+                    >
+                      {item.quantity <= 1 ? (
+                        <BsTrash3 className="text-red-500" size={16} />
+                      ) : (
+                        <FaMinus className="text-gray-600" size={14} />
+                      )}
+                    </button>
+
+                    <span className="font-bold text-lg w-12 text-center">
+                      {item.quantity}
+                    </span>
+
+                    <button
+                      onClick={() => {
+                        if (item.quantity >= 10) {
+                          toast.error("الحد الأقصى 10 قطع فقط لهذا المنتج", {
+                            icon: "معلومة",
+                            duration: 4000,
+                          });
+                        } else {
+                          updateQuantity(item.cart_item_id, item.quantity + 1);
+                        }
+                      }}
+                      className="w-9 h-9 rounded-full bg-pro text-white shadow hover:shadow-lg transition flex items-center justify-center"
+                    >
+                      <FaPlus size={16} />
+                    </button>
+                  </div>
                 </div>
+
               </div>
             ))}
           </div>
         </div>
 
-        <div className="col-span-1 lg:col-span-1 h-fit">
-          {/* deliver to */}
+        {/* ملخص الطلب */}
+        <div className="col-span-1">
+          {/* عنوان التوصيل */}
           <div
-            className="flex items-center justify-between rounded shadow p-4 mt-4 text-[#605f5f] cursor-pointer hover:bg-gray-50"
             onClick={() => setOpenModal(true)}
+            className="flex items-center justify-between rounded-lg shadow p-5 mt-4 bg-white cursor-pointer hover:bg-gray-50 transition"
           >
-            <div className="flex items-center gap-1">
-              <MdAddLocationAlt size={22} />
-              <p>
-                التوصيل إلى<span className="font-bold"> حي الجيزة الجيزة</span>
+            <div className="flex items-center gap-3">
+              <MdAddLocationAlt size={26} className="text-pro" />
+              <p className="font-medium">
+                التوصيل إلى{" "}
+                <span className="font-bold text-pro">حي الجيزة، الجيزة</span>
               </p>
             </div>
-            <MdOutlineKeyboardArrowLeft size={22} />
+            <MdOutlineKeyboardArrowLeft size={26} />
           </div>
 
           <AddressForm open={openModal} onClose={() => setOpenModal(false)} />
-          <div className="shadow p-4 pb-0 mt-4 text-[#605f5f] mb-5">
+
+          {/* الكوبون والملخص */}
+          <div className="shadow-lg rounded-xl p-6 mt-6 bg-white">
             <CoBon />
 
-            <h4 className="text-pro font-semibold my-2 text-xl">ملخص الطلب</h4>
+            <h4 className="text-2xl font-bold text-pro my-5">ملخص الطلب</h4>
             <TotalOrder />
+
             <Button
               variant="contained"
+              onClick={handleClick}
+              fullWidth
               sx={{
-                fontSize: "1.1rem",
+                mt: 3,
+                py: 1.5,
+                fontSize: "1.2rem",
+                fontWeight: "bold",
                 backgroundColor: "#14213d",
                 "&:hover": { backgroundColor: "#0f1a31" },
-                color: "#fff",
-                gap: "10px",
-                paddingX: "20px",
-                paddingY: "10px",
-                borderRadius: "10px",
+                borderRadius: "12px",
                 textTransform: "none",
-                 width:"100%"
               }}
               endIcon={<KeyboardBackspaceIcon />}
-              onClick={handleClick}
             >
               تابع عملية الشراء
             </Button>

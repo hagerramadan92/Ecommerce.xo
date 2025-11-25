@@ -106,24 +106,24 @@ const formattedTotal = total.toLocaleString("en-US", {
                 ) : (
                   cart.map((item) => (
                     <div
-                      key={item.id}
+                      key={item.cart_item_id}
                       className="flex justify-between items-center mb-3 shadow-[rgb(0 0 0 / 10%)] rounded-xl mx-2 shadow  my-5"
                     >
                       <div className="flex gap-3 py-3">
                         <Image
-                          src={item.image || "images/o1.jpg"}
-                          alt={item.name}
+                          src={item.product.image || "images/o1.jpg"}
+                          alt={item.product.name}
                           width={80}
                           height={80}
                           className="p-2"
                         />
                         <div>
                           <p className="font-semibold text-[0.8rem] text-gray-700">
-                            {item.name}
+                            {item.product.name}
                           </p>
                           <p className="text-lg text-gray-900 font-bold mt-4">
                             <span className="font-normal text-sm me-2">جنيه</span>
-                            {item.price}
+                            {item.product.price}
                           </p>
                         </div>
                       </div>

@@ -147,7 +147,7 @@ export default function SearchNavbar() {
           {!fullName ? (
             <Link
               href="/login"
-              className="hidden1 flex gap-1 items-center rounded-4xl bg-pro text-white py-3 text-[0.9rem] px-4 cursor-pointer"
+              className="hidden1 flex gap-1 items-center rounded bg-pro text-white py-3 text-[0.9rem] px-4 cursor-pointer"
             >
               <FaRegUser size={15} />
               تسجيل دخول
