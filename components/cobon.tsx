@@ -24,6 +24,7 @@ export default function CoBon() {
         />
         <button
           onClick={handleApply}
+          aria-label="copon"
           className="bg-gray-200 cursor-pointer text-gray-800 px-5 py-2 hover:bg-gray-300 transition-colors duration-200"
         >
           تطبيق

@@ -175,6 +175,7 @@ export default function AddressForm({
                 </h2>
                 <button
                   onClick={onClose}
+                  aria-label="close tap"
                   className="cursor-pointer text-gray-500 hover:text-gray-800 transition"
                 >
                   <IoCloseSharp size={26} />

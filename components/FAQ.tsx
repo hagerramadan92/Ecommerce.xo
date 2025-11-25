@@ -52,6 +52,7 @@ export default function FAQPage() {
             >
               {/* العنوان */}
               <button
+              aria-label="open tabs"
                 onClick={() => setOpenIndex(isOpen ? -1 : index)}
                 className="w-full text-right p-4 cursor-pointer bg-orange-50 hover:bg-orange-100 font-semibold flex justify-between items-center"
               >

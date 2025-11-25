@@ -152,6 +152,7 @@ export default function ProductCard({
           )}
 
           <button
+          aria-label="show product "
             onClick={() => setShowImage(true)}
             className={`flex absolute cursor-pointer end-1 hover:scale-105 bottom-0.5 bg-white/80 w-7 h-7 rounded-full items-center justify-center ${className2}`}
           >
@@ -197,6 +198,7 @@ export default function ProductCard({
           />
 
           <button
+          aria-label="add to cart"
             onClick={(e) => {
               e.preventDefault();
               e.stopPropagation();
@@ -216,6 +218,7 @@ export default function ProductCard({
         </div>
       </div>
       <button
+      aria-label="add to cart"
         onClick={(e) => {
           e.preventDefault();
           e.stopPropagation();

@@ -37,7 +37,7 @@ export default function ProductFilter({
     colors: [],
   });
 
-  // دالة لتبديل الفلاتر
+
   const toggle = (type: keyof Filters, value?: string | number) => {
     setFilters((prev) => {
       const updated = { ...prev };
@@ -62,20 +62,20 @@ export default function ProductFilter({
           : [...prev.colors, value as string];
       }
 
-      onFilterChange(updated); // استدعاء parent مباشرة بعد التحديث
+      onFilterChange(updated); 
       return updated;
     });
   };
 
   return (
     <div className="px-4 rounded h-screen">
-      {/* عنوان التصفية */}
+
       <div className="flex items-center gap-2">
         <FiFilter size={22} />
         <p className="font-bold text-[1.1rem]">تصفية</p>
       </div>
 
-      {/* متوفر */}
+    
       <div className="border-b border-gray-300 pb-3">
         <SelectBoxComponent title="المتوفر">
           <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -90,7 +90,7 @@ export default function ProductFilter({
         </SelectBoxComponent>
       </div>
 
-      {/* الفئات */}
+    
       <div className="border-b border-gray-300 pb-3">
         <SelectBoxComponent title="فئات المنتج">
           {categories.map((cat) => (
@@ -110,7 +110,7 @@ export default function ProductFilter({
         </SelectBoxComponent>
       </div>
 
-      {/* الماركات */}
+    
       <div className="border-b border-gray-300 pb-3">
         <SelectBoxComponent title="العلامة التجارية">
           {brands.map((b, i) => (
@@ -130,7 +130,7 @@ export default function ProductFilter({
         </SelectBoxComponent>
       </div>
 
-      {/* الخامات */}
+  
       <div className="border-b border-gray-300 pb-3">
         <SelectBoxComponent title="الخامات المستخدمة">
           {materials.map((m, i) => (
@@ -150,7 +150,7 @@ export default function ProductFilter({
         </SelectBoxComponent>
       </div>
 
-      {/* الألوان */}
+  
       <div className="border-b border-gray-300 pb-3">
         <SelectBoxComponent title="اللون">
           {colors.map((c, i) => (

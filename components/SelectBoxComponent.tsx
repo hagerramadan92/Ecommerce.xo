@@ -13,6 +13,7 @@ export default function SelectBoxComponent({ title, children }: SelectBoxProps) 
   return (
     <div className="w-full max-w-md mx-auto mt-3 ">
       <button
+      aria-label="select one"
         onClick={() => setIsOpen(!isOpen)}
         className="w-full flex items-center justify-between transition cursor-pointer"
       >

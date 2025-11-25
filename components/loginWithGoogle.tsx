@@ -66,7 +66,7 @@ export default function LoginWithGoogle() {
 
   return (
     <>
-      <button onClick={() => handleSocialSignIn("google")} disabled={loading}>
+      <button aria-label="log in with google" onClick={() => handleSocialSignIn("google")} disabled={loading}>
         <div
           className={`h-fit p-2 flex items-center justify-center gap-2 rounded-full border border-gray-200 hover:shadow transition duration-100 cursor-pointer ${
             loading ? "opacity-50" : ""

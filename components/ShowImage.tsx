@@ -20,6 +20,7 @@ export default function ShowImage({ src = "/images/o1.jpg", onClose }: ShowImage
       >
         
         <button
+        aria-label="close"
           className="absolute top-2 right-2 cursor-pointer text-gray-300 hover:text-gray-50 bg-black/50 p-2"
           onClick={onClose}
         >

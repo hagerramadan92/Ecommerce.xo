@@ -32,6 +32,7 @@ export default function ShareButton() {
 
   return (
     <div
+    aria-label="share it"
       onClick={handleShare}
       className="w-9 h-9 border border-gray-200 rounded-full bg-white/70 duration-75 flex items-center justify-center p-0.5 cursor-pointer transition-transform hover:scale-110"
     >

@@ -21,7 +21,7 @@ export default function ProductGallery({ mainImage, images }: GalleryProps) {
 
   return (
     <div className="w-full">
-      {/* Main Slider */}
+
       <Swiper
         modules={[Navigation, Thumbs]}
         navigation
@@ -46,7 +46,7 @@ export default function ProductGallery({ mainImage, images }: GalleryProps) {
         ))}
       </Swiper>
 
-      {/* Thumbnails */}
+  
       <Swiper
         onSwiper={setThumbsSwiper}
         spaceBetween={70}

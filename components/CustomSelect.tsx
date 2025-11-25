@@ -29,6 +29,7 @@ export default function CustomSelect({ options, value, onChange, placeholder = "
       {/* Button to toggle dropdown */}
       <button
         type="button"
+        aria-label="open box"
         className="w-full border border-gray-300 rounded-lg px-4 py-2 bg-white flex justify-between items-center text-gray-700 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400"
         onClick={() => setIsOpen(!isOpen)}
       >

@@ -258,6 +258,7 @@ export default function SignupPage() {
             )}
           </div>
           <button
+          aria-label="create account"
             type="submit"
             disabled={loading}
             className="bg-blue-950 cursor-pointer text-white py-3 rounded-lg hover:bg-blue-900 transition-all disabled:opacity-70"

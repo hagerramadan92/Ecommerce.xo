@@ -41,6 +41,7 @@ export default function Profile() {
       <p className="text-sm text-gray-600">Provider: {session.user.provider}</p>
 
       <button
+      aria-label="log out"
         onClick={() => signOut({ callbackUrl: "/login" })}
         className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
       >

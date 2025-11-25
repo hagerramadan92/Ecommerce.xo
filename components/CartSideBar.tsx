@@ -75,6 +75,7 @@ const formattedTotal = total.toLocaleString("en-US", {
                 </h2>
                 <button
                   onClick={() => setCartOpen(false)}
+                  aria-label="close"
                   className="self-end text-gray-600 hover:text-gray-800 cursor-pointer"
                 >
                   <AiOutlineClose size={20} />

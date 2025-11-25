@@ -39,6 +39,7 @@ export default function ButtonComponent({ title, onClick }: TitleProps) {
 
   return (
     <button
+    aria-label="adding"
       ref={buttonRef}
       onClick={(e) => {
         handleAddToCart(e); 

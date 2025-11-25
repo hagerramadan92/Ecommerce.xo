@@ -5,7 +5,6 @@ import BankPayment from "@/components/BankPayment";
 import CoBon from "@/components/cobon";
 import InvoiceSection from "@/components/InvoiceSection";
 import OrderSummary from "@/components/OrderSummary";
-import SavedAddress from "@/components/SavedAddress";
 import TotalOrder from "@/components/TotalOrder";
 import { useState } from "react";
 import { FiPlus } from "react-icons/fi";
@@ -59,9 +58,7 @@ export default function PaymentPage() {
                   </button>
                 </div>
               </div>
-              {showAddress && (
-                <SavedAddress onClose={() => setShowAddress(false)} />
-              )}
+             
             </div>
             <div className="p-2 ps-6 shadow rounded-xl my-4">
               <h2 className="text-2xl font-semibold py-3">اختر طريقة الدفع</h2>

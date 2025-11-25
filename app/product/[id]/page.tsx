@@ -35,10 +35,7 @@ export default function ProductPageClient() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
   const handleSubmit =()=>{
     console.log("added to cart successfully")
-  toast.success('تم إضافة المنتج إلى السلة بنجاح ', {
-    
-      // duration: 5000, // اختياري
-    });
+  toast.success('تم إضافة المنتج إلى السلة بنجاح ');
   }
   useEffect(() => {
     async function fetchProduct() {

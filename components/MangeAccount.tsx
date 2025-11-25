@@ -40,7 +40,7 @@ export default function MangeAccount() {
                     <p className="text-gray-500 text-lg p-0.5 rounded ">
                       ********
                     </p>
-                    <button className="text-pro font-medium hover:underline cursor-pointer">
+                    <button aria-label="change password" className="text-pro font-medium hover:underline cursor-pointer">
                       تغيير
                     </button>
                   </div>
@@ -72,7 +72,7 @@ export default function MangeAccount() {
               </h2>
               <hr className="bg-gray-50 text-gray-300 mb-5" />
               <p className="text-gray-400 my-3">نأسف لمغادرتك, انت دائما مرحب بعودتك!</p>
-              <button className="text-red-500 font-medium underline cursor-pointer">
+              <button aria-label="delete my account" className="text-red-500 font-medium underline cursor-pointer">
                 حذف الحساب
               </button>
             </div>

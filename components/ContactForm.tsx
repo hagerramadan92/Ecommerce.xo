@@ -215,6 +215,7 @@ export default function ContactForm() {
 
         <button
           type="submit"
+          aria-label="submit form"
           disabled={loading}
           className="bg-pro text-white py-3 rounded-xl mt-4 md:col-span-2 hover:bg-pro-max transition"
         >
