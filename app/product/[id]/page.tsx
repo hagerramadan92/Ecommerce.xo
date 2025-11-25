@@ -35,6 +35,10 @@ export default function ProductPageClient() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
   const handleSubmit =()=>{
     console.log("added to cart successfully")
+  toast.success('تم إضافة المنتج إلى السلة بنجاح ', {
+    
+      // duration: 5000, // اختياري
+    });
   }
   useEffect(() => {
     async function fetchProduct() {
@@ -232,7 +236,6 @@ export default function ProductPageClient() {
             <p className="text-gray-500 text-[12px]">السعر يشمل الضريبة</p>
           </div>
           <div className=" ">
-            {/* <button>اضافة للسلة</button> */}
               <ButtonComponent title="اضافة للسلة" onClick={handleSubmit} />
           </div>
         </div>
