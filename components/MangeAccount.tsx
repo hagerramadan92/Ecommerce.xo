@@ -1,4 +1,5 @@
 import React from 'react'
+import ChangePassword from './ChangePassword'
 
 export default function MangeAccount() {
   return (
@@ -38,11 +39,12 @@ export default function MangeAccount() {
                   </h3>
                   <div className="flex items-center justify-between py-2 my-1 bg-gray-100 rounded px-2">
                     <p className="text-gray-500 text-lg p-0.5 rounded ">
-                      ********
+                     ********
                     </p>
                     <button aria-label="change password" className="text-pro font-medium hover:underline cursor-pointer">
                       تغيير
                     </button>
+                    <ChangePassword/>
                   </div>
                 </div>
 

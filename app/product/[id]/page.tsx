@@ -197,7 +197,9 @@ export default function ProductPageClient() {
             </div>
 
             <div className="m-4">
-              {activeTab === "options" && <StickerForm />}
+              {activeTab === "options" && (
+                <StickerForm productId={product.id} />
+              )}
               {activeTab === "reviews" && <POVComponent product={product} />}
             </div>
           </div>
@@ -264,13 +266,13 @@ export default function ProductPageClient() {
                 return (
                   <div key={currentCategory.id} className="mb-16">
                     <InStockSlider
-                    title="منتجات قد تعجبك"
+                      title="منتجات قد تعجبك"
                       inStock={similarProducts}
                       CardComponent={(props) => (
                         <ProductCard
                           {...props}
                           classNameHome="hidden"
-                         className2="hidden"
+                          className2="hidden"
                         />
                       )}
                     />
@@ -287,14 +289,13 @@ export default function ProductPageClient() {
                 return (
                   <div>
                     <InStockSlider
-                    title="منتجات قد تعجبك"
+                      title="منتجات قد تعجبك"
                       inStock={fallbackProducts}
                       CardComponent={(props) => (
                         <ProductCard
                           {...props}
                           classNameHome="hidden"
                           className2="hidden"
-                          
                         />
                       )}
                     />

@@ -35,6 +35,10 @@ interface CartItem {
   selected_options?: any[];
   design_service?: string;
   is_sample?: boolean;
+  size_id?: number;
+  color_id?: number;
+  printing_method_id?: number;
+  design_service_id?: number;
 }
 
 // نوع الـ Context
@@ -45,7 +49,6 @@ interface CartContextType {
   total: number;
   loading: boolean;
 
-  
   addToCart: (
     productId: number,
     options?: Partial<Omit<AddToCartPayload, "product_id">>
@@ -53,6 +56,7 @@ interface CartContextType {
 
   removeFromCart: (cartItemId: number) => Promise<void>;
   updateQuantity: (cartItemId: number, quantity: number) => Promise<void>;
+  updateCartItem: (cartItemId: number, updates: any) => Promise<boolean>;
   clearCart: () => Promise<void>;
   refreshCart: () => Promise<void>;
 }
@@ -117,6 +121,20 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     await fetchCart();
   };
 
+  // تحديث محلي فوري + API في الخلفية
+  const updateLocalQuantity = (cartItemId: number, quantity: number) => {
+    setCart(prevCart => 
+      prevCart.map(item => 
+        item.cart_item_id === cartItemId 
+          ? { 
+              ...item, 
+              quantity, 
+              line_total: (parseFloat(item.price_per_unit || "0") * quantity).toFixed(4) 
+            }
+          : item
+      )
+    );
+  };
 
   const addToCart = async (
     productId: number,
@@ -177,36 +195,140 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
   const removeFromCart = async (cartItemId: number) => {
     if (!token) return;
+    
+    // تحديث محلي فوري
+    setCart(prevCart => prevCart.filter(item => item.cart_item_id !== cartItemId));
+    
     try {
-      await fetch(`${API_URL}/cart/items/${cartItemId}`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+      await fetch(`${API_URL}/cart/items/${cartItemId}`, { 
+        method: "DELETE", 
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        } 
+      });
       toast.success("تم الحذف من السلة");
-      await refreshCart();
+      // لا نحتاج لـ refreshCart هنا لأننا حدّثنا محلياً
     } catch (err) {
+      // في حالة الخطأ، نعيد تحميل السلة لاستعادة الحالة الصحيحة
+      await refreshCart();
       toast.error("فشل الحذف");
     }
   };
 
   const updateQuantity = async (cartItemId: number, quantity: number) => {
     if (!token || quantity < 1) return;
-    try {
-      await fetch(`${API_URL}/cart/items`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ cart_item_id: cartItemId, quantity }),
+    
+    if (quantity > 10) {
+      toast.error("الحد الأقصى 10 قطع فقط لهذا المنتج", {
+        duration: 4000,
       });
-      await refreshCart();
+      return;
+    }
+    
+    // تحديث محلي فوري
+    updateLocalQuantity(cartItemId, quantity);
+    
+    try {
+      const response = await fetch(`${API_URL}/cart/items/${cartItemId}`, {
+        method: "PUT",
+        headers: { 
+          "Content-Type": "application/json", 
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ quantity }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.status) {
+        // في حالة الخطأ، نعيد تحميل السلة لاستعادة الحالة الصحيحة
+        await refreshCart();
+        toast.error("فشل تحديث الكمية");
+      } else {
+        toast.success(`تم تحديث الكمية إلى ${quantity}`);
+      }
     } catch (err) {
+      // في حالة الخطأ، نعيد تحميل السلة لاستعادة الحالة الصحيحة
+      await refreshCart();
       toast.error("فشل تحديث الكمية");
+    }
+  };
+
+  const updateCartItem = async (cartItemId: number, updates: any): Promise<boolean> => {
+    if (!token) return false;
+    
+    try {
+      const response = await fetch(`${API_URL}/cart/items/${cartItemId}`, {
+        method: "PUT",
+        headers: { 
+          "Content-Type": "application/json", 
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+        body: JSON.stringify(updates),
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.status) {
+        // تحديث محلي للبيانات الجديدة من الرد
+        if (data.data && data.data.item) {
+          setCart(prevCart => 
+            prevCart.map(item => 
+              item.cart_item_id === cartItemId 
+                ? {
+                    ...item,
+                    quantity: data.data.item.quantity,
+                    price_per_unit: data.data.item.price_per_unit,
+                    line_total: data.data.item.line_total,
+                    size: data.data.item.size,
+                    color: data.data.item.color,
+                    printing_method: data.data.item.printing_method,
+                    print_locations: data.data.item.print_locations ? JSON.parse(data.data.item.print_locations) : [],
+                    embroider_locations: data.data.item.embroider_locations ? JSON.parse(data.data.item.embroider_locations) : [],
+                    selected_options: data.data.item.selected_options ? JSON.parse(data.data.item.selected_options) : [],
+                    design_service: data.data.item.design_service,
+                    is_sample: data.data.item.is_sample === 1,
+                  }
+                : item
+            )
+          );
+        }
+        toast.success("تم تحديث العنصر بنجاح");
+        return true;
+      } else {
+        await refreshCart(); // إعادة تحميل في حالة الخطأ
+        toast.error(data.message || "فشل تحديث العنصر");
+        return false;
+      }
+    } catch (err) {
+      console.error("Update cart item error:", err);
+      await refreshCart(); // إعادة تحميل في حالة الخطأ
+      toast.error("خطأ في الاتصال، حاول مرة أخرى");
+      return false;
     }
   };
 
   const clearCart = async () => {
     if (!token || cart.length === 0) return;
+    
+    // تحديث محلي فوري
+    setCart([]);
+    
     try {
-      await fetch(`${API_URL}/cart/clear`, { method: "DELETE", headers: { Authorization: `Bearer ${token}` } });
+      await fetch(`${API_URL}/cart/clear`, { 
+        method: "DELETE", 
+        headers: { 
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        } 
+      });
       toast.success("تم تفريغ السلة");
-      setCart([]);
     } catch (err) {
+      // في حالة الخطأ، نعيد تحميل السلة لاستعادة الحالة الصحيحة
+      await refreshCart();
       toast.error("فشل تفريغ السلة");
     }
   };
@@ -230,6 +352,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         addToCart,
         removeFromCart,
         updateQuantity,
+        updateCartItem,
         clearCart,
         refreshCart,
       }}

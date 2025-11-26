@@ -13,8 +13,8 @@ export default function CoBon() {
   };
   return (
     <div>
-      <p className="text-xl font-bold p-2 text-pro">كوبون كود</p>
-      <div className="flex items-center border border-gray-300 rounded overflow-hidden w-full max-w-sm">
+      <p className="text-md p-2 text-pro">كوبون كود</p>
+      <div className="flex text-sm items-center border border-gray-300 rounded overflow-hidden w-full max-w-sm">
         <input
           type="text"
           value={code}
@@ -25,7 +25,7 @@ export default function CoBon() {
         <button
           onClick={handleApply}
           aria-label="copon"
-          className="bg-gray-200 cursor-pointer text-gray-800 px-5 py-2 hover:bg-gray-300 transition-colors duration-200"
+          className="bg-gray-200 cursor-pointer text-md text-gray-800 px-5 py-2 hover:bg-gray-300 transition-colors duration-200"
         >
           تطبيق
         </button>

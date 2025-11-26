@@ -65,7 +65,7 @@ export default function SearchNavbar() {
           {/* Logo */}
           <div className="relative w-20 lg:w-[110px] h-11 me-2 lg:me-0">
             <Image
-              src="/images/zeejlogo.png"
+              src="/images/logo11.png"
               alt="logo"
               fill
               loading="eager"
