@@ -2,42 +2,71 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { FaPlus, FaMinus, FaTruckFast } from "react-icons/fa6";
-import { PiLineVerticalThin } from "react-icons/pi";
+import { FaPlus, FaMinus } from "react-icons/fa6";
+// import { PiLineVerticalThin } from "react-icons/pi";
 import { BsTrash3 } from "react-icons/bs";
 import { useCart } from "@/src/context/CartContext";
 import toast from "react-hot-toast";
 import {
-  MdAddLocationAlt,
+  // MdAddLocationAlt,
   MdKeyboardArrowLeft,
-  MdOutlineKeyboardArrowLeft,
+  // MdOutlineKeyboardArrowLeft,
 } from "react-icons/md";
-import { useState } from "react";
-import AddressForm from "@/components/AddressForm";
+// import { useState } from "react";
+// import AddressForm from "@/components/AddressForm";
 import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
 import CoBon from "@/components/cobon";
 import TotalOrder from "@/components/TotalOrder";
 import Button from "@mui/material/Button";
 import { useRouter } from "next/navigation";
 import { IoIosCloseCircle } from "react-icons/io";
-import ProductCard from "@/components/ProductCard";
-import InStockSlider from "@/components/InStockSlider";
-import StickerForm from "@/components/StickerForm";
+// import ProductCard from "@/components/ProductCard";
+// import InStockSlider from "@/components/InStockSlider";
+import StickerForm, { validateStickerForm } from "@/components/StickerForm";
 import Swal from "sweetalert2";
 
 export default function CartPage() {
   const router = useRouter();
-  const [openModal, setOpenModal] = useState(false);
-
+  // const [openModal, setOpenModal] = useState(false);
+  
   const { cart, cartCount, total, removeFromCart, updateQuantity, loading } =
     useCart();
-  const handleClick = () => {
+ const handleClick = () => {
+    // تحقق من كل المنتجات في السلة
+    let hasEmptyFields = false;
+
+    cart.forEach((item) => {
+      const valid = validateStickerForm({
+        size: item.size,
+        color: item.color?.name,
+        material: item.material,
+        selectedFeatures: item.selected_options?.reduce((acc: any, opt: any) => {
+          if (opt.option_name === "خاصية") {
+            const [name, value] = opt.option_value.split(": ");
+            acc[name] = value;
+          }
+          return acc;
+        }, {}),
+        deliveryMethod: item.selected_options?.find((o: any) => o.option_name === "شكل الاستلام")?.option_value,
+        executionTime: item.selected_options?.find((o: any) => o.option_name === "مدة التنفيذ")?.option_value,
+        samplePhoto: item.selected_options?.find((o: any) => o.option_name === "تصوير عينة")?.option_value,
+      });
+      if (!valid) hasEmptyFields = true;
+    });
+
+    if (hasEmptyFields) {
+      toast.error("الرجاء اختيار كل الحقول المطلوبة لكل منتج قبل المتابعة");
+      return;
+    }
+
     router.push("/payment");
   };
+
 
   if (cart.length === 0) {
     return (
       <div className="p-10 text-center  flex flex-col items-center justify-center">
+        <Image src="/images/cart2.webp" alt="empty cart" width={300} height={250}/>
         <h2 className="text-2xl font-bold mb-6 text-gray-700">العربة فارغة</h2>
         <Link
           href="/"

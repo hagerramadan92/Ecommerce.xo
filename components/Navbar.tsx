@@ -1,5 +1,4 @@
 'use client'
-import ButtonComponent from "./ButtonComponent";
 import CateNavbar from "./cateNavbar";
 import LangNavbar from "./langNavbar";
 import SearchNavbar from "./searchNavbar";

@@ -1,14 +1,11 @@
 "use client";
 import CategoriesSlider from "@/components/CategoriesC";
-import Discount from "@/components/Discount";
 import InStockSlider from "@/components/InStockSlider";
 import ProductCard from "@/components/ProductCard";
-import ShowAll from "@/components/ShowAll";
 import SliderComponent from "@/components/SliderComponent";
 import { fetchApi } from "@/lib/api";
 import { useAppContext } from "@/src/context/AppContext";
 import { BannerI } from "@/Types/BannerI";
-import { sliderLinks } from "@/Types/data";
 import { useEffect, useState } from "react";
 import Loading from "./loading";
 import Image from "next/image";
@@ -20,7 +17,7 @@ export default function Home() {
   const categories2 = homeData?.sub_categories || [];
   const [mainSlider, setMainSlider] = useState<BannerI[]>([]);
   const [loading, setLoading] = useState(true);
-  const [favorites, setFavorites] = useState<{ [key: number]: boolean }>({});
+  // const [favorites, setFavorites] = useState<{ [key: number]: boolean }>({});
 
   useEffect(() => {
     const getSlider1 = async () => {
@@ -46,12 +43,12 @@ export default function Home() {
         {mainSlider.length > 0 && (
           <SliderComponent
             src={mainSlider[0].items.map((item) => item.image)}
-            href={sliderLinks}
+            href={mainSlider[0].items.map((item) => item.link_url || "/")}
           />
         )}
         <CategoriesSlider categories={categories1} />
 
-        {categories2.map((category, index) => {
+        {categories2.map((category) => {
           if (!category.products || category.products.length === 0) return null;
 
           return (
@@ -83,13 +80,20 @@ export default function Home() {
 
               <InStockSlider
                 inStock={category.products}
-                CardComponent={(props) => (
+                CardComponent={(product) => (
                   <ProductCard
-                    {...props}
+                    {...product}
                     className="hidden"
                     className2="hidden"
                     classNameHome="hidden"
                     Bottom="bottom-32"
+                    key={product.id}
+                    id={product.id}
+                    name={product.name}
+                    image={product.image || "/images/c1.png"}
+                    stock={product.stock || 0}
+                    average_rating={product.average_rating}
+                    reviews={product.reviews}
                   />
                 )}
               />

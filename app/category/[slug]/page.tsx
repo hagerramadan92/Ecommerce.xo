@@ -19,9 +19,7 @@ import MenuItem from "@mui/material/MenuItem";
 import OutlinedInput from "@mui/material/OutlinedInput";
 import { useTheme } from "@mui/material/styles";
 
-// =========================
-// أنواع البيانات
-// =========================
+
 
 interface Brand {
   name: string;

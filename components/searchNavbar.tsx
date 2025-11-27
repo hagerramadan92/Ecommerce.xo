@@ -4,7 +4,7 @@ import { CgSearch } from "react-icons/cg";
 import { FaBars, FaRegUser } from "react-icons/fa";
 import { LuPhone } from "react-icons/lu";
 import Link from "next/link";
-import { categories, link } from "@/Types/data";
+import { link } from "@/Types/data";
 import SubIcon from "./subIcon";
 import CategoriesDropdown from "./DropdownComponent";
 import { useEffect, useState } from "react";
@@ -106,6 +106,7 @@ export default function SearchNavbar() {
 
           <div className="flex gap-1 cursor-pointer">
             <CartSidebar />
+            
           </div>
 
           <div className="flex1 gap-4 items-center">

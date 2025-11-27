@@ -37,9 +37,9 @@ const formattedTotal = total.toLocaleString("en-US", {
 
   return (
     <>
-      <div
+      <Link href="/cart"
         className="relative cursor-pointer"
-        onClick={() => setCartOpen(true)}
+      
       >
         <div className="flex relative gap-3">
           <HiOutlineShoppingBag size={25} strokeWidth={1.3} />
@@ -48,7 +48,7 @@ const formattedTotal = total.toLocaleString("en-US", {
           </span>
           <p className="hidden2">العربة</p>
         </div>
-      </div>
+      </Link>
 
       <AnimatePresence>
         {cartOpen && (
