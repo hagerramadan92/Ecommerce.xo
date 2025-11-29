@@ -2,28 +2,26 @@
 
 import { useEffect, useState, useMemo } from "react";
 import ProductCard from "@/components/ProductCard";
-import ProductFilter from "@/components/ProductFilter";
+// import ProductFilter from "@/components/ProductFilter";
 import Stack from "@mui/material/Stack";
 import Pagination from "@mui/material/Pagination";
 import FormControl from "@mui/material/FormControl";
 import Select from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
 import OutlinedInput from "@mui/material/OutlinedInput";
-import { FiFilter } from "react-icons/fi";
+// import { FiFilter } from "react-icons/fi";
 import Loading from "@/app/loading";
 import { ProductI } from "@/Types/ProductsI";
 
-// =========================
-// أنواع البيانات
-// =========================
 
-interface Filters {
-  available: boolean;
-  brands: string[];
-  materials: string[];
-  colors: string[];
-  categories: number[];
-}
+
+// interface Filters {
+//   available: boolean;
+//   brands: string[];
+//   materials: string[];
+//   colors: string[];
+//   categories: number[];
+// }
 
 export default function AllProductsPage() {
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -33,10 +31,10 @@ export default function AllProductsPage() {
   const [products, setProducts] = useState<ProductI[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<ProductI[]>([]);
 
-  const [showFilter, setShowFilter] = useState(false);
-  const [columns, setColumns] = useState<number>(4);
+  // const [showFilter, setShowFilter] = useState(false);
+  // const [columns, setColumns] = useState<number>(4);
 
-  const [filterBrands, setFilterBrands] = useState<string[]>([]);
+  // const [filterBrands, setFilterBrands] = useState<string[]>([]);
   const [filterMaterials, setFilterMaterials] = useState<string[]>([]);
   const [filterColors, setFilterColors] = useState<string[]>([]);
 
@@ -116,21 +114,18 @@ export default function AllProductsPage() {
   if (loading) return <Loading />;
 
   const handleFavoriteChange = (productId: number, newValue: boolean) => {
-    // تحديث القائمة الأساسية
     setProducts((prev) =>
       prev.map((p) =>
         p.id === productId ? { ...p, is_favorite: newValue } : p
       )
     );
 
-    // تحديث قائمة الفلترة
     setFilteredProducts((prev) =>
       prev.map((p) =>
         p.id === productId ? { ...p, is_favorite: newValue } : p
       )
     );
 
-    // الحل النهائي لإجبار الواجهة تتحدث
     setFilteredProducts((prev) => [...prev]);
   };
 

@@ -8,7 +8,6 @@ import HearComponent from "@/components/HearComponent";
 import { useAuth } from "@/src/context/AuthContext";
 import toast from "react-hot-toast";
 import RatingStars from "@/components/RatingStars";
-import { BsShare } from "react-icons/bs";
 import ShareButton from "@/components/ShareButton";
 import { FaBarcode } from "react-icons/fa";
 import StickerForm from "@/components/StickerForm";
@@ -19,15 +18,14 @@ import Image from "next/image";
 import ButtonComponent from "@/components/ButtonComponent";
 import ProductCard from "@/components/ProductCard";
 import InStockSlider from "@/components/InStockSlider";
-import Link from "next/link";
 import { useAppContext } from "@/src/context/AppContext";
 
 export default function ProductPageClient() {
   const params = useParams();
   const { id } = params;
   const { authToken: token } = useAuth();
-  const [showStickerForm, setShowStickerForm] = useState(true);
-  const [showPOV, setShowPOV] = useState(false);
+  // const [showStickerForm, setShowStickerForm] = useState(true);
+  // const [showPOV, setShowPOV] = useState(false);
   const [activeTab, setActiveTab] = useState<"options" | "reviews" | null>(
     "options"
   );

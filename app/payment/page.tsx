@@ -109,7 +109,7 @@ export default function PaymentPage() {
           shipping_address: "سيتم تحديد العنوان لاحقاً",
           customer_name: user?.name || "العميل",
           customer_phone: user?.phone || "01000000000",
-          payment_method: paymentMethod,
+          // payment_method: paymentMethod,
           notes: notes || `تم الدفع عبر ${getPaymentMethodText(paymentMethod)}`
         };
       }

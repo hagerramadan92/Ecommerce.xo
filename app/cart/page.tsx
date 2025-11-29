@@ -3,64 +3,99 @@
 import Link from "next/link";
 import Image from "next/image";
 import { FaPlus, FaMinus } from "react-icons/fa6";
-// import { PiLineVerticalThin } from "react-icons/pi";
 import { BsTrash3 } from "react-icons/bs";
 import { useCart } from "@/src/context/CartContext";
 import toast from "react-hot-toast";
 import {
-  // MdAddLocationAlt,
   MdKeyboardArrowLeft,
-  // MdOutlineKeyboardArrowLeft,
 } from "react-icons/md";
-// import { useState } from "react";
-// import AddressForm from "@/components/AddressForm";
 import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
 import CoBon from "@/components/cobon";
 import TotalOrder from "@/components/TotalOrder";
 import Button from "@mui/material/Button";
 import { useRouter } from "next/navigation";
 import { IoIosCloseCircle } from "react-icons/io";
-// import ProductCard from "@/components/ProductCard";
-// import InStockSlider from "@/components/InStockSlider";
 import StickerForm, { validateStickerForm } from "@/components/StickerForm";
 import Swal from "sweetalert2";
 
 export default function CartPage() {
   const router = useRouter();
-  // const [openModal, setOpenModal] = useState(false);
   
   const { cart, cartCount, total, removeFromCart, updateQuantity, loading } =
     useCart();
- const handleClick = () => {
-    // تحقق من كل المنتجات في السلة
-    let hasEmptyFields = false;
 
-    cart.forEach((item) => {
-      const valid = validateStickerForm({
-        size: item.size,
-        color: item.color?.name,
-        material: item.material,
-        selectedFeatures: item.selected_options?.reduce((acc: any, opt: any) => {
-          if (opt.option_name === "خاصية") {
-            const [name, value] = opt.option_value.split(": ");
-            acc[name] = value;
-          }
-          return acc;
-        }, {}),
-        deliveryMethod: item.selected_options?.find((o: any) => o.option_name === "شكل الاستلام")?.option_value,
-        executionTime: item.selected_options?.find((o: any) => o.option_name === "مدة التنفيذ")?.option_value,
-        samplePhoto: item.selected_options?.find((o: any) => o.option_name === "تصوير عينة")?.option_value,
-      });
-      if (!valid) hasEmptyFields = true;
+  const handleClick = () => {
+  let hasEmptyFields = false;
+  const errorMessages: string[] = [];
+
+  const normalizeSelectedOptions = (opts: any[]) => {
+    if (!opts) return [];
+    return opts.map((o: any) => ({
+      option_name: (o.option_name || "").trim(),
+      option_value: (o.option_value || "").trim().replace(/\s*:\s*/, ": ") // توحيد النقطتين ": "
+    }));
+  };
+
+  cart.forEach((item, index) => {
+    const productData = item.product;
+
+    const apiData = {
+      sizes: productData.sizes || [],
+      colors: productData.colors || [],
+      materials: productData.materials || [],
+      features: productData.features || []
+    };
+
+    const selectedOptions = normalizeSelectedOptions(item.selected_options || []);
+
+    // استخراج القيم الأساسية: أولًا من الحقول المباشرة في الـ item، وإلا نحاول من selected_options
+    let sizeVal = item.size || "";
+    let colorVal = typeof item.color === "string" ? item.color : item.color?.name || "";
+    let materialVal = item.material || "";
+
+    // لو مش موجودة، نحاول نجيبها من selectedOptions
+    selectedOptions.forEach((opt: any) => {
+      const name = opt.option_name;
+      const val = opt.option_value;
+      if (!name || !val) return;
+
+      if (!sizeVal && name === "المقاس") sizeVal = val;
+      if (!colorVal && name === "اللون") colorVal = val;
+      if (!materialVal && name === "الخامة") materialVal = val;
     });
 
-    if (hasEmptyFields) {
-      toast.error("الرجاء اختيار كل الحقول المطلوبة لكل منتج قبل المتابعة");
-      return;
-    }
+    // الآن نمرر الفاليديشن بالصيغ المطابقة اللي الـ StickerForm يتوقعها
+    const valid = validateStickerForm({
+      size: sizeVal,
+      color: colorVal,
+      material: materialVal,
+      selectedOptions: selectedOptions,
+      apiData
+    });
 
-    router.push("/payment");
-  };
+    if (!valid) {
+      hasEmptyFields = true;
+      errorMessages.push(`• المنتج ${index + 1}: ${productData.name}`);
+    }
+  });
+
+  if (hasEmptyFields) {
+    // استخدمي toast أو Swal — هنا نعرض نفس النص اللي طلبتيه
+    const finalMessage = `
+الرجاء اختيار كل الحقول المطلوبة قبل المتابعة
+
+المنتجات التي تحتاج إكمال البيانات:
+
+${errorMessages.join("\n")}
+    `;
+    // تستخدمين toast الحالي أو alert:
+    // toast.error(finalMessage, { duration: 6000 });
+    alert(finalMessage);
+    return;
+  }
+
+  router.push("/payment");
+};
 
 
   if (cart.length === 0) {
@@ -89,12 +124,6 @@ export default function CartPage() {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         <div className="col-span-1 lg:col-span-2">
-          {/* <div className="p-2 ps-6  rounded-lg border border-gray-200 my-4 bg-white">
-            <h2 className="text-lg font-semibold py-3">
-              عربة التسوق ({cartCount})
-            </h2>
-          </div> */}
-
           <div className="flex flex-col  my-4 bg-white overflow-hidden">
             {cart.map((item) => (
               <div
@@ -120,20 +149,29 @@ export default function CartPage() {
                             {item.product.name}
                           </h3>
 
-                          {/* <p className="text-sm text-gray-400 mt-1">
-                            {item.price_per_unit} جنيه
-                          </p> */}
-                          <p className="text-sm text-gray-400 mt-1">
-                            السعر:{" "}
-                            {parseFloat(item.line_total || "0").toFixed(2)}{" "}
-                            جنيه
-                          </p>
+                          {/* عرض الأسعار */}
+                          <div className="text-sm text-gray-600 mt-1 space-y-1">
+                            <p className="text-gray-500">
+                              السعر :{" "}
+                              {parseFloat(item.product.price || "0").toFixed(2)} جنيه
+                            </p>
+                            {/* {item.product.has_discount && (
+                              <p className="text-red-500 line-through">
+                                قبل الخصم:{" "}
+                                {parseFloat(item.product.final_price + parseFloat(item.product.discount?.value || "0") || "0").toFixed(2)} جنيه
+                              </p>
+                            )}
+                            <p className="text-green-600 font-semibold">
+                              السعر النهائي:{" "}
+                              {parseFloat(item.line_total || item.product.final_price || item.product.price || "0").toFixed(2)} جنيه
+                            </p> */}
+                          </div>
                         </div>
                       </div>
                     </div>
-                    {/* counter */}
-                    <div className="flex items-center gap-3   border border-gray-200 rounded-lg">
-                      {/* + */}
+                    
+                    {/* عداد الكمية */}
+                    <div className="flex items-center gap-3 border border-gray-200 rounded-lg">
                       <button
                         onClick={() => {
                           if (item.quantity >= 10) {
@@ -145,15 +183,14 @@ export default function CartPage() {
                           updateQuantity(item.cart_item_id, item.quantity + 1);
                           }
                         }}
-                        className="w-10 h-9 text-gray-500 cursor-pointer border-gray-200 border-l rounded-lg rounded-bl-none rounded-tl-none   transition flex items-center justify-center"
+                        className="w-10 h-9 text-gray-500 cursor-pointer border-gray-200 border-l rounded-lg rounded-bl-none rounded-tl-none transition flex items-center justify-center"
                       >
                         <FaPlus size={16} />
                       </button>
-                      <span className="font-semibold  w-5 text-lg text-center bg-white ">
+                      <span className="font-semibold w-5 text-lg text-center bg-white">
                         {item.quantity}
                       </span>
 
-                      {/* - */}
                       <button
                         onClick={() => {
                           if (item.quantity <= 1) {
@@ -177,13 +214,13 @@ export default function CartPage() {
 
                     <div className="flex items-center text-sm text-red-400 gap-4">
                       <div className="flex absolute bottom-1/6 end-0 md:relative items-center">
-                        <p className="text-sm text-green-600 mt-1">
-                          المجموع:{" "}
+                        <p className="text-sm text-green-600 mt-1 font-semibold">
+                          الإجمالي:{" "}
                           {parseFloat(item.line_total || "0").toFixed(2)} جنيه
                         </p>
                       </div>
 
-                      {/* close */}
+                      {/* زر الحذف */}
                       <button
                         onClick={async () => {
                           const result = await Swal.fire({
@@ -214,10 +251,14 @@ export default function CartPage() {
                     </div>
                   </div>
                 </div>
+                
+                {/* نموذج الخصائص */}
                 <div className="p-4">
                   <StickerForm
                     cartItemId={item.cart_item_id}
                     productId={item.product.id}
+                    productData={item.product}
+                    cartItemData={item}
                   />
                 </div>
               </div>
@@ -226,23 +267,7 @@ export default function CartPage() {
         </div>
 
         <div className="col-span-1">
-          {/* <div
-            onClick={() => setOpenModal(true)}
-            className="flex items-center justify-between rounded-lg shadow p-5 mt-4 bg-white cursor-pointer hover:bg-gray-50 transition"
-          >
-            <div className="flex items-center gap-3">
-              <MdAddLocationAlt size={26} className="text-pro" />
-              <p className="font-medium">
-                التوصيل إلى{" "}
-                <span className="font-bold text-pro">حي الجيزة، الجيزة</span>
-              </p>
-            </div>
-            <MdOutlineKeyboardArrowLeft size={26} />
-          </div> */}
-
-          {/* <AddressForm open={openModal} onClose={() => setOpenModal(false)} /> */}
-
-          <div className="border border-gray-200   rounded-lg p-6 mt-4 bg-white">
+          <div className="border border-gray-200 rounded-lg p-6 mt-4 bg-white">
             <CoBon />
 
             <h4 className="text-md font-semibold text-pro my-5">ملخص الطلب</h4>

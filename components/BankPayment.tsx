@@ -43,7 +43,7 @@ export default function BankPayment({ onPaymentMethodChange }: BankPaymentProps)
       name: "الدفع عند الاستلام",
       desc: "سيتم تطبيق رسوم أضافية",
       img: "/images/money .png",
-      method: "cash" // تم التغيير من cash_on_delivery إلى cash
+      method: "cash_on_delivery" // تم التغيير من cash_on_delivery إلى cash
     },
     {
       id: 5,
