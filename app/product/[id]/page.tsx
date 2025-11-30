@@ -19,13 +19,14 @@ import ButtonComponent from "@/components/ButtonComponent";
 import ProductCard from "@/components/ProductCard";
 import InStockSlider from "@/components/InStockSlider";
 import { useAppContext } from "@/src/context/AppContext";
-
+import { useCart } from "@/src/context/CartContext"; 
 export default function ProductPageClient() {
   const params = useParams();
   const { id } = params;
   const { authToken: token } = useAuth();
   // const [showStickerForm, setShowStickerForm] = useState(true);
   // const [showPOV, setShowPOV] = useState(false);
+   const { addToCart } = useCart();
   const [activeTab, setActiveTab] = useState<"options" | "reviews" | null>(
     "options"
   );
@@ -36,10 +37,15 @@ export default function ProductPageClient() {
   const [error, setError] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
-  const handleSubmit = () => {
-    console.log("added to cart successfully");
-    toast.success("تم إضافة المنتج إلى السلة بنجاح ");
-  };
+const handleSubmit = async () => {
+  if (!product) return;
+
+  // إضافة المنتج للسلة باستخدام الـ id فقط
+  addToCart(product.id, { quantity: 1 });
+
+  toast.success("تم إضافة المنتج إلى السلة بنجاح");
+};
+
 
   useEffect(() => {
     async function fetchProduct() {
@@ -237,7 +243,7 @@ export default function ProductPageClient() {
         {/* cart */}
         <div className="flex items-center gap-3  max-w-max">
           <div className="flex flex-col items-center ">
-            <h4 className="text-xl font-bold">-</h4>
+            <h4 className="text-xl font-bold">{product.price}</h4>
             <p className="text-gray-500 text-[12px]">السعر يشمل الضريبة</p>
           </div>
           <div className=" ">

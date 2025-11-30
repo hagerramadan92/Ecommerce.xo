@@ -39,27 +39,30 @@ export const validateStickerForm = ({
 
   let missingFields = [];
 
-  // التحقق من الحقول الأساسية
-  if (apiData.sizes?.length > 0 && !size) {
+  // التحقق من الحقول الأساسية فقط إذا كانت موجودة في API
+  // نتأكد أن القيمة ليست "اختر" أو فارغة
+  if (apiData.sizes?.length > 0 && (!size || size === "اختر")) {
     missingFields.push("المقاس");
   }
   
-  if (apiData.colors?.length > 0 && !color) {
+  if (apiData.colors?.length > 0 && (!color || color === "اختر")) {
     missingFields.push("اللون");
   }
   
-  if (apiData.materials?.length > 0 && !material) {
+  if (apiData.materials?.length > 0 && (!material || material === "اختر")) {
     missingFields.push("الخامة");
   }
 
-  // التحقق من الخصائص
+  // التحقق من الخصائص فقط إذا كانت موجودة في API
   if (apiData.features?.length > 0) {
     apiData.features.forEach((feature: any) => {
       const hasValues = feature.value || (feature.values && feature.values.length > 0);
       
       if (hasValues) {
         const isFeatureSelected = selectedOptions?.some((opt: any) => 
-          opt.option_name === "خاصية" && opt.option_value.startsWith(`${feature.name}:`)
+          opt.option_name === "خاصية" && 
+          opt.option_value.startsWith(`${feature.name}:`) &&
+          !opt.option_value.endsWith(": اختر")
         );
         
         if (!isFeatureSelected) {
@@ -86,14 +89,15 @@ export default function StickerForm({
 }: StickerFormProps) {
   const { updateCartItem, cart } = useCart();
 
-  const [size, setSize] = useState("");
-  const [color, setColor] = useState("");
-  const [material, setMaterial] = useState("");
+  const [size, setSize] = useState("اختر");
+  const [color, setColor] = useState("اختر");
+  const [material, setMaterial] = useState("اختر");
   const [selectedFeatures, setSelectedFeatures] = useState<{ [key: string]: string }>({});
 
   const [apiData, setApiData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [initialized, setInitialized] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
   const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
   useEffect(() => {
@@ -121,24 +125,34 @@ export default function StickerForm({
     console.log("=== LOADING CART ITEM DATA ===");
     console.log("Cart item:", cartItem);
 
-    // تحميل البيانات الأساسية من الكارت
-    if (cartItem.size) {
+    // استخراج القيم من selected_options
+    const sizeFromOptions = cartItem.selected_options?.find((opt: any) => opt.option_name === "المقاس")?.option_value;
+    const colorFromOptions = cartItem.selected_options?.find((opt: any) => opt.option_name === "اللون")?.option_value;
+    const materialFromOptions = cartItem.selected_options?.find((opt: any) => opt.option_name === "الخامة")?.option_value;
+
+    // تحميل البيانات الأساسية - نعطي الأولوية للقيم المباشرة ثم selected_options
+    if (cartItem.size && cartItem.size !== "اختر") {
       setSize(cartItem.size);
+    } else if (sizeFromOptions && sizeFromOptions !== "اختر") {
+      setSize(sizeFromOptions);
     } else if (apiData.sizes?.length > 0) {
-      // إذا مفيش size محفوظة، ناخد أول قيمة افتراضية
-      setSize(apiData.sizes[0].name);
+      setSize("اختر");
     }
 
-    if (cartItem.color?.name) {
+    if (cartItem.color?.name && cartItem.color.name !== "اختر") {
       setColor(cartItem.color.name);
+    } else if (colorFromOptions && colorFromOptions !== "اختر") {
+      setColor(colorFromOptions);
     } else if (apiData.colors?.length > 0) {
-      setColor(apiData.colors[0].name);
+      setColor("اختر");
     }
 
-    if (cartItem.material) {
+    if (cartItem.material && cartItem.material !== "اختر") {
       setMaterial(cartItem.material);
+    } else if (materialFromOptions && materialFromOptions !== "اختر") {
+      setMaterial(materialFromOptions);
     } else if (apiData.materials?.length > 0) {
-      setMaterial(apiData.materials[0].name);
+      setMaterial("اختر");
     }
 
     // استخراج الخصائص من selected_options
@@ -149,7 +163,7 @@ export default function StickerForm({
       cartItem.selected_options.forEach((opt: any) => {
         if (opt.option_name === "خاصية") {
           const [name, value] = opt.option_value.split(": ");
-          if (name && value) {
+          if (name && value && value !== "اختر") {
             featuresFromOptions[name.trim()] = value.trim();
           }
         }
@@ -160,11 +174,8 @@ export default function StickerForm({
     if (apiData?.features) {
       apiData.features.forEach((feature: any) => {
         if (!featuresFromOptions[feature.name]) {
-          if (feature.value) {
-            featuresFromOptions[feature.name] = feature.value;
-          } else if (feature.values && feature.values.length > 0) {
-            featuresFromOptions[feature.name] = feature.values[0];
-          }
+          // نضع "اختر" كقيمة افتراضية للخصائص
+          featuresFromOptions[feature.name] = "اختر";
         }
       });
     }
@@ -175,45 +186,72 @@ export default function StickerForm({
   }, [cartItemId, cart, apiData, initialized]);
 
   const handleChange = (setter: React.Dispatch<React.SetStateAction<string>>, value: string) => {
+    // منع اختيار "اختر" كقيمة
+    if (value === "اختر") {
+      return;
+    }
     console.log("Setting value:", value);
     setter(value);
+    setHasChanges(true);
   };
 
   const handleFeatureChange = (featureName: string, value: string) => {
+    // منع اختيار "اختر" كقيمة
+    if (value === "اختر") {
+      return;
+    }
     console.log("Setting feature:", featureName, value);
     setSelectedFeatures((prev) => ({ ...prev, [featureName]: value }));
+    setHasChanges(true);
   };
 
   const handleUpdateCart = useCallback(async () => {
-    if (!cartItemId || !apiData || !initialized) return;
+    if (!cartItemId || !apiData || !initialized || !hasChanges) return;
+
+    // لا نحدث الـ cart إذا كانت القيمة "اختر"
+    if ((apiData.sizes?.length > 0 && size === "اختر") || 
+        (apiData.colors?.length > 0 && color === "اختر") || 
+        (apiData.materials?.length > 0 && material === "اختر")) {
+      return;
+    }
+
+    // التحقق من أن جميع الخصائص ليست "اختر"
+    const hasInvalidFeatures = Object.entries(selectedFeatures).some(([name, value]) => {
+      const feature = apiData.features?.find((f: any) => f.name === name);
+      return feature && (feature.value || feature.values?.length > 0) && value === "اختر";
+    });
+    
+    if (hasInvalidFeatures) {
+      return;
+    }
 
     const updates: any = {};
 
-    // تحديث الحقول الأساسية
-    if (apiData.sizes?.length > 0 && size) {
+    // تحديث الحقول الأساسية فقط إذا كانت موجودة في API وليست "اختر"
+    if (apiData.sizes?.length > 0 && size && size !== "اختر") {
       const selectedSize = apiData.sizes.find((s: any) => s.name === size);
       updates.size_id = selectedSize?.id || null;
       updates.size = size;
     }
 
-    if (apiData.colors?.length > 0 && color) {
+    if (apiData.colors?.length > 0 && color && color !== "اختر") {
       const selectedColor = apiData.colors.find((c: any) => c.name === color);
       updates.color_id = selectedColor?.id || null;
       updates.color = selectedColor || null;
     }
 
-    if (apiData.materials?.length > 0 && material) {
+    if (apiData.materials?.length > 0 && material && material !== "اختر") {
       const selectedMaterial = apiData.materials.find((m: any) => m.name === material);
       updates.material_id = selectedMaterial?.id || null;
       updates.material = material;
     }
 
-    // تحديث selected_options بجميع الخصائص المختارة
+    // تحديث selected_options بجميع الخصائص المختارة (باستثناء "اختر")
     const selectedOptions: any[] = [];
     
-    // إضافة جميع الخصائص المختارة إلى selected_options
+    // إضافة جميع الخصائص المختارة إلى selected_options (باستثناء "اختر")
     Object.entries(selectedFeatures).forEach(([name, value]) => {
-      if (name && value) {
+      if (name && value && value !== "اختر") {
         selectedOptions.push({ 
           option_name: "خاصية", 
           option_value: `${name}: ${value}` 
@@ -221,22 +259,22 @@ export default function StickerForm({
       }
     });
 
-    // نضيف الحقول الأساسية كـ selected_options أيضاً إذا كانت موجودة
-    if (size) {
+    // نضيف الحقول الأساسية كـ selected_options أيضاً إذا كانت موجودة وليست "اختر"
+    if (size && size !== "اختر" && apiData.sizes?.length > 0) {
       selectedOptions.push({
         option_name: "المقاس",
         option_value: size
       });
     }
 
-    if (color) {
+    if (color && color !== "اختر" && apiData.colors?.length > 0) {
       selectedOptions.push({
         option_name: "اللون", 
         option_value: color
       });
     }
 
-    if (material) {
+    if (material && material !== "اختر" && apiData.materials?.length > 0) {
       selectedOptions.push({
         option_name: "الخامة",
         option_value: material
@@ -253,6 +291,7 @@ export default function StickerForm({
       try {
         await updateCartItem(cartItemId, updates);
         console.log("Cart updated successfully!");
+        setHasChanges(false);
       } catch (error) {
         console.error("Error updating cart:", error);
       }
@@ -266,10 +305,11 @@ export default function StickerForm({
     updateCartItem,
     apiData,
     initialized,
+    hasChanges,
   ]);
 
   useEffect(() => {
-    if (!initialized) return;
+    if (!initialized || !hasChanges) return;
     
     const timeoutId = setTimeout(() => {
       if (cartItemId) {
@@ -279,7 +319,7 @@ export default function StickerForm({
     }, 1000);
     
     return () => clearTimeout(timeoutId);
-  }, [handleUpdateCart, cartItemId, initialized]);
+  }, [handleUpdateCart, cartItemId, initialized, hasChanges]);
 
   // دالة لعرض select للمقاسات
   const renderSizesSelect = () => {
@@ -294,28 +334,32 @@ export default function StickerForm({
       <Box display="flex" gap={2} alignItems="center" mb={3}>
         <Box flex={1}>
           <Typography variant="subtitle1" fontWeight="bold" className="text-gray-800">
-            المقاس <span style={{ color: "red" }}>*</span>
+            المقاس {apiData.sizes.length > 0 && <span style={{ color: "red" }}>*</span>}
           </Typography>
         </Box>
         <Box flex={2}>
-          <FormControl fullWidth required size="small">
+          <FormControl fullWidth required={apiData.sizes.length > 0} size="small" error={size === "اختر"}>
             <InputLabel>المقاس</InputLabel>
             <Select 
               value={size} 
               onChange={(e) => handleChange(setSize, e.target.value)} 
               label="المقاس" 
-              required
+              required={apiData.sizes.length > 0}
               className="bg-white"
             >
+              {/* خيار "اختر" كقيمة افتراضية */}
+              <MenuItem value="اختر" disabled>
+                <em className="text-gray-400">اختر</em>
+              </MenuItem>
               {sizeOptions.map((opt: any) => (
                 <MenuItem key={opt.value} value={opt.value}>
                   {opt.label}
                 </MenuItem>
               ))}
             </Select>
-            {!size && (
+            {apiData.sizes.length > 0 && size === "اختر" && (
               <FormHelperText className="text-red-500 text-xs">
-                هذا الحقل مطلوب
+                يجب اختيار المقاس
               </FormHelperText>
             )}
           </FormControl>
@@ -338,19 +382,23 @@ export default function StickerForm({
       <Box display="flex" gap={2} alignItems="center" mb={3}>
         <Box flex={1}>
           <Typography variant="subtitle1" fontWeight="bold" className="text-gray-800">
-            اللون <span style={{ color: "red" }}>*</span>
+            اللون {apiData.colors.length > 0 && <span style={{ color: "red" }}>*</span>}
           </Typography>
         </Box>
         <Box flex={2}>
-          <FormControl fullWidth required size="small">
+          <FormControl fullWidth required={apiData.colors.length > 0} size="small" error={color === "اختر"}>
             <InputLabel>اللون</InputLabel>
             <Select 
               value={color} 
               onChange={(e) => handleChange(setColor, e.target.value)} 
               label="اللون" 
-              required
+              required={apiData.colors.length > 0}
               className="bg-white"
             >
+              {/* خيار "اختر" كقيمة افتراضية */}
+              <MenuItem value="اختر" disabled>
+                <em className="text-gray-400">اختر</em>
+              </MenuItem>
               {colorOptions.map((opt: any) => (
                 <MenuItem key={opt.value} value={opt.value}>
                   <div className="flex items-center gap-2">
@@ -365,9 +413,9 @@ export default function StickerForm({
                 </MenuItem>
               ))}
             </Select>
-            {!color && (
+            {apiData.colors.length > 0 && color === "اختر" && (
               <FormHelperText className="text-red-500 text-xs">
-                هذا الحقل مطلوب
+                يجب اختيار اللون
               </FormHelperText>
             )}
           </FormControl>
@@ -389,28 +437,32 @@ export default function StickerForm({
       <Box display="flex" gap={2} alignItems="center" mb={3}>
         <Box flex={1}>
           <Typography variant="subtitle1" fontWeight="bold" className="text-gray-800">
-            الخامة <span style={{ color: "red" }}>*</span>
+            الخامة {apiData.materials.length > 0 && <span style={{ color: "red" }}>*</span>}
           </Typography>
         </Box>
         <Box flex={2}>
-          <FormControl fullWidth required size="small">
+          <FormControl fullWidth required={apiData.materials.length > 0} size="small" error={material === "اختر"}>
             <InputLabel>الخامة</InputLabel>
             <Select 
               value={material} 
               onChange={(e) => handleChange(setMaterial, e.target.value)} 
               label="الخامة" 
-              required
+              required={apiData.materials.length > 0}
               className="bg-white"
             >
+              {/* خيار "اختر" كقيمة افتراضية */}
+              <MenuItem value="اختر" disabled>
+                <em className="text-gray-400">اختر</em>
+              </MenuItem>
               {materialOptions.map((opt: any) => (
                 <MenuItem key={opt.value} value={opt.value}>
                   {opt.label}
                 </MenuItem>
               ))}
             </Select>
-            {!material && (
+            {apiData.materials.length > 0 && material === "اختر" && (
               <FormHelperText className="text-red-500 text-xs">
-                هذا الحقل مطلوب
+                يجب اختيار الخامة
               </FormHelperText>
             )}
           </FormControl>
@@ -444,34 +496,39 @@ export default function StickerForm({
         return null;
       }
 
-      const currentValue = selectedFeatures[feature.name] || options[0]?.value || "";
+      const currentValue = selectedFeatures[feature.name] || "اختر";
+      const hasValues = feature.value || (feature.values && feature.values.length > 0);
 
       return (
         <Box key={index} display="flex" gap={2} alignItems="center" mb={3}>
           <Box flex={1}>
             <Typography variant="subtitle1" fontWeight="bold" className="text-gray-800">
-              {feature.name} <span style={{ color: "red" }}>*</span>
+              {feature.name} {hasValues && <span style={{ color: "red" }}>*</span>}
             </Typography>
           </Box>
           <Box flex={2}>
-            <FormControl fullWidth required size="small">
+            <FormControl fullWidth required={hasValues} size="small" error={currentValue === "اختر"}>
               <InputLabel>{feature.name}</InputLabel>
               <Select
                 value={currentValue}
                 onChange={(e) => handleFeatureChange(feature.name, e.target.value)}
                 label={feature.name}
-                required
+                required={hasValues}
                 className="bg-white"
               >
+                {/* خيار "اختر" كقيمة افتراضية */}
+                <MenuItem value="اختر" disabled>
+                  <em className="text-gray-400">اختر</em>
+                </MenuItem>
                 {options.map((opt: any) => (
                   <MenuItem key={opt.value} value={opt.value}>
                     {opt.label}
                   </MenuItem>
                 ))}
               </Select>
-              {!currentValue && (
+              {hasValues && currentValue === "اختر" && (
                 <FormHelperText className="text-red-500 text-xs">
-                  هذا الحقل مطلوب
+                  يجب اختيار {feature.name}
                 </FormHelperText>
               )}
             </FormControl>

@@ -32,7 +32,6 @@ export default function PaymentPage() {
     setToken(t);
   }, []);
 
-  // جلب عناوين المستخدم من API
   useEffect(() => {
     if (!token) return;
 
@@ -69,7 +68,6 @@ export default function PaymentPage() {
     setOpenModal(false);
   };
 
-  // تغيير العنوان المحدد
   const handleAddressChange = () => {
     if (addresses.length > 0) {
       setShowAddress(true);
@@ -78,13 +76,11 @@ export default function PaymentPage() {
     }
   };
 
-  // اختيار عنوان من القائمة
   const handleSelectAddress = (address: AddressI) => {
     setSelectedAddress(address);
     setShowAddress(false);
   };
 
-  // إتمام عملية الشراء
   const handleCompletePurchase = async () => {
     if (!paymentMethod) {
       Swal.fire("تنبيه", "يرجى اختيار طريقة الدفع", "warning");
@@ -96,7 +92,6 @@ export default function PaymentPage() {
       let orderData: any = {};
 
       if (selectedAddress) {
-        // إذا كان هناك عنوان محدد - استخدام address_id
         orderData = {
           address_id: selectedAddress.id,
           payment_method: paymentMethod,
@@ -142,7 +137,11 @@ export default function PaymentPage() {
     }
   };
 
-  // دالة مساعدة للحصول على نص طريقة الدفع
+//   cash_on_delivery,credit_card
+// tabby
+// tamara
+// apple Pay
+// stcPay
   const getPaymentMethodText = (method: string) => {
     const methods: { [key: string]: string } = {
       online: "الدفع الإلكتروني",

@@ -12,7 +12,6 @@ export default function ChangePassword() {
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [loading, setLoading] = useState(false);
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -40,8 +39,8 @@ export default function ChangePassword() {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem("token"); // أو من AuthContext
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/change-password`, {
+      const token = localStorage.getItem("auth_token"); 
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/change-password`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -55,10 +54,9 @@ export default function ChangePassword() {
       });
 
       const data = await res.json();
-// res.ok && data.status
-      if (true) {
-        toast.success("تم تغيير كلمة السر بنجاح");
-        // إعادة تعيين الحقول
+
+      if (res.ok && data.status) {
+        toast.success(data.message || "تم تغيير كلمة السر بنجاح");
         setOldPassword("");
         setNewPassword("");
         setConfirmPassword("");
@@ -66,6 +64,7 @@ export default function ChangePassword() {
         toast.error(data.message || "فشل تغيير كلمة السر");
       }
     } catch (err) {
+      console.error(err);
       toast.error("خطأ في الاتصال، حاول مرة أخرى");
     } finally {
       setLoading(false);
@@ -149,7 +148,7 @@ export default function ChangePassword() {
         <button
           type="submit"
           disabled={loading}
-          className={`w-full py-4 rounded-lg font-bold text-white transition ${
+          className={`w-full  cursor-pointer py-4 rounded-lg font-bold text-white transition ${
             loading
               ? "bg-gray-400 cursor-not-allowed"
               : "bg-pro hover:bg-pro-max active:scale-95"

@@ -16,6 +16,7 @@ interface AddToCartPayload {
   quantity?: number;
   size_id?: number | null;
   color_id?: number | null;
+  material_id?: number | null;
   printing_method_id?: number | null;
   print_locations?: number[];
   embroider_locations?: number[];
@@ -33,18 +34,20 @@ interface CartItem {
   quantity: number;
   price_per_unit: string;
   line_total: string;
-  size?: string;
-  color?: { name: string; hex: string };
-  printing_method?: string;
+  size?: string | null;
+  size_id?: number | null;
+  color?: { name: string; hex_code?: string; hex?: string } | null;
+  color_id?: number | null;
+  material?: string | null;
+  material_id?: number | null;
+  printing_method?: string | null;
+  printing_method_id?: number | null;
   print_locations?: number[];
   embroider_locations?: number[];
   selected_options?: any[];
-  design_service?: string;
+  design_service?: string | null;
+  design_service_id?: number | null;
   is_sample?: boolean;
-  size_id?: number;
-  color_id?: number;
-  printing_method_id?: number;
-  design_service_id?: number;
 }
 
 // نوع الـ Context
@@ -100,31 +103,42 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       const data = await res.json();
 
       if (res.ok && data.status && data.data?.items) {
-        const items = data.data.items.map((item: any) => ({
-          cart_item_id: item.id,
-          product: item.product,
-          quantity: item.quantity,
-          price_per_unit: item.price_per_unit,
-          line_total: item.line_total,
-          size: item.size,
-          size_id: item.size_id,
-          color: item.color,
-          color_id: item.color_id,
-          printing_method: item.printing_method,
-          printing_method_id: item.printing_method_id,
-          print_locations: item.print_locations
-            ? JSON.parse(item.print_locations)
-            : [],
-          embroider_locations: item.embroider_locations
-            ? JSON.parse(item.embroider_locations)
-            : [],
-          selected_options: item.selected_options
-            ? JSON.parse(item.selected_options)
-            : [],
-          design_service: item.design_service,
-          design_service_id: item.design_service_id,
-          is_sample: item.is_sample === 1,
-        }));
+        const items = data.data.items.map((item: any) => {
+          // تحليل selected_options من JSON string
+          let selectedOptions = [];
+          try {
+            selectedOptions = item.selected_options ? JSON.parse(item.selected_options) : [];
+          } catch (error) {
+            console.error('Error parsing selected_options:', error);
+            selectedOptions = [];
+          }
+
+          return {
+            cart_item_id: item.id,
+            product: item.product,
+            quantity: item.quantity,
+            price_per_unit: item.price_per_unit,
+            line_total: item.line_total,
+            size: item.size,
+            size_id: item.size_id,
+            color: item.color,
+            color_id: item.color_id,
+            material: item.material,
+            material_id: item.material_id,
+            printing_method: item.printing_method,
+            printing_method_id: item.printing_method_id,
+            print_locations: item.print_locations
+              ? JSON.parse(item.print_locations)
+              : [],
+            embroider_locations: item.embroider_locations
+              ? JSON.parse(item.embroider_locations)
+              : [],
+            selected_options: selectedOptions,
+            design_service: item.design_service,
+            design_service_id: item.design_service_id,
+            is_sample: item.is_sample === 1,
+          };
+        });
         setCart(items);
       } else {
         setCart([]);
@@ -177,6 +191,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       quantity: 1,
       size_id: null,
       color_id: null,
+      material_id: null,
       printing_method_id: null,
       print_locations: [],
       embroider_locations: [],
@@ -303,6 +318,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
                     line_total: data.data.item.line_total,
                     size: data.data.item.size,
                     color: data.data.item.color,
+                    material: data.data.item.material,
                     printing_method: data.data.item.printing_method,
                     print_locations: data.data.item.print_locations
                       ? JSON.parse(data.data.item.print_locations)
@@ -348,7 +364,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           ? {
               ...item,
               selected_options: [
-                ...item?.selected_options.filter(
+                ...(item.selected_options || []).filter(
                   (opt) => opt.option_name !== optionName
                 ),
                 { option_name: optionName, option_value: optionValue },
@@ -361,7 +377,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     try {
       const currentItem = cart.find((item) => item.cart_item_id === cartItemId);
       const updatedOptions = [
-        ...currentItem?.selected_options.filter(
+        ...(currentItem?.selected_options || []).filter(
           (opt) => opt.option_name !== optionName
         ),
         { option_name: optionName, option_value: optionValue },

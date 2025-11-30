@@ -55,7 +55,7 @@ export default function page() {
                 تم استلام طلبك بنجاح. ستصلك رسالة تأكيد عبر البريد الإلكتروني
                 <span className="font-semibold">hagerramadan440@gmail.com</span>
               </p>
-              <Link href="/myAccount/:id">
+              <Link href="/myAccount/orders">
                 <div className="flex items-center gap-0.5 font-semibold text-md cursor-pointer text-pro-max mb-2">
                   <p>تتبع طلبك</p>
                   <FaAngleLeft />

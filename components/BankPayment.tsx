@@ -12,49 +12,60 @@ interface BankPaymentProps {
 export default function BankPayment({ onPaymentMethodChange }: BankPaymentProps) {
   const [open, setOpen] = useState(false);
   const [selectedBank, setSelectedBank] = useState<number | null>(null);
+// cash_on_delivery,credit_card
+// tabby
+// tamara
+// apple Pay
+// stcPay
+ const banks = [
+  {
+    id: 1,
+    name: "Apple Pay",
+    desc: "الدفع من خلال Apple Pay",
+    img: "/images/applepay.png",
+    method: "applePay",
+  },
+  {
+    id: 2,
+    name: "STC Pay",
+    desc: "الدفع من خلال محفظة STC Pay",
+    img: "/images/Stc_pay.svg.png",
+    method: "stcPay",
+  },
+  {
+    id: 3,
+    name: "Tamara",
+    desc: "قسم فاتورتك على دفعات مع تمارا",
+    img: "/images/tamara-logo1.png",
+    method: "tamara",
+  },
+  {
+    id: 4,
+    name: "Tabby",
+    desc: "قسم فاتورتك على دفعات مع تابي",
+    img: "/images/tabby.jpeg",
+    method: "tabby",
+  },
+];
 
-  const banks = [
-    {
-      id: 1,
-      name: "البنك الاهلي السعودي",
-      desc: "الدفع بطاقة الخصم / الائتمان البنك الاهلي السعودي",
-      img: "/images/bank.webp",
-      method: "online"
-    },
-    {
-      id: 2,
-      name: "بنك BB4",
-      desc: "الدفع بطاقة الخصم / الائتمان بنك BB4",
-      img: "/images/bb4.png",
-      method: "online"
-    },
-    {
-      id: 3,
-      name: "تحويل بنكي",
-      desc: "الدفع عن طريق التحويل البنكي",
-      img: "/images/bank+transfer.png",
-      method: "online"
-    },
-  ];
 
   const banks2 = [
     {
-      id: 4,
+      id: 5,
       name: "الدفع عند الاستلام",
       desc: "سيتم تطبيق رسوم أضافية",
       img: "/images/money .png",
-      method: "cash_on_delivery" // تم التغيير من cash_on_delivery إلى cash
+      method: "cash_on_delivery" 
     },
     {
-      id: 5,
+      id: 6,
       name: "كروت فيزا بريميوم",
       desc: "ادفع بواسطه فيزا",
       img: "/images/visa.png",
-      method: "online"
+      method: "credit_card"
     },
   ];
 
-  // إرسال طريقة الدفع المختارة عند التغيير
   useEffect(() => {
     if (selectedBank && onPaymentMethodChange) {
       const allBanks = [...banks, ...banks2];

@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import { IoIosCloseCircle } from "react-icons/io";
 import StickerForm, { validateStickerForm } from "@/components/StickerForm";
 import Swal from "sweetalert2";
+import { useState, useEffect } from "react";
 
 export default function CartPage() {
   const router = useRouter();
@@ -24,79 +25,139 @@ export default function CartPage() {
   const { cart, cartCount, total, removeFromCart, updateQuantity, loading } =
     useCart();
 
+  // state لتتبع إذا كان الـ cart تم تحميله بالكامل
+  const [isCartReady, setIsCartReady] = useState(false);
+
+  useEffect(() => {
+    if (cart.length > 0 && !loading) {
+      // نعطي وقت للـ StickerForm لتحميل البيانات
+      const timer = setTimeout(() => {
+        setIsCartReady(true);
+      }, 2000);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [cart, loading]);
+
   const handleClick = () => {
-  let hasEmptyFields = false;
-  const errorMessages: string[] = [];
+    if (!isCartReady) {
+      toast.error("جاري تحميل بيانات السلة، يرجى الانتظار...");
+      return;
+    }
 
-  const normalizeSelectedOptions = (opts: any[]) => {
-    if (!opts) return [];
-    return opts.map((o: any) => ({
-      option_name: (o.option_name || "").trim(),
-      option_value: (o.option_value || "").trim().replace(/\s*:\s*/, ": ") // توحيد النقطتين ": "
-    }));
-  };
+    let hasEmptyFields = false;
+    const errorMessages: string[] = [];
 
-  cart.forEach((item, index) => {
-    const productData = item.product;
-
-    const apiData = {
-      sizes: productData.sizes || [],
-      colors: productData.colors || [],
-      materials: productData.materials || [],
-      features: productData.features || []
+    const normalizeSelectedOptions = (opts: any[]) => {
+      if (!opts) return [];
+      return opts.map((o: any) => ({
+        option_name: (o.option_name || "").trim(),
+        option_value: (o.option_value || "").trim().replace(/\s*:\s*/, ": ")
+      }));
     };
 
-    const selectedOptions = normalizeSelectedOptions(item.selected_options || []);
+    cart.forEach((item, index) => {
+      const productData = item.product;
 
-    // استخراج القيم الأساسية: أولًا من الحقول المباشرة في الـ item، وإلا نحاول من selected_options
-    let sizeVal = item.size || "";
-    let colorVal = typeof item.color === "string" ? item.color : item.color?.name || "";
-    let materialVal = item.material || "";
+      const apiData = {
+        sizes: productData.sizes || [],
+        colors: productData.colors || [],
+        materials: productData.materials || [],
+        features: productData.features || []
+      };
 
-    // لو مش موجودة، نحاول نجيبها من selectedOptions
-    selectedOptions.forEach((opt: any) => {
-      const name = opt.option_name;
-      const val = opt.option_value;
-      if (!name || !val) return;
+      const selectedOptions = normalizeSelectedOptions(item.selected_options || []);
 
-      if (!sizeVal && name === "المقاس") sizeVal = val;
-      if (!colorVal && name === "اللون") colorVal = val;
-      if (!materialVal && name === "الخامة") materialVal = val;
+      console.log(`=== VALIDATING ITEM ${index + 1} ===`);
+      console.log("Item data:", {
+        size: item.size,
+        color: item.color,
+        material: item.material,
+        selectedOptions: selectedOptions
+      });
+      console.log("API data:", apiData);
+
+      // التحقق من أن جميع الحقول المطلوبة مكتملة
+      let itemHasEmptyFields = false;
+      let itemErrorMessages: string[] = [];
+
+      // التحقق من المقاسات
+      if (apiData.sizes?.length > 0 && (!item.size || item.size === "اختر")) {
+        itemHasEmptyFields = true;
+        itemErrorMessages.push("المقاس");
+      }
+
+      // التحقق من الألوان
+      if (apiData.colors?.length > 0) {
+        const colorName = item.color ? (typeof item.color === "string" ? item.color : item.color?.name) : "";
+        if (!colorName || colorName === "اختر") {
+          itemHasEmptyFields = true;
+          itemErrorMessages.push("اللون");
+        }
+      }
+
+      // التحقق من الخامات
+      if (apiData.materials?.length > 0 && (!item.material || item.material === "اختر")) {
+        itemHasEmptyFields = true;
+        itemErrorMessages.push("الخامة");
+      }
+
+      // التحقق من الخصائص
+      if (apiData.features?.length > 0) {
+        apiData.features.forEach((feature: any) => {
+          const hasValues = feature.value || (feature.values && feature.values.length > 0);
+          
+          if (hasValues) {
+            const isFeatureSelected = selectedOptions?.some((opt: any) => 
+              opt.option_name === "خاصية" && 
+              opt.option_value.startsWith(`${feature.name}:`) &&
+              !opt.option_value.endsWith(": اختر")
+            );
+            
+            if (!isFeatureSelected) {
+              itemHasEmptyFields = true;
+              itemErrorMessages.push(feature.name);
+            }
+          }
+        });
+      }
+
+      if (itemHasEmptyFields) {
+        hasEmptyFields = true;
+        const errorDetails = itemErrorMessages.length > 0 
+          ? ` (${itemErrorMessages.join("، ")})`
+          : "";
+        errorMessages.push(`• المنتج ${index + 1}: ${productData.name}${errorDetails}`);
+      }
     });
 
-    // الآن نمرر الفاليديشن بالصيغ المطابقة اللي الـ StickerForm يتوقعها
-    const valid = validateStickerForm({
-      size: sizeVal,
-      color: colorVal,
-      material: materialVal,
-      selectedOptions: selectedOptions,
-      apiData
-    });
-
-    if (!valid) {
-      hasEmptyFields = true;
-      errorMessages.push(`• المنتج ${index + 1}: ${productData.name}`);
-    }
-  });
-
-  if (hasEmptyFields) {
-    // استخدمي toast أو Swal — هنا نعرض نفس النص اللي طلبتيه
-    const finalMessage = `
+    if (hasEmptyFields) {
+      const finalMessage = `
 الرجاء اختيار كل الحقول المطلوبة قبل المتابعة
 
 المنتجات التي تحتاج إكمال البيانات:
 
 ${errorMessages.join("\n")}
-    `;
-    // تستخدمين toast الحالي أو alert:
-    // toast.error(finalMessage, { duration: 6000 });
-    alert(finalMessage);
-    return;
-  }
 
-  router.push("/payment");
-};
+يرجى التأكد من اختيار جميع الخيارات المطلوبة لكل منتج.
+      `;
 
+      Swal.fire({
+        icon: "error",
+        title: "الحقول غير مكتملة",
+        html: finalMessage.replace(/\n/g, "<br/>"),
+        confirmButtonText: "حسنًا",
+        customClass: {
+          popup: "font-sans text-sm",
+          confirmButton: "bg-pro text-white font-bold"
+        }
+      });
+      return;
+    }
+
+    // إذا كل شيء صحيح، ننتقل للدفع
+    router.push("/payment");
+  };
 
   if (cart.length === 0) {
     return (
@@ -155,16 +216,6 @@ ${errorMessages.join("\n")}
                               السعر :{" "}
                               {parseFloat(item.product.price || "0").toFixed(2)} جنيه
                             </p>
-                            {/* {item.product.has_discount && (
-                              <p className="text-red-500 line-through">
-                                قبل الخصم:{" "}
-                                {parseFloat(item.product.final_price + parseFloat(item.product.discount?.value || "0") || "0").toFixed(2)} جنيه
-                              </p>
-                            )}
-                            <p className="text-green-600 font-semibold">
-                              السعر النهائي:{" "}
-                              {parseFloat(item.line_total || item.product.final_price || item.product.price || "0").toFixed(2)} جنيه
-                            </p> */}
                           </div>
                         </div>
                       </div>
@@ -276,21 +327,30 @@ ${errorMessages.join("\n")}
             <Button
               variant="contained"
               onClick={handleClick}
+              disabled={!isCartReady}
               fullWidth
               sx={{
                 mt: 3,
                 py: 1.5,
                 fontSize: "1.2rem",
                 fontWeight: "bold",
-                backgroundColor: "#14213d",
-                "&:hover": { backgroundColor: "#0f1a31" },
+                backgroundColor: isCartReady ? "#14213d" : "#9ca3af",
+                "&:hover": { 
+                  backgroundColor: isCartReady ? "#0f1a31" : "#9ca3af" 
+                },
                 borderRadius: "12px",
                 textTransform: "none",
               }}
               endIcon={<KeyboardBackspaceIcon />}
             >
-              تابع عملية الشراء
+              {isCartReady ? "تابع عملية الشراء" : "جاري التحميل..."}
             </Button>
+
+            {!isCartReady && (
+              <p className="text-xs text-gray-500 text-center mt-2">
+                جاري تحميل خيارات المنتجات، يرجى الانتظار...
+              </p>
+            )}
           </div>
         </div>
       </div>
