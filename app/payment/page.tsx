@@ -61,7 +61,7 @@ export default function PaymentPage() {
     fetchAddresses();
   }, [token]);
 
-  // إضافة عنوان جديد
+
   const handleNewAddress = (newAddress: AddressI) => {
     setAddresses(prev => [newAddress, ...prev]);
     setSelectedAddress(newAddress);
@@ -81,67 +81,69 @@ export default function PaymentPage() {
     setShowAddress(false);
   };
 
-  const handleCompletePurchase = async () => {
-    if (!paymentMethod) {
-      Swal.fire("تنبيه", "يرجى اختيار طريقة الدفع", "warning");
-      return;
+ const handleCompletePurchase = async () => {
+  if (!paymentMethod) {
+    Swal.fire("تنبيه", "يرجى اختيار طريقة الدفع", "warning");
+    return;
+  }
+
+  setLoading(true);
+  try {
+    let orderData: any = {};
+
+    if (selectedAddress) {
+      orderData = {
+        address_id: selectedAddress.id,
+        payment_method: paymentMethod,
+        notes: notes || `تم الدفع عبر ${getPaymentMethodText(paymentMethod)}`
+      };
+    } else {
+      const user = JSON.parse(localStorage.getItem("user") || "{}");
+      orderData = {
+        shipping_address: "سيتم تحديد العنوان لاحقاً",
+        customer_name: user?.name || "العميل",
+        customer_phone: user?.phone || "01000000000",
+        payment_method: paymentMethod,
+        notes: notes || `تم الدفع عبر ${getPaymentMethodText(paymentMethod)}`
+      };
     }
 
-    setLoading(true);
-    try {
-      let orderData: any = {};
+    console.log("Sending order data:", orderData);
 
-      if (selectedAddress) {
-        orderData = {
-          address_id: selectedAddress.id,
-          payment_method: paymentMethod,
-          notes: notes || `تم الدفع عبر ${getPaymentMethodText(paymentMethod)}`
-        };
-      } else {
-        // إذا لم يكن هناك عناوين مسجلة - إرسال بيانات العنوان كاملة
-        const user = JSON.parse(localStorage.getItem("user") || "{}");
-        orderData = {
-          shipping_address: "سيتم تحديد العنوان لاحقاً",
-          customer_name: user?.name || "العميل",
-          customer_phone: user?.phone || "01000000000",
-          // payment_method: paymentMethod,
-          notes: notes || `تم الدفع عبر ${getPaymentMethodText(paymentMethod)}`
-        };
-      }
+    const response = await fetch(`${base_url}/order`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(orderData),
+    });
 
-      console.log("Sending order data:", orderData);
+    const result = await response.json();
+    console.log("API Response:", result);
 
-      const response = await fetch(`${base_url}/order`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(orderData),
-      });
-
-      const result = await response.json();
-      console.log("API Response:", result);
-
-      if (response.ok && result.status) {
-        Swal.fire("نجاح", "تم إنشاء الطلب بنجاح", "success");
-        router.push("/ordercomplete");
-      } else {
-        throw new Error(result.message || "حدث خطأ أثناء إنشاء الطلب");
-      }
-    } catch (error: any) {
-      console.error("Error creating order:", error);
-      Swal.fire("خطأ", error.message || "حدث خطأ أثناء إنشاء الطلب", "error");
-    } finally {
-      setLoading(false);
+    if (!response.ok || !result.status) {
+      throw new Error(result.message || "حدث خطأ أثناء إنشاء الطلب");
     }
-  };
 
-//   cash_on_delivery,credit_card
-// tabby
-// tamara
-// apple Pay
-// stcPay
+    if (paymentMethod === "cash_on_delivery") {
+      Swal.fire("نجاح", "تم إنشاء الطلب بنجاح", "success");
+      router.push(`/ordercomplete?orderId=${result.data.id}`);
+    } else {
+      Swal.fire("انتظار", result.data.message || "جاري توجيهك إلى بوابة الدفع...", "info");
+      window.location.href = result.data.payment_url;
+    }
+
+  } catch (error: any) {
+    console.error("Error creating order:", error);
+    Swal.fire("خطأ", error.message || "حدث خطأ أثناء إنشاء الطلب", "error");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
   const getPaymentMethodText = (method: string) => {
     const methods: { [key: string]: string } = {
       online: "الدفع الإلكتروني",

@@ -74,6 +74,11 @@ interface CartContextType {
     optionName: string,
     optionValue: string
   ) => Promise<boolean>;
+
+  // --- added for sticker form ---
+  stickerFormValues: any;
+  setStickerFormValues: (values: any) => void;
+  validateStickerForm: (fields: any) => boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -83,6 +88,14 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const { authToken: token } = useAuth();
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+  // --- sticker form values ---
+  const [stickerFormValues, setStickerFormValues] = useState<any>({
+    size: "",
+    color: "",
+    material: "",
+    selectedFeatures: {},
+  });
 
   const fetchCart = async () => {
     if (!token) {
@@ -107,9 +120,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           // تحليل selected_options من JSON string
           let selectedOptions = [];
           try {
-            selectedOptions = item.selected_options ? JSON.parse(item.selected_options) : [];
+            selectedOptions = item.selected_options
+              ? JSON.parse(item.selected_options)
+              : [];
           } catch (error) {
-            console.error('Error parsing selected_options:', error);
+            console.error("Error parsing selected_options:", error);
             selectedOptions = [];
           }
 
@@ -442,6 +457,22 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   );
   const total = subtotal;
 
+  // --- validate only visible fields ---
+  const validateStickerForm = (fields: any) => {
+    if (!fields) return false;
+
+    if (!fields.size || !fields.color || !fields.material) return false;
+
+    if (fields.selectedFeatures) {
+      for (const key in fields.selectedFeatures) {
+        const value = fields.selectedFeatures[key];
+        if (!value || value.trim() === "") return false;
+      }
+    }
+
+    return true;
+  };
+
   return (
     <CartContext.Provider
       value={{
@@ -457,6 +488,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         updateSelectedOption,
         clearCart,
         refreshCart,
+
+        // --- added ---
+        stickerFormValues,
+        setStickerFormValues,
+        validateStickerForm,
       }}
     >
       {children}

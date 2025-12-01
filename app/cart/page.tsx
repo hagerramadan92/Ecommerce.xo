@@ -6,9 +6,7 @@ import { FaPlus, FaMinus } from "react-icons/fa6";
 import { BsTrash3 } from "react-icons/bs";
 import { useCart } from "@/src/context/CartContext";
 import toast from "react-hot-toast";
-import {
-  MdKeyboardArrowLeft,
-} from "react-icons/md";
+import { MdKeyboardArrowLeft } from "react-icons/md";
 import KeyboardBackspaceIcon from "@mui/icons-material/KeyboardBackspace";
 import CoBon from "@/components/cobon";
 import TotalOrder from "@/components/TotalOrder";
@@ -21,20 +19,18 @@ import { useState, useEffect } from "react";
 
 export default function CartPage() {
   const router = useRouter();
-  
+
   const { cart, cartCount, total, removeFromCart, updateQuantity, loading } =
     useCart();
 
-  // state لتتبع إذا كان الـ cart تم تحميله بالكامل
   const [isCartReady, setIsCartReady] = useState(false);
 
   useEffect(() => {
     if (cart.length > 0 && !loading) {
-      // نعطي وقت للـ StickerForm لتحميل البيانات
       const timer = setTimeout(() => {
         setIsCartReady(true);
       }, 2000);
-      
+
       return () => clearTimeout(timer);
     }
   }, [cart, loading]);
@@ -52,7 +48,7 @@ export default function CartPage() {
       if (!opts) return [];
       return opts.map((o: any) => ({
         option_name: (o.option_name || "").trim(),
-        option_value: (o.option_value || "").trim().replace(/\s*:\s*/, ": ")
+        option_value: (o.option_value || "").trim().replace(/\s*:\s*/, ": "),
       }));
     };
 
@@ -63,71 +59,82 @@ export default function CartPage() {
         sizes: productData.sizes || [],
         colors: productData.colors || [],
         materials: productData.materials || [],
-        features: productData.features || []
+        features: productData.features || [],
       };
 
-      const selectedOptions = normalizeSelectedOptions(item.selected_options || []);
+ 
+      const selected: any = {};
 
-      console.log(`=== VALIDATING ITEM ${index + 1} ===`);
-      console.log("Item data:", {
-        size: item.size,
-        color: item.color,
-        material: item.material,
-        selectedOptions: selectedOptions
+   
+      item.selected_options?.forEach((opt: any) => {
+        if (opt.option_name === "المقاس")
+          selected["المقاس"] = opt.option_value?.trim();
+        if (opt.option_name === "اللون")
+          selected["اللون"] = opt.option_value?.trim();
+        if (opt.option_name === "الخامة")
+          selected["الخامة"] = opt.option_value?.trim();
       });
-      console.log("API data:", apiData);
 
-      // التحقق من أن جميع الحقول المطلوبة مكتملة
+
+      item.selected_options?.forEach((opt: any) => {
+        if (opt.option_name === "خاصية" && opt.option_value) {
+          const match = opt.option_value.match(/^(.+?):\s*(.+)$/);
+          if (match) {
+            selected[match[1].trim()] = match[2].trim();
+          }
+        }
+      });
+
+      console.log("Selected parsed:", selected);
+
       let itemHasEmptyFields = false;
       let itemErrorMessages: string[] = [];
 
-      // التحقق من المقاسات
-      if (apiData.sizes?.length > 0 && (!item.size || item.size === "اختر")) {
-        itemHasEmptyFields = true;
-        itemErrorMessages.push("المقاس");
+
+      if (apiData.sizes.length > 0) {
+        if (!selected["المقاس"] || selected["المقاس"] === "اختر") {
+          itemHasEmptyFields = true;
+          itemErrorMessages.push("المقاس");
+        }
       }
 
-      // التحقق من الألوان
-      if (apiData.colors?.length > 0) {
-        const colorName = item.color ? (typeof item.color === "string" ? item.color : item.color?.name) : "";
-        if (!colorName || colorName === "اختر") {
+
+      if (apiData.colors.length > 0) {
+        if (!selected["اللون"] || selected["اللون"] === "اختر") {
           itemHasEmptyFields = true;
           itemErrorMessages.push("اللون");
         }
       }
 
-      // التحقق من الخامات
-      if (apiData.materials?.length > 0 && (!item.material || item.material === "اختر")) {
-        itemHasEmptyFields = true;
-        itemErrorMessages.push("الخامة");
+
+      if (apiData.materials.length > 0) {
+        if (!selected["الخامة"] || selected["الخامة"] === "اختر") {
+          itemHasEmptyFields = true;
+          itemErrorMessages.push("الخامة");
+        }
       }
 
-      // التحقق من الخصائص
-      if (apiData.features?.length > 0) {
-        apiData.features.forEach((feature: any) => {
-          const hasValues = feature.value || (feature.values && feature.values.length > 0);
-          
-          if (hasValues) {
-            const isFeatureSelected = selectedOptions?.some((opt: any) => 
-              opt.option_name === "خاصية" && 
-              opt.option_value.startsWith(`${feature.name}:`) &&
-              !opt.option_value.endsWith(": اختر")
-            );
-            
-            if (!isFeatureSelected) {
-              itemHasEmptyFields = true;
-              itemErrorMessages.push(feature.name);
-            }
+
+      apiData.features.forEach((feature: any) => {
+        const required = feature.values?.length > 0;
+
+        if (required) {
+          const val = selected[feature.name];
+          if (!val || val === "اختر") {
+            itemHasEmptyFields = true;
+            itemErrorMessages.push(feature.name);
           }
-        });
-      }
+        }
+      });
 
+   
       if (itemHasEmptyFields) {
         hasEmptyFields = true;
-        const errorDetails = itemErrorMessages.length > 0 
-          ? ` (${itemErrorMessages.join("، ")})`
-          : "";
-        errorMessages.push(`• المنتج ${index + 1}: ${productData.name}${errorDetails}`);
+        errorMessages.push(
+          `• المنتج ${index + 1}: ${productData.name} (${itemErrorMessages.join(
+            "، "
+          )})`
+        );
       }
     });
 
@@ -149,20 +156,25 @@ ${errorMessages.join("\n")}
         confirmButtonText: "حسنًا",
         customClass: {
           popup: "font-sans text-sm",
-          confirmButton: "bg-pro text-white font-bold"
-        }
+          confirmButton: "bg-pro text-white font-bold",
+        },
       });
       return;
     }
 
-    // إذا كل شيء صحيح، ننتقل للدفع
+   
     router.push("/payment");
   };
 
   if (cart.length === 0) {
     return (
       <div className="p-10 text-center  flex flex-col items-center justify-center">
-        <Image src="/images/cart2.webp" alt="empty cart" width={300} height={250}/>
+        <Image
+          src="/images/cart2.webp"
+          alt="empty cart"
+          width={300}
+          height={250}
+        />
         <h2 className="text-2xl font-bold mb-6 text-gray-700">العربة فارغة</h2>
         <Link
           href="/"
@@ -210,18 +222,19 @@ ${errorMessages.join("\n")}
                             {item.product.name}
                           </h3>
 
-                          {/* عرض الأسعار */}
+                        
                           <div className="text-sm text-gray-600 mt-1 space-y-1">
                             <p className="text-gray-500">
                               السعر :{" "}
-                              {parseFloat(item.product.price || "0").toFixed(2)} جنيه
+                              {parseFloat(item.price_per_unit || "0").toFixed(2)}{" "}
+                              جنيه
                             </p>
                           </div>
                         </div>
                       </div>
                     </div>
-                    
-                    {/* عداد الكمية */}
+
+               
                     <div className="flex items-center gap-3 border border-gray-200 rounded-lg">
                       <button
                         onClick={() => {
@@ -231,7 +244,10 @@ ${errorMessages.join("\n")}
                               duration: 4000,
                             });
                           } else {
-                          updateQuantity(item.cart_item_id, item.quantity + 1);
+                            updateQuantity(
+                              item.cart_item_id,
+                              item.quantity + 1
+                            );
                           }
                         }}
                         className="w-10 h-9 text-gray-500 cursor-pointer border-gray-200 border-l rounded-lg rounded-bl-none rounded-tl-none transition flex items-center justify-center"
@@ -271,7 +287,7 @@ ${errorMessages.join("\n")}
                         </p>
                       </div>
 
-                      {/* زر الحذف */}
+                  
                       <button
                         onClick={async () => {
                           const result = await Swal.fire({
@@ -302,8 +318,8 @@ ${errorMessages.join("\n")}
                     </div>
                   </div>
                 </div>
-                
-                {/* نموذج الخصائص */}
+
+               
                 <div className="p-4">
                   <StickerForm
                     cartItemId={item.cart_item_id}
@@ -335,8 +351,8 @@ ${errorMessages.join("\n")}
                 fontSize: "1.2rem",
                 fontWeight: "bold",
                 backgroundColor: isCartReady ? "#14213d" : "#9ca3af",
-                "&:hover": { 
-                  backgroundColor: isCartReady ? "#0f1a31" : "#9ca3af" 
+                "&:hover": {
+                  backgroundColor: isCartReady ? "#0f1a31" : "#9ca3af",
                 },
                 borderRadius: "12px",
                 textTransform: "none",

@@ -8,7 +8,7 @@ import SearchNavbar from "./searchNavbar";
 export default function Navbar() {
   return (
     <>
-    <LangNavbar />
+    {/* <LangNavbar /> */}
      <SearchNavbar/>
      <CateNavbar/>
  

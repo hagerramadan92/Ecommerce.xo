@@ -17,7 +17,7 @@ interface OrderItem {
   product_name: string;
   quantity: number;
   price: string;
-  options: any[] | string;
+  options: string ;
   image: string | null;
 }
 
@@ -53,7 +53,6 @@ export default function OrderDetailsPage({ orderId }: Props) {
 
   const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
-  // جلب التوكن من localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
       const token = localStorage.getItem("auth_token");
@@ -61,7 +60,6 @@ export default function OrderDetailsPage({ orderId }: Props) {
     }
   }, []);
 
-  // جلب بيانات الطلب
   useEffect(() => {
     if (!apiToken) return;
 
@@ -78,10 +76,8 @@ export default function OrderDetailsPage({ orderId }: Props) {
         if (data.status && data.data) {
           const orderData = data.data;
 
-          // تحويل الحالة لرقم للـ progress
           setCurrentStep(statusSteps[orderData.status] ?? 0);
 
-          // parse options لكل منتج
           orderData.items = orderData.items.map((item: OrderItem) => ({
             ...item,
             options: item.options ? JSON.parse(item.options) : [],
@@ -116,12 +112,12 @@ export default function OrderDetailsPage({ orderId }: Props) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* تفاصيل المنتجات */}
+
         <div className="shadow rounded-2xl pt-3 lg:col-span-2 bg-white h-fit">
           {order.items.map((item, index) => (
             <div key={index} className="mb-4">
               <div className="flex gap-4 ps-4">
-                {/* صورة المنتج */}
+
                 <Image
                   src={item.image || "/images/not.jpg"}
                   alt={item.product_name}
@@ -129,9 +125,7 @@ export default function OrderDetailsPage({ orderId }: Props) {
                   height={120}
                   className="rounded-xl w-30 h-25"
                 />
-
-                {/* معلومات المنتج */}
-                <div className="flex flex-col gap-1">
+             <div className="flex flex-col gap-1">
                   <p className="text-[#323d4b] my-2 font-semibold">{item.product_name}</p>
                   <p className="text-[#383a41b2]">
                     الكمية:
@@ -145,11 +139,7 @@ export default function OrderDetailsPage({ orderId }: Props) {
                   {item.options.length > 0 && (
                     <div className="mt-2">
                       <p className="font-semibold text-[#475569]">الخيارات:</p>
-                      {item.options.map((opt: any, i: number) => (
-                        <p key={i} className="text-sm text-gray-600">
-                          • {opt.option_name}: {opt.option_value}
-                        </p>
-                      ))}
+                      
                     </div>
                   )}
                 </div>
@@ -157,7 +147,7 @@ export default function OrderDetailsPage({ orderId }: Props) {
             </div>
           ))}
 
-          {/* نص التوصيل */}
+
           {order.shipping_address && (
             <div className="flex gap-1 mt-4 items-center ps-4 border-b border-gray-200 pb-4">
               <FaTruckFast size={20} className="scale-x-[-1]" />

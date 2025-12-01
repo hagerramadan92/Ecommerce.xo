@@ -64,13 +64,16 @@ export default function SearchNavbar() {
 
           {/* Logo */}
           <div className="relative w-20 lg:w-[110px] h-11 me-2 lg:me-0">
-            <Image
+            <Link href="/" aria-label="home page">
+              <Image
               src="/images/logo11.png"
               alt="logo"
               fill
               loading="eager"
-              className="object-contain"
+              className="object-contain w-50 h-20"
             />
+            </Link>
+          
           </div>
 
           {/* Search Input */}
@@ -109,7 +112,7 @@ export default function SearchNavbar() {
             
           </div>
 
-          <div className="flex1 gap-4 items-center">
+          {/* <div className="flex1 gap-4 items-center">
             <CategoriesDropdown
               categories={categories2}
               trigger={
@@ -143,7 +146,7 @@ export default function SearchNavbar() {
                 </svg>
               }
             />
-          </div>
+          </div> */}
 
           {!fullName ? (
             <Link
@@ -227,7 +230,7 @@ export default function SearchNavbar() {
                       width={168}
                       height={80}
                       alt={item.name}
-                     
+                      className="w-40 h-20"
                     />
                   </Link>
                 ))}

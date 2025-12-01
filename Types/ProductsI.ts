@@ -72,6 +72,7 @@ export interface ProductI {
   id: number;
   name: string;
   slug?: string;
+  quantity?:number;
   description?: string;
   price: string;
   final_price?: number;

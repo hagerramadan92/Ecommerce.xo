@@ -9,7 +9,7 @@ export default function TotalOrder() {
     maximumFractionDigits: 2,
   });
 
-  const shippingFree = true; // لو عايزة منطق ديناميكي: cart.length > 0 ? true : false
+  const shippingFree = true; 
   const shippingFee = shippingFree ? 0 : 48;
 
   const cashOnDelivery = 50;
