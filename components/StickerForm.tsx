@@ -186,9 +186,9 @@ export default function StickerForm({
     value: string
   ) => {
   
-    if (value === "اختر") {
-      return;
-    }
+   setter(value);
+setHasChanges(true);
+
     console.log("Setting value:", value);
     setter(value);
     setHasChanges(true);
@@ -334,6 +334,7 @@ export default function StickerForm({
       value: sizeItem.name,
       label: sizeItem.name,
     }));
+// console.log("UPDATING CART WITH:", updates);
 
     return (
       <Box display="flex" gap={2} alignItems="center" mb={3}>

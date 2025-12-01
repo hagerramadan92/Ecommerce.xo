@@ -50,7 +50,7 @@ export default function SearchNavbar() {
   return (
     <>
       {/* Navbar */}
-      <div className="flex items-center px-[5%] xl:px-[10%] py-6 shadow lg:shadow-none justify-between lg:gap-10 border-b border-gray-200">
+      <div className=" flex items-center px-[5%] xl:px-[10%] py-6 shadow lg:shadow-none justify-between lg:gap-10 border-b border-gray-200">
         <div className="flex items-center gap-2 lg:gap-10 lg:flex-1">
           {/* Bars Icon */}
           <div className="flex1 items-center">

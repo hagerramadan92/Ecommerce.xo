@@ -39,7 +39,7 @@ export default function Home() {
 
   return (
     <>
-      <div className="px-5 lg:px-[18%] rounded-2xl py-6   flex flex-col gap-5">
+      <div className="px-5 lg:px-[18%] rounded-2xl py-6   flex flex-col gap-5 ">
         {mainSlider.length > 0 && (
           <SliderComponent
             src={mainSlider[0].items.map((item) => item.image)}

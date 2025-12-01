@@ -40,10 +40,10 @@ export default function ProductPageClient() {
 const handleSubmit = async () => {
   if (!product) return;
 
-  // إضافة المنتج للسلة باستخدام الـ id فقط
+
   addToCart(product.id, { quantity: 1 });
 
-  toast.success("تم إضافة المنتج إلى السلة بنجاح");
+  // toast.success("تم إضافة المنتج إلى السلة بنجاح");
 };
 
 
