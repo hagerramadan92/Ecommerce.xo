@@ -8,6 +8,7 @@ import {
   MenuItem,
   Typography,
   FormHelperText,
+  CircularProgress,
 } from "@mui/material";
 import { motion } from "framer-motion";
 import { useCart } from "@/src/context/CartContext";
@@ -20,62 +21,12 @@ interface StickerFormProps {
   cartItemData?: any;
 }
 
-export const validateStickerForm = ({
-  size,
-  color,
-  material,
-  selectedOptions,
-  apiData,
-}: any) => {
-  if (!apiData) return true; // لو مفيش بيانات من API اعتبره صحيح
-
-  let missingFields = [];
-
-  // ─── المقاس ───
-  if (apiData.sizes?.length > 0) {
-    if (!size || size === "اختر") missingFields.push("المقاس");
-  }
-
-  
-  if (apiData.colors?.length > 0) {
-    if (!color || color === "اختر") missingFields.push("اللون");
-  }
-
- 
-  if (apiData.materials?.length > 0) {
-    if (!material || material === "اختر") missingFields.push("الخامة");
-  }
-
- 
-  if (apiData.features?.length > 0) {
-    apiData.features.forEach((feature: any) => {
-      const featureHasValues =
-        feature.value || (feature.values && feature.values.length > 0);
-
-      if (featureHasValues) {
-        const selectedValue = selectedOptions?.find(
-          (opt: any) =>
-            opt.option_name === "خاصية" &&
-            opt.option_value.startsWith(`${feature.name}:`)
-        );
-
-        if (!selectedValue || selectedValue.option_value.endsWith(": اختر")) {
-          missingFields.push(feature.name);
-        }
-      }
-    });
-  }
-
-  return missingFields.length === 0;
-};
-
 export default function StickerForm({
   cartItemId,
   productId,
-  productData,
   cartItemData,
 }: StickerFormProps) {
-  const { updateCartItem, cart } = useCart();
+  const { updateCartItem, cart, fetchCartItemOptions, loadItemOptions } = useCart();
 
   const [size, setSize] = useState("اختر");
   const [color, setColor] = useState("اختر");
@@ -86,10 +37,12 @@ export default function StickerForm({
 
   const [apiData, setApiData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [initialized, setInitialized] = useState(false);
-  const [hasChanges, setHasChanges] = useState(false);
+  const [formLoading, setFormLoading] = useState(true);
   const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
+  // دالة لتحميل بيانات المنتج من API
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -103,229 +56,280 @@ export default function StickerForm({
       }
     };
     fetchData();
-  }, [productId]);
+  }, [productId, baseUrl]);
 
-  
-  useEffect(() => {
-    if (!cartItemId || !apiData || initialized) return;
-
-    const cartItem = cart.find((item) => item.cart_item_id === cartItemId);
-    if (!cartItem) return;
-
-    console.log("=== LOADING CART ITEM DATA ===");
-    console.log("Cart item:", cartItem);
-
-   
-    const sizeFromOptions = cartItem.selected_options?.find(
-      (opt: any) => opt.option_name === "المقاس"
-    )?.option_value;
-    const colorFromOptions = cartItem.selected_options?.find(
-      (opt: any) => opt.option_name === "اللون"
-    )?.option_value;
-    const materialFromOptions = cartItem.selected_options?.find(
-      (opt: any) => opt.option_name === "الخامة"
-    )?.option_value;
-
+  // دالة لاستخراج القيمة من selected_options
+  const extractValueFromOptions = useCallback((options: any[], optionName: string) => {
+    if (!options || !Array.isArray(options)) return null;
     
-    if (cartItem.size && cartItem.size !== "اختر") {
-      setSize(cartItem.size);
-    } else if (sizeFromOptions && sizeFromOptions !== "اختر") {
-      setSize(sizeFromOptions);
-    } else if (apiData.sizes?.length > 0) {
-      setSize("اختر");
-    }
+    const option = options.find((opt: any) => opt.option_name === optionName);
+    return option ? option.option_value : null;
+  }, []);
 
-    if (cartItem.color?.name && cartItem.color.name !== "اختر") {
-      setColor(cartItem.color.name);
-    } else if (colorFromOptions && colorFromOptions !== "اختر") {
-      setColor(colorFromOptions);
-    } else if (apiData.colors?.length > 0) {
-      setColor("اختر");
-    }
+  // دالة لتحميل القيم المحفوظة من السيرفر
+  const loadSavedOptions = useCallback(async () => {
+    if (!cartItemId) return;
 
-    if (cartItem.material && cartItem.material !== "اختر") {
-      setMaterial(cartItem.material);
-    } else if (materialFromOptions && materialFromOptions !== "اختر") {
-      setMaterial(materialFromOptions);
-    } else if (apiData.materials?.length > 0) {
-      setMaterial("اختر");
-    }
+    setFormLoading(true);
+    try {
+      // الحصول على أحدث البيانات من السيرفر
+      const savedOptions = await fetchCartItemOptions(cartItemId);
+      console.log("Loaded options from server:", savedOptions);
 
-   
-    const featuresFromOptions: { [key: string]: string } = {};
+      if (savedOptions) {
+        // استخراج القيم من selected_options
+        const sizeFromOptions = extractValueFromOptions(savedOptions.selected_options, "المقاس");
+        const colorFromOptions = extractValueFromOptions(savedOptions.selected_options, "اللون");
+        const materialFromOptions = extractValueFromOptions(savedOptions.selected_options, "الخامة");
 
-    if (cartItem.selected_options && cartItem.selected_options.length > 0) {
-      console.log("Found selected_options:", cartItem.selected_options);
-      cartItem.selected_options.forEach((opt: any) => {
-        if (opt.option_name === "خاصية") {
-          const [name, value] = opt.option_value.split(": ");
-          if (name && value && value !== "اختر") {
-            featuresFromOptions[name.trim()] = value.trim();
-          }
+        // تحديد القيم مع الأولوية: selected_options > الحقول المباشرة
+        const finalSize = sizeFromOptions || savedOptions.size || "اختر";
+        const finalColor = colorFromOptions || (savedOptions.color?.name || savedOptions.color) || "اختر";
+        const finalMaterial = materialFromOptions || savedOptions.material || "اختر";
+
+        console.log("Final values to set:", {
+          size: finalSize,
+          color: finalColor,
+          material: finalMaterial
+        });
+
+        // تحديث الـ state
+        if (finalSize !== "اختر") setSize(finalSize);
+        if (finalColor !== "اختر") setColor(finalColor);
+        if (finalMaterial !== "اختر") setMaterial(finalMaterial);
+
+        // معالجة الميزات
+        const featuresFromOptions: { [key: string]: string } = {};
+        if (savedOptions.selected_options && savedOptions.selected_options.length > 0) {
+          savedOptions.selected_options.forEach((opt: any) => {
+            if (opt.option_name === "خاصية") {
+              const [name, value] = opt.option_value.split(": ");
+              if (name && value && value !== "اختر") {
+                featuresFromOptions[name.trim()] = value.trim();
+              }
+            }
+          });
         }
-      });
-    }
 
-  
-    if (apiData?.features) {
-      apiData.features.forEach((feature: any) => {
-        if (!featuresFromOptions[feature.name]) {
-         
-          featuresFromOptions[feature.name] = "اختر";
+        // إضافة القيم الافتراضية للميزات المطلوبة
+        if (apiData?.features) {
+          apiData.features.forEach((feature: any) => {
+            const hasValues = feature.value || (feature.values && feature.values.length > 0);
+            if (hasValues && !featuresFromOptions[feature.name]) {
+              featuresFromOptions[feature.name] = "اختر";
+            }
+          });
         }
-      });
-    }
 
-    console.log("Final features to set:", featuresFromOptions);
-    setSelectedFeatures(featuresFromOptions);
-    setInitialized(true);
-  }, [cartItemId, cart, apiData, initialized]);
-
-  const handleChange = (
-    setter: React.Dispatch<React.SetStateAction<string>>,
-    value: string
-  ) => {
-  
-   setter(value);
-setHasChanges(true);
-
-    console.log("Setting value:", value);
-    setter(value);
-    setHasChanges(true);
-  };
-
-  const handleFeatureChange = (featureName: string, value: string) => {
-    
-    if (value === "اختر") {
-      return;
-    }
-    console.log("Setting feature:", featureName, value);
-    setSelectedFeatures((prev) => ({ ...prev, [featureName]: value }));
-    setHasChanges(true);
-  };
-
-  const handleUpdateCart = useCallback(async () => {
-    if (!cartItemId || !apiData || !initialized || !hasChanges) return;
-
-    if (
-      (apiData.sizes?.length > 0 && size === "اختر") ||
-      (apiData.colors?.length > 0 && color === "اختر") ||
-      (apiData.materials?.length > 0 && material === "اختر")
-    ) {
-      return;
-    }
-
-  
-    const hasInvalidFeatures = Object.entries(selectedFeatures).some(
-      ([name, value]) => {
-        const feature = apiData.features?.find((f: any) => f.name === name);
-        return (
-          feature &&
-          (feature.value || feature.values?.length > 0) &&
-          value === "اختر"
-        );
+        console.log("Features to set:", featuresFromOptions);
+        setSelectedFeatures(featuresFromOptions);
       }
-    );
-
-    if (hasInvalidFeatures) {
-      return;
+    } catch (err) {
+      console.error("Error loading saved options:", err);
+    } finally {
+      setFormLoading(false);
+      setInitialized(true);
     }
+  }, [cartItemId, fetchCartItemOptions, extractValueFromOptions, apiData]);
 
-    const updates: any = {};
+  // تحميل القيم عند التهيئة الأولى وعند تغيير cartItemId
+  useEffect(() => {
+    if (!cartItemId || !apiData) return;
 
+    console.log("Initializing/updating form for cart item:", cartItemId);
+    loadSavedOptions();
+  }, [cartItemId, apiData, loadSavedOptions]);
+
+  // دالة لتحديث السيرفر مع العرض المحلي أولاً
+  const updateOptionWithFeedback = useCallback(async (
+    setter: React.Dispatch<React.SetStateAction<string>>,
+    value: string,
+    optionName: string,
+    apiFieldName?: string
+  ) => {
+    if (!cartItemId || !apiData) return;
+
+    console.log(`Updating ${optionName} to:`, value);
     
-    if (apiData.sizes?.length > 0 && size && size !== "اختر") {
-      const selectedSize = apiData.sizes.find((s: any) => s.name === size);
-      updates.size_id = selectedSize?.id || null;
-      updates.size = size;
-    }
+    // تحديث المحلي أولاً (تجربة مستخدم أفضل)
+    setter(value);
+    setSaving(true);
 
-    if (apiData.colors?.length > 0 && color && color !== "اختر") {
-      const selectedColor = apiData.colors.find((c: any) => c.name === color);
-      updates.color_id = selectedColor?.id || null;
-      updates.color = selectedColor || null;
-    }
-
-    if (apiData.materials?.length > 0 && material && material !== "اختر") {
-      const selectedMaterial = apiData.materials.find(
-        (m: any) => m.name === material
-      );
-      updates.material_id = selectedMaterial?.id || null;
-      updates.material = material;
-    }
-
-
+    // إعداد selected_options الكاملة مع التحديث الجديد
     const selectedOptions: any[] = [];
 
-   
-    Object.entries(selectedFeatures).forEach(([name, value]) => {
-      if (name && value && value !== "اختر") {
+    // إضافة الحقول الأساسية
+    const currentSize = optionName === "المقاس" ? value : size;
+    const currentColor = optionName === "اللون" ? value : color;
+    const currentMaterial = optionName === "الخامة" ? value : material;
+
+    if (currentSize && currentSize !== "اختر" && apiData.sizes?.length > 0) {
+      selectedOptions.push({
+        option_name: "المقاس",
+        option_value: currentSize,
+      });
+    }
+
+    if (currentColor && currentColor !== "اختر" && apiData.colors?.length > 0) {
+      selectedOptions.push({
+        option_name: "اللون",
+        option_value: currentColor,
+      });
+    }
+
+    if (currentMaterial && currentMaterial !== "اختر" && apiData.materials?.length > 0) {
+      selectedOptions.push({
+        option_name: "الخامة",
+        option_value: currentMaterial,
+      });
+    }
+
+    // إضافة الميزات
+    Object.entries(selectedFeatures).forEach(([name, val]) => {
+      if (name && val && val !== "اختر") {
         selectedOptions.push({
           option_name: "خاصية",
-          option_value: `${name}: ${value}`,
+          option_value: `${name}: ${val}`,
         });
       }
     });
 
-  
-    if (size && size !== "اختر" && apiData.sizes?.length > 0) {
+    const updates: any = {
+      selected_options: selectedOptions,
+    };
+
+    // إضافة الحقول الإضافية إذا كانت موجودة
+    if (apiFieldName === "size" && value !== "اختر" && apiData.sizes?.length > 0) {
+      const selectedSize = apiData.sizes.find((s: any) => s.name === value);
+      if (selectedSize?.id) updates.size_id = selectedSize.id;
+      updates.size = value;
+    }
+
+    if (apiFieldName === "color" && value !== "اختر" && apiData.colors?.length > 0) {
+      const selectedColor = apiData.colors.find((c: any) => c.name === value);
+      if (selectedColor?.id) updates.color_id = selectedColor.id;
+      updates.color = selectedColor || { name: value };
+    }
+
+    if (apiFieldName === "material" && value !== "اختر" && apiData.materials?.length > 0) {
+      const selectedMaterial = apiData.materials.find((m: any) => m.name === value);
+      if (selectedMaterial?.id) updates.material_id = selectedMaterial.id;
+      updates.material = value;
+    }
+
+    console.log("Sending update to server:", updates);
+
+    try {
+      const success = await updateCartItem(cartItemId, updates);
+      if (success) {
+        console.log("Update successful, refreshing options...");
+        // إعادة تحميل البيانات من السيرفر للتأكد من المزامنة
+        await loadSavedOptions();
+      }
+    } catch (error) {
+      console.error("Failed to update option:", error);
+    } finally {
+      setSaving(false);
+    }
+  }, [cartItemId, apiData, size, color, material, selectedFeatures, updateCartItem, loadSavedOptions]);
+
+  // معالجة تغيير المقاس
+  const handleSizeChange = async (value: string) => {
+    await updateOptionWithFeedback(setSize, value, "المقاس", "size");
+  };
+
+  // معالجة تغيير اللون
+  const handleColorChange = async (value: string) => {
+    await updateOptionWithFeedback(setColor, value, "اللون", "color");
+  };
+
+  // معالجة تغيير الخامة
+  const handleMaterialChange = async (value: string) => {
+    await updateOptionWithFeedback(setMaterial, value, "الخامة", "material");
+  };
+
+  // معالجة تغيير الميزات
+  const handleFeatureChange = async (featureName: string, value: string) => {
+    if (value === "اختر") return;
+    
+    console.log("Updating feature:", featureName, value);
+    setSaving(true);
+    
+    // تحديث المحلي أولاً
+    const newFeatures = { ...selectedFeatures, [featureName]: value };
+    setSelectedFeatures(newFeatures);
+
+    // إعداد selected_options الكاملة
+    const selectedOptions: any[] = [];
+
+    // إضافة الحقول الأساسية
+    if (size && size !== "اختر" && apiData?.sizes?.length > 0) {
       selectedOptions.push({
         option_name: "المقاس",
         option_value: size,
       });
     }
-
-    if (color && color !== "اختر" && apiData.colors?.length > 0) {
+    
+    if (color && color !== "اختر" && apiData?.colors?.length > 0) {
       selectedOptions.push({
         option_name: "اللون",
         option_value: color,
       });
     }
-
-    if (material && material !== "اختر" && apiData.materials?.length > 0) {
+    
+    if (material && material !== "اختر" && apiData?.materials?.length > 0) {
       selectedOptions.push({
         option_name: "الخامة",
         option_value: material,
       });
     }
-
-    updates.selected_options = selectedOptions;
-
- 
-    if (Object.keys(updates).length > 0) {
-      try {
-        await updateCartItem(cartItemId, updates);
-   
-        setHasChanges(false);
-      } catch (error) {
-       
+    
+    // إضافة جميع الميزات
+    Object.entries(newFeatures).forEach(([name, val]) => {
+      if (name && val && val !== "اختر") {
+        selectedOptions.push({
+          option_name: "خاصية",
+          option_value: `${name}: ${val}`,
+        });
       }
+    });
+    
+    const updates = { selected_options: selectedOptions };
+    
+    console.log("Updating feature on server:", updates);
+    
+    try {
+      const success = await updateCartItem(cartItemId!, updates);
+      if (success) {
+        console.log("Feature update successful");
+        await loadSavedOptions();
+      }
+    } catch (error) {
+      console.error("Failed to update feature:", error);
+    } finally {
+      setSaving(false);
     }
-  }, [
-    size,
-    color,
-    material,
-    selectedFeatures,
-    cartItemId,
-    updateCartItem,
-    apiData,
-    initialized,
-    hasChanges,
-  ]);
+  };
 
-  useEffect(() => {
-    if (!initialized || !hasChanges) return;
+  // عرض Loader أثناء التحميل
+  if (loading || formLoading) {
+    return (
+      <div className="border-t border-gray-100 pt-4 mt-4">
+        <div className="flex justify-center items-center py-8">
+          <CircularProgress size={24} />
+          <span className="mr-2 text-gray-600">جاري تحميل الخيارات...</span>
+        </div>
+      </div>
+    );
+  }
 
-    const timeoutId = setTimeout(() => {
-      if (cartItemId) {
-        console.log("=== AUTO-UPDATING CART ===");
-        handleUpdateCart();
-      }
-    }, 1000);
-
-    return () => clearTimeout(timeoutId);
-  }, [handleUpdateCart, cartItemId, initialized, hasChanges]);
-
+  if (!apiData) {
+    return (
+      <div className="border-t border-gray-100 pt-4 mt-4">
+        <p className="text-gray-600 text-center p-4">لا توجد بيانات للمنتج</p>
+      </div>
+    );
+  }
 
   const renderSizesSelect = () => {
     if (!apiData?.sizes || apiData.sizes.length === 0) return null;
@@ -334,7 +338,6 @@ setHasChanges(true);
       value: sizeItem.name,
       label: sizeItem.name,
     }));
-// console.log("UPDATING CART WITH:", updates);
 
     return (
       <Box display="flex" gap={2} alignItems="center" mb={3}>
@@ -350,22 +353,22 @@ setHasChanges(true);
             )}
           </Typography>
         </Box>
-        <Box flex={2}>
+        <Box flex={2} position="relative">
           <FormControl
             fullWidth
             required={apiData.sizes.length > 0}
             size="small"
-            error={size === "اختر"}
+            error={apiData.sizes.length > 0 && size === "اختر"}
+            disabled={saving}
           >
             <InputLabel>المقاس</InputLabel>
             <Select
               value={size}
-              onChange={(e) => handleChange(setSize, e.target.value)}
+              onChange={(e) => handleSizeChange(e.target.value)}
               label="المقاس"
               required={apiData.sizes.length > 0}
               className="bg-white"
             >
-             
               <MenuItem value="اختر" disabled>
                 <em className="text-gray-400">اختر</em>
               </MenuItem>
@@ -381,6 +384,11 @@ setHasChanges(true);
               </FormHelperText>
             )}
           </FormControl>
+          {saving && (
+            <div className="absolute left-2 top-1/2 transform -translate-y-1/2">
+              <CircularProgress size={16} />
+            </div>
+          )}
         </Box>
       </Box>
     );
@@ -409,22 +417,22 @@ setHasChanges(true);
             )}
           </Typography>
         </Box>
-        <Box flex={2}>
+        <Box flex={2} position="relative">
           <FormControl
             fullWidth
             required={apiData.colors.length > 0}
             size="small"
-            error={color === "اختر"}
+            error={apiData.colors.length > 0 && color === "اختر"}
+            disabled={saving}
           >
             <InputLabel>اللون</InputLabel>
             <Select
               value={color}
-              onChange={(e) => handleChange(setColor, e.target.value)}
+              onChange={(e) => handleColorChange(e.target.value)}
               label="اللون"
               required={apiData.colors.length > 0}
               className="bg-white"
             >
-       
               <MenuItem value="اختر" disabled>
                 <em className="text-gray-400">اختر</em>
               </MenuItem>
@@ -448,11 +456,15 @@ setHasChanges(true);
               </FormHelperText>
             )}
           </FormControl>
+          {saving && (
+            <div className="absolute left-2 top-1/2 transform -translate-y-1/2">
+              <CircularProgress size={16} />
+            </div>
+          )}
         </Box>
       </Box>
     );
   };
-
 
   const renderMaterialsSelect = () => {
     if (!apiData?.materials || apiData.materials.length === 0) return null;
@@ -476,22 +488,22 @@ setHasChanges(true);
             )}
           </Typography>
         </Box>
-        <Box flex={2}>
+        <Box flex={2} position="relative">
           <FormControl
             fullWidth
             required={apiData.materials.length > 0}
             size="small"
-            error={material === "اختر"}
+            error={apiData.materials.length > 0 && material === "اختر"}
+            disabled={saving}
           >
             <InputLabel>الخامة</InputLabel>
             <Select
               value={material}
-              onChange={(e) => handleChange(setMaterial, e.target.value)}
+              onChange={(e) => handleMaterialChange(e.target.value)}
               label="الخامة"
               required={apiData.materials.length > 0}
               className="bg-white"
             >
-        
               <MenuItem value="اختر" disabled>
                 <em className="text-gray-400">اختر</em>
               </MenuItem>
@@ -507,17 +519,20 @@ setHasChanges(true);
               </FormHelperText>
             )}
           </FormControl>
+          {saving && (
+            <div className="absolute left-2 top-1/2 transform -translate-y-1/2">
+              <CircularProgress size={16} />
+            </div>
+          )}
         </Box>
       </Box>
     );
   };
 
-  
   const renderFeaturesSelects = () => {
     if (!apiData?.features || apiData.features.length === 0) return null;
 
     return apiData.features.map((feature: any, index: number) => {
-   
       let options: { value: string; label: string }[] = [];
 
       if (
@@ -525,13 +540,11 @@ setHasChanges(true);
         Array.isArray(feature.values) &&
         feature.values.length > 0
       ) {
-     
         options = feature.values.map((val: string) => ({
           value: val,
           label: val,
         }));
       } else if (feature.value) {
-    
         options = [
           {
             value: feature.value,
@@ -539,7 +552,6 @@ setHasChanges(true);
           },
         ];
       } else {
-     
         return null;
       }
 
@@ -559,24 +571,22 @@ setHasChanges(true);
               {hasValues && <span style={{ color: "red" }}>*</span>}
             </Typography>
           </Box>
-          <Box flex={2}>
+          <Box flex={2} position="relative">
             <FormControl
               fullWidth
               required={hasValues}
               size="small"
-              error={currentValue === "اختر"}
+              error={hasValues && currentValue === "اختر"}
+              disabled={saving}
             >
               <InputLabel>{feature.name}</InputLabel>
               <Select
                 value={currentValue}
-                onChange={(e) =>
-                  handleFeatureChange(feature.name, e.target.value)
-                }
+                onChange={(e) => handleFeatureChange(feature.name, e.target.value)}
                 label={feature.name}
                 required={hasValues}
                 className="bg-white"
               >
-       
                 <MenuItem value="اختر" disabled>
                   <em className="text-gray-600">اختر</em>
                 </MenuItem>
@@ -592,15 +602,16 @@ setHasChanges(true);
                 </FormHelperText>
               )}
             </FormControl>
+            {saving && (
+              <div className="absolute left-2 top-1/2 transform -translate-y-1/2">
+                <CircularProgress size={16} />
+              </div>
+            )}
           </Box>
         </Box>
       );
     });
   };
-
-  if (loading) return <Loading />;
-  if (!apiData)
-    return <p className="text-gray-600 text-center p-4">لا توجد بيانات</p>;
 
   return (
     <motion.div
@@ -609,13 +620,19 @@ setHasChanges(true);
       transition={{ duration: 0.3 }}
       className="border-t border-gray-100 pt-4 mt-4"
     >
+      {saving && (
+        <div className="mb-4 p-2 bg-blue-50 rounded-lg">
+          <div className="flex items-center justify-center">
+            <CircularProgress size={20} className="ml-2" />
+            <span className="text-blue-600 text-sm">جاري حفظ التغييرات...</span>
+          </div>
+        </div>
+      )}
+      
       <div className="space-y-4">
         {renderSizesSelect()}
-
         {renderColorsSelect()}
-
         {renderMaterialsSelect()}
-
         {renderFeaturesSelects()}
       </div>
     </motion.div>

@@ -13,9 +13,10 @@ import TotalOrder from "@/components/TotalOrder";
 import Button from "@mui/material/Button";
 import { useRouter } from "next/navigation";
 import { IoIosCloseCircle } from "react-icons/io";
-import StickerForm, { validateStickerForm } from "@/components/StickerForm";
+import StickerForm from "@/components/StickerForm";
 import Swal from "sweetalert2";
 import { useState, useEffect } from "react";
+import { CircularProgress } from "@mui/material";
 
 export default function CartPage() {
   const router = useRouter();
@@ -44,14 +45,6 @@ export default function CartPage() {
     let hasEmptyFields = false;
     const errorMessages: string[] = [];
 
-    const normalizeSelectedOptions = (opts: any[]) => {
-      if (!opts) return [];
-      return opts.map((o: any) => ({
-        option_name: (o.option_name || "").trim(),
-        option_value: (o.option_value || "").trim().replace(/\s*:\s*/, ": "),
-      }));
-    };
-
     cart.forEach((item, index) => {
       const productData = item.product;
 
@@ -62,10 +55,8 @@ export default function CartPage() {
         features: productData.features || [],
       };
 
- 
       const selected: any = {};
 
-   
       item.selected_options?.forEach((opt: any) => {
         if (opt.option_name === "المقاس")
           selected["المقاس"] = opt.option_value?.trim();
@@ -74,7 +65,6 @@ export default function CartPage() {
         if (opt.option_name === "الخامة")
           selected["الخامة"] = opt.option_value?.trim();
       });
-
 
       item.selected_options?.forEach((opt: any) => {
         if (opt.option_name === "خاصية" && opt.option_value) {
@@ -90,14 +80,12 @@ export default function CartPage() {
       let itemHasEmptyFields = false;
       let itemErrorMessages: string[] = [];
 
-
       if (apiData.sizes.length > 0) {
         if (!selected["المقاس"] || selected["المقاس"] === "اختر") {
           itemHasEmptyFields = true;
           itemErrorMessages.push("المقاس");
         }
       }
-
 
       if (apiData.colors.length > 0) {
         if (!selected["اللون"] || selected["اللون"] === "اختر") {
@@ -106,14 +94,12 @@ export default function CartPage() {
         }
       }
 
-
       if (apiData.materials.length > 0) {
         if (!selected["الخامة"] || selected["الخامة"] === "اختر") {
           itemHasEmptyFields = true;
           itemErrorMessages.push("الخامة");
         }
       }
-
 
       apiData.features.forEach((feature: any) => {
         const required = feature.values?.length > 0;
@@ -127,7 +113,6 @@ export default function CartPage() {
         }
       });
 
-   
       if (itemHasEmptyFields) {
         hasEmptyFields = true;
         errorMessages.push(
@@ -162,13 +147,22 @@ ${errorMessages.join("\n")}
       return;
     }
 
-   
     router.push("/payment");
   };
 
+  if (loading) {
+    return (
+      <div className="p-10 text-center flex flex-col items-center justify-center min-h-[60vh]">
+        <CircularProgress size={50} />
+        <h2 className="text-xl font-bold mt-6 text-gray-700">جاري تحميل السلة...</h2>
+        <p className="text-gray-500 mt-2">يرجى الانتظار</p>
+      </div>
+    );
+  }
+
   if (cart.length === 0) {
     return (
-      <div className="p-10 text-center  flex flex-col items-center justify-center">
+      <div className="p-10 text-center flex flex-col items-center justify-center min-h-[60vh]">
         <Image
           src="/images/cart2.webp"
           alt="empty cart"
@@ -195,17 +189,30 @@ ${errorMessages.join("\n")}
         <MdKeyboardArrowLeft />
         <h6 className="text-gray-600">عربة التسوق</h6>
       </div>
+      
+      {!isCartReady && (
+        <div className="mb-4 p-4 bg-blue-50 rounded-lg">
+          <div className="flex items-center justify-center">
+            <CircularProgress size={20} className="ml-2" />
+            <span className="text-blue-600">جاري تحميل خيارات المنتجات...</span>
+          </div>
+          <p className="text-sm text-gray-500 text-center mt-1">
+            قد يستغرق هذا بضع لحظات
+          </p>
+        </div>
+      )}
+      
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         <div className="col-span-1 lg:col-span-2">
-          <div className="flex flex-col  my-4 bg-white overflow-hidden">
+          <div className="flex flex-col my-4 bg-white overflow-hidden">
             {cart.map((item) => (
               <div
                 key={item.cart_item_id}
-                className=" p-6 relative border rounded-lg border-gray-200 mb-4 "
+                className="p-6 relative border rounded-lg border-gray-200 mb-4"
               >
                 <div className="relative md:border-0 border-b border-gray-200">
                   <div className="md:flex justify-between items-start flex md:flex-row flex-col gap-3 md:gap-0">
-                    <div className="flex gap-3 md:border-0  border-b border-gray-200 w-full md:w-fit pb-4 md:pb-0">
+                    <div className="flex gap-3 md:border-0 border-b border-gray-200 w-full md:w-fit pb-4 md:pb-0">
                       <div className="w-25 h-20 bg-gray-100 rounded">
                         <Image
                           src={item.product.image || "/images/placeholder.png"}
@@ -222,7 +229,37 @@ ${errorMessages.join("\n")}
                             {item.product.name}
                           </h3>
 
-                        
+                          {/* عرض القيم المختارة للمنتج - محدثة */}
+                          <div className="mt-2 space-y-1">
+                            {/* عرض الحقول الأساسية */}
+                            {item.selected_options && item.selected_options.filter((opt: any) => 
+                              ["المقاس", "اللون", "الخامة"].includes(opt.option_name) && 
+                              opt.option_value && opt.option_value !== "اختر"
+                            ).map((opt: any, idx: number) => (
+                              <p key={idx} className="text-sm text-gray-600">
+                                <span className="font-medium">{opt.option_name}:</span>{" "}
+                                <span className="text-gray-800">{opt.option_value}</span>
+                              </p>
+                            ))}
+                            
+                            {/* عرض الميزات الخاصة */}
+                            {item.selected_options && item.selected_options
+                              .filter((opt: any) => 
+                                opt.option_name === "خاصية" &&
+                                opt.option_value && 
+                                !opt.option_value.endsWith(": اختر")
+                              )
+                              .map((opt: any, idx: number) => {
+                                const [name, value] = opt.option_value.split(": ");
+                                return (
+                                  <p key={`feature-${idx}`} className="text-sm text-gray-600">
+                                    <span className="font-medium">{name}:</span>{" "}
+                                    <span className="text-gray-800">{value}</span>
+                                  </p>
+                                );
+                              })}
+                          </div>
+                          
                           <div className="text-sm text-gray-600 mt-1 space-y-1">
                             <p className="text-gray-500">
                               السعر :{" "}
@@ -234,7 +271,6 @@ ${errorMessages.join("\n")}
                       </div>
                     </div>
 
-               
                     <div className="flex items-center gap-3 border border-gray-200 rounded-lg">
                       <button
                         onClick={() => {
@@ -287,7 +323,6 @@ ${errorMessages.join("\n")}
                         </p>
                       </div>
 
-                  
                       <button
                         onClick={async () => {
                           const result = await Swal.fire({
@@ -319,7 +354,6 @@ ${errorMessages.join("\n")}
                   </div>
                 </div>
 
-               
                 <div className="p-4">
                   <StickerForm
                     cartItemId={item.cart_item_id}

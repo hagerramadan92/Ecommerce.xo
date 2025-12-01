@@ -8,6 +8,8 @@ import { IoWalletOutline } from "react-icons/io5";
 import { SlLocationPin } from "react-icons/sl";
 import OrderProgress from "./OrderProgress";
 import Loading from "@/app/loading";
+import { ProductI } from "@/Types/ProductsI";
+import { strict } from "assert";
 
 interface Props {
   orderId: string;
@@ -19,6 +21,7 @@ interface OrderItem {
   price: string;
   options: string ;
   image: string | null;
+  product:ProductI
 }
 
 interface OrderData {
@@ -33,6 +36,7 @@ interface OrderData {
   notes: string | null;
   created_at: string;
   items: OrderItem[];
+  payment_method_label:string
 }
 
 export default function OrderDetailsPage({ orderId }: Props) {
@@ -119,7 +123,7 @@ export default function OrderDetailsPage({ orderId }: Props) {
               <div className="flex gap-4 ps-4">
 
                 <Image
-                  src={item.image || "/images/not.jpg"}
+                  src={item.product.image || "/images/not.jpg"}
                   alt={item.product_name}
                   width={120}
                   height={120}
@@ -136,12 +140,12 @@ export default function OrderDetailsPage({ orderId }: Props) {
                     <span className="font-semibold mx-1 text-[#475569]">{item.price} جنيه</span>
                   </p>
 
-                  {item.options.length > 0 && (
+                  {/* {item.options.length > 0 && (
                     <div className="mt-2">
                       <p className="font-semibold text-[#475569]">الخيارات:</p>
                       
                     </div>
-                  )}
+                  )} */}
                 </div>
               </div>
             </div>
@@ -224,7 +228,7 @@ export default function OrderDetailsPage({ orderId }: Props) {
             <IoWalletOutline className="w-9 h-10 p-1.5 rounded bg-blue-50 text-blue-900" />
             <div>
               <h5 className="text-xl text-[#696969] font-semibold mb-1.5">طريقة الدفع:</h5>
-              {/* <p className="text-[#475569] text-[1rem]">{order.notes}</p> */}
+              <p className="text-[#475569] text-[1rem]">{order.payment_method_label}</p>
             </div>
           </div>
 

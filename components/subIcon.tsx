@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { BiMessageRoundedEdit } from "react-icons/bi";
 import { FiTruck } from "react-icons/fi";
 interface SubIconProps {
@@ -14,11 +15,14 @@ export default function SubIcon({
   return (
     <>
       <div className={` ${className}`}>
-        <div className="flex items-center gap-2  cursor-pointer text-pro-hover">
+        <Link href="/myAccount/orders" aria-label="my orders">
+         <div className="flex items-center gap-2  cursor-pointer text-pro-hover">
           <FiTruck size={25} strokeWidth={1.3} />
           <span className={`${className2}`}> تتبع الطلب</span>
         </div>
+        </Link>
+       
       </div>
-    </>
+    </>  
   );
 }

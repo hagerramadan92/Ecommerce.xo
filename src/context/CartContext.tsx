@@ -6,11 +6,11 @@ import {
   useState,
   useEffect,
   ReactNode,
+  useCallback,
 } from "react";
 import toast from "react-hot-toast";
 import { useAuth } from "./AuthContext";
 
-// نوع الـ payload اللي بيتبعت للـ API
 interface AddToCartPayload {
   product_id: number;
   quantity?: number;
@@ -27,7 +27,6 @@ interface AddToCartPayload {
   image_design?: string | null;
 }
 
-// نوع عنصر السلة
 interface CartItem {
   cart_item_id: number;
   product: any;
@@ -50,7 +49,6 @@ interface CartItem {
   is_sample?: boolean;
 }
 
-// نوع الـ Context
 interface CartContextType {
   cart: CartItem[];
   cartCount: number;
@@ -75,10 +73,15 @@ interface CartContextType {
     optionValue: string
   ) => Promise<boolean>;
 
-  // --- added for sticker form ---
   stickerFormValues: any;
   setStickerFormValues: (values: any) => void;
   validateStickerForm: (fields: any) => boolean;
+  
+  // دالة جديدة للحصول على خيارات محددة من السيرفر
+  fetchCartItemOptions: (cartItemId: number) => Promise<any>;
+  
+  // دالة لتحميل خيارات منتج معين
+  loadItemOptions: (cartItemId: number) => Promise<void>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -89,13 +92,29 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const { authToken: token } = useAuth();
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-  // --- sticker form values ---
   const [stickerFormValues, setStickerFormValues] = useState<any>({
     size: "",
     color: "",
     material: "",
     selectedFeatures: {},
   });
+
+  // دالة لتحليل selected_options بشكل موحد
+  const parseSelectedOptions = (selectedOptionsStr: string): any[] => {
+    if (!selectedOptionsStr) return [];
+    
+    try {
+      // محاولة تحليل كـ JSON
+      const parsed = JSON.parse(selectedOptionsStr);
+      if (Array.isArray(parsed)) {
+        return parsed;
+      }
+      return [];
+    } catch (error) {
+      console.error("Error parsing selected_options:", error);
+      return [];
+    }
+  };
 
   const fetchCart = async () => {
     if (!token) {
@@ -114,19 +133,21 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       });
 
       const data = await res.json();
+      console.log("Cart API Response:", data);
 
       if (res.ok && data.status && data.data?.items) {
         const items = data.data.items.map((item: any) => {
-          // تحليل selected_options من JSON string
-          let selectedOptions = [];
-          try {
-            selectedOptions = item.selected_options
-              ? JSON.parse(item.selected_options)
-              : [];
-          } catch (error) {
-            console.error("Error parsing selected_options:", error);
-            selectedOptions = [];
-          }
+          const selectedOptions = parseSelectedOptions(item.selected_options);
+          
+          console.log(`Cart Item ${item.id}:`, {
+            selected_options_raw: item.selected_options,
+            selected_options_parsed: selectedOptions,
+            size: item.size,
+            color: item.color,
+            material: item.material,
+            price_per_unit: item.price_per_unit,
+            line_total: item.line_total
+          });
 
           return {
             cart_item_id: item.id,
@@ -154,8 +175,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
             is_sample: item.is_sample === 1,
           };
         });
+        console.log("Final cart items:", items);
         setCart(items);
       } else {
+        console.log("No items in cart or API error");
         setCart([]);
       }
     } catch (err) {
@@ -170,6 +193,83 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const refreshCart = async () => {
     await fetchCart();
   };
+
+  // دالة جديدة للحصول على خيارات عنصر معين من السيرفر
+  const fetchCartItemOptions = useCallback(async (cartItemId: number) => {
+    if (!token) return null;
+
+    try {
+      const res = await fetch(`${API_URL}/cart`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          Accept: "application/json",
+        },
+      });
+
+      const data = await res.json();
+
+      if (res.ok && data.status && data.data?.items) {
+        const cartItem = data.data.items.find((item: any) => item.id === cartItemId);
+        if (cartItem) {
+          const selectedOptions = parseSelectedOptions(cartItem.selected_options);
+          
+          console.log("Fetched cart item options:", {
+            cartItemId,
+            selected_options: selectedOptions,
+            size: cartItem.size,
+            color: cartItem.color,
+            material: cartItem.material
+          });
+
+          return {
+            selected_options: selectedOptions,
+            size: cartItem.size,
+            color: cartItem.color,
+            material: cartItem.material,
+            size_id: cartItem.size_id,
+            color_id: cartItem.color_id,
+            material_id: cartItem.material_id,
+          };
+        }
+      }
+      return null;
+    } catch (err) {
+      console.error("Failed to fetch cart item options:", err);
+      return null;
+    }
+  }, [token, API_URL]);
+
+  // دالة لتحميل خيارات منتج معين وتحديث الـ cart state
+  const loadItemOptions = useCallback(async (cartItemId: number) => {
+    if (!token) return;
+
+    try {
+      const options = await fetchCartItemOptions(cartItemId);
+      if (options) {
+        // تحديث الـ cart state مع البيانات الجديدة
+        setCart(prevCart => 
+          prevCart.map(item => 
+            item.cart_item_id === cartItemId
+              ? {
+                  ...item,
+                  selected_options: options.selected_options || [],
+                  size: options.size || null,
+                  color: options.color || null,
+                  material: options.material || null,
+                  size_id: options.size_id || null,
+                  color_id: options.color_id || null,
+                  material_id: options.material_id || null,
+                }
+              : item
+          )
+        );
+        
+        console.log(`Updated cart item ${cartItemId} with new options:`, options);
+      }
+    } catch (err) {
+      console.error("Failed to load item options:", err);
+    }
+  }, [token, fetchCartItemOptions]);
 
   const updateLocalQuantity = (cartItemId: number, quantity: number) => {
     setCart((prevCart) =>
@@ -308,6 +408,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   ): Promise<boolean> => {
     if (!token) return false;
 
+    console.log("Updating cart item:", cartItemId, updates);
+
     try {
       const response = await fetch(`${API_URL}/cart/items/${cartItemId}`, {
         method: "PUT",
@@ -320,37 +422,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       });
 
       const data = await response.json();
+      console.log("Update response:", data);
 
       if (response.ok && data.status) {
-        if (data.data && data.data.item) {
-          setCart((prevCart) =>
-            prevCart.map((item) =>
-              item.cart_item_id === cartItemId
-                ? {
-                    ...item,
-                    quantity: data.data.item.quantity,
-                    price_per_unit: data.data.item.price_per_unit,
-                    line_total: data.data.item.line_total,
-                    size: data.data.item.size,
-                    color: data.data.item.color,
-                    material: data.data.item.material,
-                    printing_method: data.data.item.printing_method,
-                    print_locations: data.data.item.print_locations
-                      ? JSON.parse(data.data.item.print_locations)
-                      : [],
-                    embroider_locations: data.data.item.embroider_locations
-                      ? JSON.parse(data.data.item.embroider_locations)
-                      : [],
-                    selected_options: data.data.item.selected_options
-                      ? JSON.parse(data.data.item.selected_options)
-                      : [],
-                    design_service: data.data.item.design_service,
-                    is_sample: data.data.item.is_sample === 1,
-                  }
-                : item
-            )
-          );
-        }
+        // إعادة تحميل الخيارات لهذا العنصر فقط
+        await loadItemOptions(cartItemId);
         toast.success("تم تحديث العنصر بنجاح");
         return true;
       } else {
@@ -372,22 +448,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     optionValue: string
   ): Promise<boolean> => {
     if (!token) return false;
-
-    setCart((prevCart) =>
-      prevCart.map((item) =>
-        item.cart_item_id === cartItemId
-          ? {
-              ...item,
-              selected_options: [
-                ...(item.selected_options || []).filter(
-                  (opt) => opt.option_name !== optionName
-                ),
-                { option_name: optionName, option_value: optionValue },
-              ],
-            }
-          : item
-      )
-    );
 
     try {
       const currentItem = cart.find((item) => item.cart_item_id === cartItemId);
@@ -411,6 +471,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       const data = await response.json();
 
       if (response.ok && data.status) {
+        // إعادة تحميل الخيارات لهذا العنصر فقط
+        await loadItemOptions(cartItemId);
         toast.success("تم تحديث الخيار بنجاح");
         return true;
       } else {
@@ -457,7 +519,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   );
   const total = subtotal;
 
-  // --- validate only visible fields ---
   const validateStickerForm = (fields: any) => {
     if (!fields) return false;
 
@@ -488,11 +549,11 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         updateSelectedOption,
         clearCart,
         refreshCart,
-
-        // --- added ---
         stickerFormValues,
         setStickerFormValues,
         validateStickerForm,
+        fetchCartItemOptions,
+        loadItemOptions,
       }}
     >
       {children}
