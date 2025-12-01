@@ -1,12 +1,12 @@
 "use client";
 import Image from "next/image";
-import { CgSearch } from "react-icons/cg";
+// import { CgSearch } from "react-icons/cg";
 import { FaBars, FaRegUser } from "react-icons/fa";
 import { LuPhone } from "react-icons/lu";
 import Link from "next/link";
-import { link } from "@/Types/data";
+// import { link } from "@/Types/data";
 import SubIcon from "./subIcon";
-import CategoriesDropdown from "./DropdownComponent";
+// import CategoriesDropdown from "./DropdownComponent";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AiOutlineCloseCircle } from "react-icons/ai";
@@ -21,8 +21,8 @@ import { useAppContext } from "@/src/context/AppContext";
 
 export default function SearchNavbar() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const categories2 = link;
+  // const [searchOpen, setSearchOpen] = useState(false);
+  // const categories2 = link;
   // const links2 = categories;
 
   const { fullName } = useAuth(); 
@@ -77,7 +77,7 @@ export default function SearchNavbar() {
           </div>
 
           {/* Search Input */}
-          <SearchComponent className="hidden1" />
+          <SearchComponent  />
         </div>
 
         {/* Right Section */}
@@ -100,12 +100,12 @@ export default function SearchNavbar() {
             />
           </div>
 
-          <CgSearch
+          {/* <CgSearch
             size={25}
             className="flex1 cursor-pointer text-pro-hover"
             strokeWidth={0.1}
             onClick={() => setSearchOpen((prev) => !prev)}
-          />
+          /> */}
 
           <div className="flex gap-1 cursor-pointer">
             <CartSidebar />
@@ -162,7 +162,7 @@ export default function SearchNavbar() {
         </div>
       </div>
 
-      <AnimatePresence>
+      {/* <AnimatePresence>
         {searchOpen && (
           <motion.div
             initial={{ clipPath: "inset(0% 0% 100% 0%)", opacity: 0 }}
@@ -176,7 +176,7 @@ export default function SearchNavbar() {
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence> */}
 
       <AnimatePresence>
         {menuOpen && (

@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect, useMemo, ChangeEvent } from "react";
+import { useState, useEffect, ChangeEvent } from "react";
 import { FiSearch } from "react-icons/fi";
 import NoOrders from "./NoOrders";
 import Image from "next/image";
-import CustomSelect from "./CustomSelect";
 import Link from "next/link";
 import { MdOutlineKeyboardArrowLeft } from "react-icons/md";
 import Stack from "@mui/material/Stack";
@@ -23,9 +22,7 @@ interface Order {
 }
 
 export default function Orders() {
-  const years = ["اخر 3 شهور", "اخر 6 شهور", "2025"];
   const [search, setSearch] = useState<string>("");
-  const [yearFilter, setYearFilter] = useState<string>("");
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -33,7 +30,6 @@ export default function Orders() {
   const [page, setPage] = useState<number>(1);
   const [lastPage, setLastPage] = useState<number>(1);
 
-  const rowsPerPage = 10;
   const [apiToken, setApiToken] = useState<string | null>(null);
 
   const baseUrl = process.env.NEXT_PUBLIC_API_URL;
@@ -108,12 +104,7 @@ export default function Orders() {
                 />
               </div>
 
-              <CustomSelect
-                options={years}
-                value={yearFilter}
-                onChange={setYearFilter}
-                placeholder="الكل"
-              />
+             
             </div>
           </div>
 

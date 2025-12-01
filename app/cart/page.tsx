@@ -372,7 +372,15 @@ ${errorMessages.join("\n")}
             <CoBon />
 
             <h4 className="text-md font-semibold text-pro my-5">ملخص الطلب</h4>
-            <TotalOrder />
+            <TotalOrder response={{
+  status: true,
+  data: {
+    items_count: cartCount,
+    subtotal: total.toString(),
+    total: total.toString(),
+    items: cart,
+  }
+}} />
 
             <Button
               variant="contained"

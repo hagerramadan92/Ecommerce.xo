@@ -1,10 +1,21 @@
 "use client";
 import { useAppContext } from "@/src/context/AppContext";
 import Link from "next/link";
-import { FaFacebookSquare } from "react-icons/fa";
-import { IoLocationSharp } from "react-icons/io5";
-
+import {
+  FaPhone,
+  FaWhatsapp,
+  FaFacebook,
+  FaTwitter,
+  FaLinkedin,
+} from "react-icons/fa";
 export default function Footer() {
+  const socialIcons = {
+  phone: FaPhone,
+  whatsapp: FaWhatsapp,
+  facebook: FaFacebook,
+  twitter: FaTwitter,
+  linkedin: FaLinkedin,
+};
   const Links = [
     {
       title: "معلومات عنا",
@@ -40,13 +51,7 @@ export default function Footer() {
     },
    
   ];
-  const locations = [
-    { title: "التجمع الخامس" },
-    { title: "مدينة نصر" },
-    { title: "زهراء المعادي" },
-    { title: "أكتوبر" },
-    { title: "الإسكندرية" },
-  ];
+ 
   const { socialMedia } = useAppContext();
 
   const social_Media = socialMedia;
@@ -93,16 +98,19 @@ export default function Footer() {
             </div>
           </div>
           <div>
-            <h4 className="font-semibold mt-5 lg:mt-0">الموقع</h4>
+
+            <h4 className="font-semibold mt-5 lg:mt-0">العنوان</h4>
             <div className="flex flex-col gap-3 mt-4">
-              {locations.map((link, index) => (
-                <div key={index} className="flex gap-1 items-center">
-                  <IoLocationSharp size={22} />
-                  <Link href="/" className=" underline ">
-                    {link.title}
-                  </Link>
+             
+                <div className="">
+                    {social_Media.map((social, index) => (
+                <div key={index}>
+                  {social.key === "address" && <p>{social.value}</p>}
+                
                 </div>
               ))}
+                </div>
+            
             </div>
           </div>
         </div>
@@ -113,22 +121,15 @@ export default function Footer() {
           <div>
             <p className="mb-1">تابعنا</p>
             <div className="flex gap-2 items-center">
-              {social_Media.slice(1, 5).map((social, index) => (
-                <div key={index}>
-                  <Link href={social.value}>
-                    <FaFacebookSquare size={20} />
-                  </Link>
-                  {/* <Link href='/'>
-              <FaTwitter size={20} />
-              </Link>
-              <Link href='/'>
-              <FaInstagram size={20}/>
-              </Link>
-              <Link href='/'>
-              <FaTelegram size={20}/>
-              </Link> */}
-                </div>
-              ))}
+           {social_Media.slice(1, 5).map((social, index) => {
+        const Icon = socialIcons[social.key as keyof typeof socialIcons]; // نجيب المكون المناسب
+        if (!Icon) return null; // لو مفيش أيقونة متاحة
+        return (
+          <Link key={index} href={social.value || "#"} target="_blank">
+            <Icon size={20} />
+          </Link>
+        );
+      })}
             </div>
           </div>
         </div>

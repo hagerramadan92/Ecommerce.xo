@@ -1,20 +1,48 @@
 "use client";
+import { useState, useEffect } from "react";
 import { useCart } from "@/src/context/CartContext";
 
-export default function TotalOrder() {
+export default function TotalOrder({ response }) {
   const { cart, cartCount, subtotal, total } = useCart();
-  console.log("TotalOrder cart:", cart);
-  const formattedSubtotal = subtotal.toLocaleString("en-US", {
+
+  const [cartData, setCartData] = useState({
+    items_count: cartCount || 0,
+    subtotal: subtotal || 0,
+    total: total || 0,
+    items: cart || [],
+  });
+
+  useEffect(() => {
+    if (response && response.status) {
+      // لو فيه response نستخدمه
+      setCartData({
+        items_count: response.data.items_count,
+        subtotal: parseFloat(response.data.subtotal),
+        total: parseFloat(response.data.total),
+        items: response.data.items,
+      });
+    } else {
+      // لو مفيش response نستخدم الـ context
+      setCartData({
+        items_count: cartCount,
+        subtotal,
+        total,
+        items: cart,
+      });
+    }
+  }, [response, cart, cartCount, subtotal, total]);
+
+  const formattedSubtotal = cartData.subtotal.toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
 
-  const shippingFree = true; 
+  const shippingFree = true;
   const shippingFee = shippingFree ? 0 : 48;
 
   const cashOnDelivery = 50;
 
-  const grandTotal = (total + shippingFee + cashOnDelivery).toLocaleString(
+  const grandTotal = (cartData.total + shippingFee + cashOnDelivery).toLocaleString(
     "en-US",
     { minimumFractionDigits: 2, maximumFractionDigits: 2 }
   );
@@ -24,7 +52,7 @@ export default function TotalOrder() {
 
       {/* المجموع */}
       <div className="flex text-sm items-center justify-between text-black">
-        <p className="font-semibold">المجموع ({cartCount} عناصر)</p>
+        <p className="font-semibold">المجموع ({cartData.items_count} عناصر)</p>
         <p>
           {formattedSubtotal}
           <span className="text-sm ms-1">جنيه</span>
