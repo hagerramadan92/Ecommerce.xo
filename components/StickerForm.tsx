@@ -42,7 +42,6 @@ export default function StickerForm({
   const [formLoading, setFormLoading] = useState(true);
   const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
-  // دالة لتحميل بيانات المنتج من API
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -58,7 +57,6 @@ export default function StickerForm({
     fetchData();
   }, [productId, baseUrl]);
 
-  // دالة لاستخراج القيمة من selected_options
   const extractValueFromOptions = useCallback((options: any[], optionName: string) => {
     if (!options || !Array.isArray(options)) return null;
     
@@ -66,39 +64,29 @@ export default function StickerForm({
     return option ? option.option_value : null;
   }, []);
 
-  // دالة لتحميل القيم المحفوظة من السيرفر
   const loadSavedOptions = useCallback(async () => {
     if (!cartItemId) return;
 
     setFormLoading(true);
     try {
-      // الحصول على أحدث البيانات من السيرفر
       const savedOptions = await fetchCartItemOptions(cartItemId);
       console.log("Loaded options from server:", savedOptions);
 
       if (savedOptions) {
-        // استخراج القيم من selected_options
         const sizeFromOptions = extractValueFromOptions(savedOptions.selected_options, "المقاس");
         const colorFromOptions = extractValueFromOptions(savedOptions.selected_options, "اللون");
         const materialFromOptions = extractValueFromOptions(savedOptions.selected_options, "الخامة");
 
-        // تحديد القيم مع الأولوية: selected_options > الحقول المباشرة
         const finalSize = sizeFromOptions || savedOptions.size || "اختر";
         const finalColor = colorFromOptions || (savedOptions.color?.name || savedOptions.color) || "اختر";
         const finalMaterial = materialFromOptions || savedOptions.material || "اختر";
 
-        console.log("Final values to set:", {
-          size: finalSize,
-          color: finalColor,
-          material: finalMaterial
-        });
+      
 
-        // تحديث الـ state
         if (finalSize !== "اختر") setSize(finalSize);
         if (finalColor !== "اختر") setColor(finalColor);
         if (finalMaterial !== "اختر") setMaterial(finalMaterial);
 
-        // معالجة الميزات
         const featuresFromOptions: { [key: string]: string } = {};
         if (savedOptions.selected_options && savedOptions.selected_options.length > 0) {
           savedOptions.selected_options.forEach((opt: any) => {
@@ -111,7 +99,6 @@ export default function StickerForm({
           });
         }
 
-        // إضافة القيم الافتراضية للميزات المطلوبة
         if (apiData?.features) {
           apiData.features.forEach((feature: any) => {
             const hasValues = feature.value || (feature.values && feature.values.length > 0);
@@ -121,7 +108,7 @@ export default function StickerForm({
           });
         }
 
-        console.log("Features to set:", featuresFromOptions);
+      
         setSelectedFeatures(featuresFromOptions);
       }
     } catch (err) {
@@ -132,15 +119,13 @@ export default function StickerForm({
     }
   }, [cartItemId, fetchCartItemOptions, extractValueFromOptions, apiData]);
 
-  // تحميل القيم عند التهيئة الأولى وعند تغيير cartItemId
   useEffect(() => {
     if (!cartItemId || !apiData) return;
 
-    console.log("Initializing/updating form for cart item:", cartItemId);
+
     loadSavedOptions();
   }, [cartItemId, apiData, loadSavedOptions]);
 
-  // دالة لتحديث السيرفر مع العرض المحلي أولاً
   const updateOptionWithFeedback = useCallback(async (
     setter: React.Dispatch<React.SetStateAction<string>>,
     value: string,
@@ -148,17 +133,12 @@ export default function StickerForm({
     apiFieldName?: string
   ) => {
     if (!cartItemId || !apiData) return;
-
-    console.log(`Updating ${optionName} to:`, value);
     
-    // تحديث المحلي أولاً (تجربة مستخدم أفضل)
     setter(value);
     setSaving(true);
 
-    // إعداد selected_options الكاملة مع التحديث الجديد
     const selectedOptions: any[] = [];
 
-    // إضافة الحقول الأساسية
     const currentSize = optionName === "المقاس" ? value : size;
     const currentColor = optionName === "اللون" ? value : color;
     const currentMaterial = optionName === "الخامة" ? value : material;
@@ -184,7 +164,6 @@ export default function StickerForm({
       });
     }
 
-    // إضافة الميزات
     Object.entries(selectedFeatures).forEach(([name, val]) => {
       if (name && val && val !== "اختر") {
         selectedOptions.push({
@@ -198,7 +177,6 @@ export default function StickerForm({
       selected_options: selectedOptions,
     };
 
-    // إضافة الحقول الإضافية إذا كانت موجودة
     if (apiFieldName === "size" && value !== "اختر" && apiData.sizes?.length > 0) {
       const selectedSize = apiData.sizes.find((s: any) => s.name === value);
       if (selectedSize?.id) updates.size_id = selectedSize.id;
@@ -217,13 +195,10 @@ export default function StickerForm({
       updates.material = value;
     }
 
-    console.log("Sending update to server:", updates);
 
     try {
       const success = await updateCartItem(cartItemId, updates);
       if (success) {
-        console.log("Update successful, refreshing options...");
-        // إعادة تحميل البيانات من السيرفر للتأكد من المزامنة
         await loadSavedOptions();
       }
     } catch (error) {
@@ -233,36 +208,29 @@ export default function StickerForm({
     }
   }, [cartItemId, apiData, size, color, material, selectedFeatures, updateCartItem, loadSavedOptions]);
 
-  // معالجة تغيير المقاس
   const handleSizeChange = async (value: string) => {
     await updateOptionWithFeedback(setSize, value, "المقاس", "size");
   };
 
-  // معالجة تغيير اللون
   const handleColorChange = async (value: string) => {
     await updateOptionWithFeedback(setColor, value, "اللون", "color");
   };
 
-  // معالجة تغيير الخامة
   const handleMaterialChange = async (value: string) => {
     await updateOptionWithFeedback(setMaterial, value, "الخامة", "material");
   };
 
-  // معالجة تغيير الميزات
   const handleFeatureChange = async (featureName: string, value: string) => {
     if (value === "اختر") return;
     
     console.log("Updating feature:", featureName, value);
     setSaving(true);
     
-    // تحديث المحلي أولاً
     const newFeatures = { ...selectedFeatures, [featureName]: value };
     setSelectedFeatures(newFeatures);
 
-    // إعداد selected_options الكاملة
     const selectedOptions: any[] = [];
 
-    // إضافة الحقول الأساسية
     if (size && size !== "اختر" && apiData?.sizes?.length > 0) {
       selectedOptions.push({
         option_name: "المقاس",
@@ -284,7 +252,6 @@ export default function StickerForm({
       });
     }
     
-    // إضافة جميع الميزات
     Object.entries(newFeatures).forEach(([name, val]) => {
       if (name && val && val !== "اختر") {
         selectedOptions.push({
@@ -296,12 +263,10 @@ export default function StickerForm({
     
     const updates = { selected_options: selectedOptions };
     
-    console.log("Updating feature on server:", updates);
     
     try {
       const success = await updateCartItem(cartItemId!, updates);
       if (success) {
-        console.log("Feature update successful");
         await loadSavedOptions();
       }
     } catch (error) {
@@ -311,15 +276,9 @@ export default function StickerForm({
     }
   };
 
-  // عرض Loader أثناء التحميل
-  if (loading || formLoading) {
+  if (loading && formLoading) {
     return (
-      <div className="border-t border-gray-100 pt-4 mt-4">
-        <div className="flex justify-center items-center py-8">
-          <CircularProgress size={24} />
-          <span className="mr-2 text-gray-600">جاري تحميل الخيارات...</span>
-        </div>
-      </div>
+      <Loading/>
     );
   }
 
@@ -359,7 +318,7 @@ export default function StickerForm({
             required={apiData.sizes.length > 0}
             size="small"
             error={apiData.sizes.length > 0 && size === "اختر"}
-            disabled={saving}
+           
           >
             <InputLabel>المقاس</InputLabel>
             <Select
@@ -384,11 +343,7 @@ export default function StickerForm({
               </FormHelperText>
             )}
           </FormControl>
-          {saving && (
-            <div className="absolute left-2 top-1/2 transform -translate-y-1/2">
-              <CircularProgress size={16} />
-            </div>
-          )}
+     
         </Box>
       </Box>
     );
@@ -423,7 +378,7 @@ export default function StickerForm({
             required={apiData.colors.length > 0}
             size="small"
             error={apiData.colors.length > 0 && color === "اختر"}
-            disabled={saving}
+           
           >
             <InputLabel>اللون</InputLabel>
             <Select
@@ -456,11 +411,7 @@ export default function StickerForm({
               </FormHelperText>
             )}
           </FormControl>
-          {saving && (
-            <div className="absolute left-2 top-1/2 transform -translate-y-1/2">
-              <CircularProgress size={16} />
-            </div>
-          )}
+         
         </Box>
       </Box>
     );
@@ -494,7 +445,7 @@ export default function StickerForm({
             required={apiData.materials.length > 0}
             size="small"
             error={apiData.materials.length > 0 && material === "اختر"}
-            disabled={saving}
+            
           >
             <InputLabel>الخامة</InputLabel>
             <Select
@@ -519,11 +470,7 @@ export default function StickerForm({
               </FormHelperText>
             )}
           </FormControl>
-          {saving && (
-            <div className="absolute left-2 top-1/2 transform -translate-y-1/2">
-              <CircularProgress size={16} />
-            </div>
-          )}
+        
         </Box>
       </Box>
     );
@@ -577,7 +524,7 @@ export default function StickerForm({
               required={hasValues}
               size="small"
               error={hasValues && currentValue === "اختر"}
-              disabled={saving}
+             
             >
               <InputLabel>{feature.name}</InputLabel>
               <Select
@@ -602,11 +549,7 @@ export default function StickerForm({
                 </FormHelperText>
               )}
             </FormControl>
-            {saving && (
-              <div className="absolute left-2 top-1/2 transform -translate-y-1/2">
-                <CircularProgress size={16} />
-              </div>
-            )}
+ 
           </Box>
         </Box>
       );
@@ -620,14 +563,7 @@ export default function StickerForm({
       transition={{ duration: 0.3 }}
       className="border-t border-gray-100 pt-4 mt-4"
     >
-      {saving && (
-        <div className="mb-4 p-2 bg-blue-50 rounded-lg">
-          <div className="flex items-center justify-center">
-            <CircularProgress size={20} className="ml-2" />
-            <span className="text-blue-600 text-sm">جاري حفظ التغييرات...</span>
-          </div>
-        </div>
-      )}
+   
       
       <div className="space-y-4">
         {renderSizesSelect()}

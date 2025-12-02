@@ -69,7 +69,7 @@ export default function SearchComponent({ className }: classProps) {
           {!loading &&
             results.map((item: any) => (
               <Link
-                href={`/category/${item.category.slug}`} 
+                href={`/product/${item.id}`} 
                 key={item.id}
                 onClick={() => setQuery("")} 
               >

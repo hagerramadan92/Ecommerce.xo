@@ -17,6 +17,7 @@ import StickerForm from "@/components/StickerForm";
 import Swal from "sweetalert2";
 import { useState, useEffect } from "react";
 import { CircularProgress } from "@mui/material";
+import Loading from "../loading";
 
 export default function CartPage() {
   const router = useRouter();
@@ -74,8 +75,6 @@ export default function CartPage() {
           }
         }
       });
-
-      console.log("Selected parsed:", selected);
 
       let itemHasEmptyFields = false;
       let itemErrorMessages: string[] = [];
@@ -152,11 +151,7 @@ ${errorMessages.join("\n")}
 
   if (loading) {
     return (
-      <div className="p-10 text-center flex flex-col items-center justify-center min-h-[60vh]">
-        <CircularProgress size={50} />
-        <h2 className="text-xl font-bold mt-6 text-gray-700">جاري تحميل السلة...</h2>
-        <p className="text-gray-500 mt-2">يرجى الانتظار</p>
-      </div>
+      <Loading/>
     );
   }
 
@@ -189,19 +184,9 @@ ${errorMessages.join("\n")}
         <MdKeyboardArrowLeft />
         <h6 className="text-gray-600">عربة التسوق</h6>
       </div>
-      
-      {!isCartReady && (
-        <div className="mb-4 p-4 bg-blue-50 rounded-lg">
-          <div className="flex items-center justify-center">
-            <CircularProgress size={20} className="ml-2" />
-            <span className="text-blue-600">جاري تحميل خيارات المنتجات...</span>
-          </div>
-          <p className="text-sm text-gray-500 text-center mt-1">
-            قد يستغرق هذا بضع لحظات
-          </p>
-        </div>
-      )}
-      
+
+      {!isCartReady && <Loading />}
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
         <div className="col-span-1 lg:col-span-2">
           <div className="flex flex-col my-4 bg-white overflow-hidden">
@@ -229,41 +214,14 @@ ${errorMessages.join("\n")}
                             {item.product.name}
                           </h3>
 
-                          {/* عرض القيم المختارة للمنتج - محدثة */}
-                          <div className="mt-2 space-y-1">
-                            {/* عرض الحقول الأساسية */}
-                            {item.selected_options && item.selected_options.filter((opt: any) => 
-                              ["المقاس", "اللون", "الخامة"].includes(opt.option_name) && 
-                              opt.option_value && opt.option_value !== "اختر"
-                            ).map((opt: any, idx: number) => (
-                              <p key={idx} className="text-sm text-gray-600">
-                                <span className="font-medium">{opt.option_name}:</span>{" "}
-                                <span className="text-gray-800">{opt.option_value}</span>
-                              </p>
-                            ))}
-                            
-                            {/* عرض الميزات الخاصة */}
-                            {item.selected_options && item.selected_options
-                              .filter((opt: any) => 
-                                opt.option_name === "خاصية" &&
-                                opt.option_value && 
-                                !opt.option_value.endsWith(": اختر")
-                              )
-                              .map((opt: any, idx: number) => {
-                                const [name, value] = opt.option_value.split(": ");
-                                return (
-                                  <p key={`feature-${idx}`} className="text-sm text-gray-600">
-                                    <span className="font-medium">{name}:</span>{" "}
-                                    <span className="text-gray-800">{value}</span>
-                                  </p>
-                                );
-                              })}
-                          </div>
-                          
+                      
+
                           <div className="text-sm text-gray-600 mt-1 space-y-1">
                             <p className="text-gray-500">
                               السعر :{" "}
-                              {parseFloat(item.price_per_unit || "0").toFixed(2)}{" "}
+                              {parseFloat(item.price_per_unit || "0").toFixed(
+                                2
+                              )}{" "}
                               جنيه
                             </p>
                           </div>
@@ -372,15 +330,17 @@ ${errorMessages.join("\n")}
             <CoBon />
 
             <h4 className="text-md font-semibold text-pro my-5">ملخص الطلب</h4>
-            <TotalOrder response={{
-  status: true,
-  data: {
-    items_count: cartCount,
-    subtotal: total.toString(),
-    total: total.toString(),
-    items: cart,
-  }
-}} />
+            <TotalOrder
+              response={{
+                status: true,
+                data: {
+                  items_count: cartCount,
+                  subtotal: total.toString(),
+                  total: total.toString(),
+                  items: cart,
+                },
+              }}
+            />
 
             <Button
               variant="contained"
