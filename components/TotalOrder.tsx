@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useCart } from "@/src/context/CartContext";
 
-export default function TotalOrder({ response }) {
+export default function TotalOrder({ response }: { response?: any }) {
   const { cart, cartCount, subtotal, total } = useCart();
 
   const [cartData, setCartData] = useState({
@@ -14,7 +14,7 @@ export default function TotalOrder({ response }) {
 
   useEffect(() => {
     if (response && response.status) {
-      // لو فيه response نستخدمه
+     
       setCartData({
         items_count: response.data.items_count,
         subtotal: parseFloat(response.data.subtotal),
@@ -22,7 +22,7 @@ export default function TotalOrder({ response }) {
         items: response.data.items,
       });
     } else {
-      // لو مفيش response نستخدم الـ context
+    
       setCartData({
         items_count: cartCount,
         subtotal,

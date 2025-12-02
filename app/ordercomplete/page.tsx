@@ -27,6 +27,28 @@ export default function page() {
     completed: 3,
     cancelled: 0,
   };
+  const subtotalCalc = order?.items?.reduce((sum, item) => {
+  return sum + parseFloat(item.price) * item.quantity;
+}, 0) || 0;
+
+const responseForTotalOrder = order
+  ? {
+      status: true,
+      data: {
+        items_count: order.items?.length || 0,
+        subtotal: order.items?.reduce(
+          (sum, item) => sum + parseFloat(item.price) * item.quantity,
+          0
+        ) || 0,
+        total: order.items?.reduce(
+          (sum, item) => sum + parseFloat(item.price) * item.quantity,
+          0
+        ) || 0,
+        items: order.items || [],
+      },
+    }
+  : null;
+
 
   useEffect(() => {
     const emptyCart = async () => {
@@ -165,7 +187,8 @@ export default function page() {
 
             <div className="bg-white rounded-lg shadow p-5">
               <h2 className="font-semibold text-2xl mb-4">ملخص الطلب</h2>
-              <TotalOrder />
+              <TotalOrder response={responseForTotalOrder} />
+
             </div>
           </div>
         </div>
