@@ -92,13 +92,13 @@ export default function SearchNavbar() {
           </div>
 
           {/* Icons */}
-          <div>
+          {/* <div>
             <SubIcon
               className="flex lg:gap-5"
               className2="hidden2"
               className3="hidden1"
             />
-          </div>
+          </div> */}
 
           {/* <CgSearch
             size={25}
