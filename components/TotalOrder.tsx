@@ -40,9 +40,9 @@ export default function TotalOrder({ response }: { response?: any }) {
   const shippingFree = true;
   const shippingFee = shippingFree ? 0 : 48;
 
-  const cashOnDelivery = 50;
 
-  const grandTotal = (cartData.total + shippingFee + cashOnDelivery).toLocaleString(
+
+  const grandTotal = (cartData.total + shippingFee ).toLocaleString(
     "en-US",
     { minimumFractionDigits: 2, maximumFractionDigits: 2 }
   );
@@ -72,14 +72,7 @@ export default function TotalOrder({ response }: { response?: any }) {
         )}
       </div>
 
-      {/* الدفع عند الاستلام */}
-      <div className="flex text-pro items-center justify-between border-b-2 border-gray-200 pb-3">
-        <p className="text-sm">رسوم الدفع عند الإستلام</p>
-        <p className="text-md">
-          {cashOnDelivery}
-          <span className="text-sm ms-1">جنيه</span>
-        </p>
-      </div>
+   
 
       {/* الإجمالي */}
       <div className="flex items-center justify-between pb-3 pt-2">

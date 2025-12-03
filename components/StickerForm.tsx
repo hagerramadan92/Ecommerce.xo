@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useImperativeHandle, forwardRef } from "react";
 import {
   Box,
   FormControl,
@@ -9,24 +9,38 @@ import {
   Typography,
   FormHelperText,
   CircularProgress,
+  Alert,
+  Button,
 } from "@mui/material";
 import { motion } from "framer-motion";
 import { useCart } from "@/src/context/CartContext";
 import Loading from "@/app/loading";
+import { Save, CheckCircle, Warning, Info, Refresh } from "@mui/icons-material";
 
 interface StickerFormProps {
   cartItemId?: number;
   productId: number;
   productData?: any;
   cartItemData?: any;
+  onOptionsChange?: (options: any) => void;
+  ref?: any;
 }
 
-export default function StickerForm({
+interface SelectedOptions {
+  size: string;
+  color: string;
+  material: string;
+  features: { [key: string]: string };
+  isValid: boolean;
+}
+
+const StickerForm = forwardRef(({
   cartItemId,
   productId,
   cartItemData,
-}: StickerFormProps) {
-  const { updateCartItem, cart, fetchCartItemOptions, loadItemOptions } = useCart();
+  onOptionsChange,
+}: StickerFormProps, ref) => {
+  const { updateCartItem, fetchCartItemOptions } = useCart();
 
   const [size, setSize] = useState("اختر");
   const [color, setColor] = useState("اختر");
@@ -40,14 +54,98 @@ export default function StickerForm({
   const [saving, setSaving] = useState(false);
   const [initialized, setInitialized] = useState(false);
   const [formLoading, setFormLoading] = useState(true);
+  const [showSaveButton, setShowSaveButton] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [savedSuccessfully, setSavedSuccessfully] = useState(false);
+  
   const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
+  // تعريف واجهة API للمكون الخارجي
+  useImperativeHandle(ref, () => ({
+    getOptions: () => {
+      return {
+        size,
+        color,
+        material,
+        features: selectedFeatures,
+        isValid: validateCurrentOptions()
+      };
+    },
+    validate: () => validateCurrentOptions(),
+    saveOptions: () => saveAllOptions(),
+    resetOptions: () => resetAllOptions()
+  }));
+
+  // دالة التحقق من صحة الخيارات
+  const validateCurrentOptions = useCallback(() => {
+    if (!apiData) return false;
+
+    let isValid = true;
+
+    // التحقق من المقاسات المطلوبة
+    if (apiData.sizes?.length > 0 && (!size || size === "اختر")) {
+      isValid = false;
+    }
+
+    // التحقق من الألوان المطلوبة
+    if (apiData.colors?.length > 0 && (!color || color === "اختر")) {
+      isValid = false;
+    }
+
+    // التحقق من الخامات المطلوبة
+    if (apiData.materials?.length > 0 && (!material || material === "اختر")) {
+      isValid = false;
+    }
+
+    // التحقق من الخصائص المطلوبة
+    if (apiData.features?.length > 0) {
+      apiData.features.forEach((feature: any) => {
+        const hasValues = feature.value || (feature.values && feature.values.length > 0);
+        if (hasValues) {
+          const featureValue = selectedFeatures[feature.name];
+          if (!featureValue || featureValue === "اختر") {
+            isValid = false;
+          }
+        }
+      });
+    }
+
+    return isValid;
+  }, [apiData, size, color, material, selectedFeatures]);
+
+  // تحديث الـ onOptionsChange عند تغيير الخيارات
+  useEffect(() => {
+    if (onOptionsChange) {
+      const options = {
+        size,
+        color,
+        material,
+        features: selectedFeatures,
+        isValid: validateCurrentOptions()
+      };
+      onOptionsChange(options);
+    }
+  }, [size, color, material, selectedFeatures, validateCurrentOptions, onOptionsChange]);
+
+  // جلب بيانات المنتج
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await fetch(`${baseUrl}/products/${productId}`);
         const data = await res.json();
         setApiData(data.data);
+        
+        // تهيئة الخصائص الفارغة
+        if (data.data?.features) {
+          const initialFeatures: { [key: string]: string } = {};
+          data.data.features.forEach((feature: any) => {
+            const hasValues = feature.value || (feature.values && feature.values.length > 0);
+            if (hasValues) {
+              initialFeatures[feature.name] = "اختر";
+            }
+          });
+          setSelectedFeatures(initialFeatures);
+        }
       } catch (err) {
         console.error("API Error:", err);
       } finally {
@@ -64,13 +162,13 @@ export default function StickerForm({
     return option ? option.option_value : null;
   }, []);
 
+  // دالة لتحميل الخيارات المحفوظة (للكارت)
   const loadSavedOptions = useCallback(async () => {
     if (!cartItemId) return;
 
     setFormLoading(true);
     try {
       const savedOptions = await fetchCartItemOptions(cartItemId);
-      console.log("Loaded options from server:", savedOptions);
 
       if (savedOptions) {
         const sizeFromOptions = extractValueFromOptions(savedOptions.selected_options, "المقاس");
@@ -80,8 +178,6 @@ export default function StickerForm({
         const finalSize = sizeFromOptions || savedOptions.size || "اختر";
         const finalColor = colorFromOptions || (savedOptions.color?.name || savedOptions.color) || "اختر";
         const finalMaterial = materialFromOptions || savedOptions.material || "اختر";
-
-      
 
         if (finalSize !== "اختر") setSize(finalSize);
         if (finalColor !== "اختر") setColor(finalColor);
@@ -108,8 +204,9 @@ export default function StickerForm({
           });
         }
 
-      
         setSelectedFeatures(featuresFromOptions);
+        setHasUnsavedChanges(false);
+        setShowSaveButton(false);
       }
     } catch (err) {
       console.error("Error loading saved options:", err);
@@ -121,49 +218,43 @@ export default function StickerForm({
 
   useEffect(() => {
     if (!cartItemId || !apiData) return;
-
-
     loadSavedOptions();
   }, [cartItemId, apiData, loadSavedOptions]);
 
-  const updateOptionWithFeedback = useCallback(async (
-    setter: React.Dispatch<React.SetStateAction<string>>,
-    value: string,
-    optionName: string,
-    apiFieldName?: string
-  ) => {
+  // دالة لحفظ جميع الخيارات مرة واحدة (للكارت)
+  const saveAllOptions = async () => {
     if (!cartItemId || !apiData) return;
     
-    setter(value);
     setSaving(true);
+    setSavedSuccessfully(false);
 
     const selectedOptions: any[] = [];
 
-    const currentSize = optionName === "المقاس" ? value : size;
-    const currentColor = optionName === "اللون" ? value : color;
-    const currentMaterial = optionName === "الخامة" ? value : material;
-
-    if (currentSize && currentSize !== "اختر" && apiData.sizes?.length > 0) {
+    // إضافة المقاسات
+    if (size && size !== "اختر" && apiData.sizes?.length > 0) {
       selectedOptions.push({
         option_name: "المقاس",
-        option_value: currentSize,
+        option_value: size,
       });
     }
 
-    if (currentColor && currentColor !== "اختر" && apiData.colors?.length > 0) {
+    // إضافة الألوان
+    if (color && color !== "اختر" && apiData.colors?.length > 0) {
       selectedOptions.push({
         option_name: "اللون",
-        option_value: currentColor,
+        option_value: color,
       });
     }
 
-    if (currentMaterial && currentMaterial !== "اختر" && apiData.materials?.length > 0) {
+    // إضافة الخامات
+    if (material && material !== "اختر" && apiData.materials?.length > 0) {
       selectedOptions.push({
         option_name: "الخامة",
-        option_value: currentMaterial,
+        option_value: material,
       });
     }
 
+    // إضافة الخصائص
     Object.entries(selectedFeatures).forEach(([name, val]) => {
       if (name && val && val !== "اختر") {
         selectedOptions.push({
@@ -177,109 +268,113 @@ export default function StickerForm({
       selected_options: selectedOptions,
     };
 
-    if (apiFieldName === "size" && value !== "اختر" && apiData.sizes?.length > 0) {
-      const selectedSize = apiData.sizes.find((s: any) => s.name === value);
+    // إضافة IDs إذا كانت متوفرة
+    if (size && size !== "اختر" && apiData.sizes?.length > 0) {
+      const selectedSize = apiData.sizes.find((s: any) => s.name === size);
       if (selectedSize?.id) updates.size_id = selectedSize.id;
-      updates.size = value;
+      updates.size = size;
     }
 
-    if (apiFieldName === "color" && value !== "اختر" && apiData.colors?.length > 0) {
-      const selectedColor = apiData.colors.find((c: any) => c.name === value);
+    if (color && color !== "اختر" && apiData.colors?.length > 0) {
+      const selectedColor = apiData.colors.find((c: any) => c.name === color);
       if (selectedColor?.id) updates.color_id = selectedColor.id;
-      updates.color = selectedColor || { name: value };
+      updates.color = selectedColor || { name: color };
     }
 
-    if (apiFieldName === "material" && value !== "اختر" && apiData.materials?.length > 0) {
-      const selectedMaterial = apiData.materials.find((m: any) => m.name === value);
+    if (material && material !== "اختر" && apiData.materials?.length > 0) {
+      const selectedMaterial = apiData.materials.find((m: any) => m.name === material);
       if (selectedMaterial?.id) updates.material_id = selectedMaterial.id;
-      updates.material = value;
+      updates.material = material;
     }
-
 
     try {
       const success = await updateCartItem(cartItemId, updates);
       if (success) {
-        await loadSavedOptions();
+        setSavedSuccessfully(true);
+        setHasUnsavedChanges(false);
+        setShowSaveButton(false);
+        
+        // إخفاء رسالة النجاح بعد 3 ثواني
+        setTimeout(() => {
+          setSavedSuccessfully(false);
+        }, 3000);
       }
     } catch (error) {
-      console.error("Failed to update option:", error);
+      console.error("Failed to save options:", error);
     } finally {
       setSaving(false);
     }
-  }, [cartItemId, apiData, size, color, material, selectedFeatures, updateCartItem, loadSavedOptions]);
-
-  const handleSizeChange = async (value: string) => {
-    await updateOptionWithFeedback(setSize, value, "المقاس", "size");
   };
 
-  const handleColorChange = async (value: string) => {
-    await updateOptionWithFeedback(setColor, value, "اللون", "color");
-  };
-
-  const handleMaterialChange = async (value: string) => {
-    await updateOptionWithFeedback(setMaterial, value, "الخامة", "material");
-  };
-
-  const handleFeatureChange = async (featureName: string, value: string) => {
-    if (value === "اختر") return;
+  // دالة إعادة تعيين الخيارات
+  const resetAllOptions = () => {
+    setSize("اختر");
+    setColor("اختر");
+    setMaterial("اختر");
     
-    console.log("Updating feature:", featureName, value);
-    setSaving(true);
-    
-    const newFeatures = { ...selectedFeatures, [featureName]: value };
-    setSelectedFeatures(newFeatures);
-
-    const selectedOptions: any[] = [];
-
-    if (size && size !== "اختر" && apiData?.sizes?.length > 0) {
-      selectedOptions.push({
-        option_name: "المقاس",
-        option_value: size,
+    const resetFeatures: { [key: string]: string } = {};
+    if (apiData?.features) {
+      apiData.features.forEach((feature: any) => {
+        const hasValues = feature.value || (feature.values && feature.values.length > 0);
+        if (hasValues) {
+          resetFeatures[feature.name] = "اختر";
+        }
       });
     }
     
-    if (color && color !== "اختر" && apiData?.colors?.length > 0) {
-      selectedOptions.push({
-        option_name: "اللون",
-        option_value: color,
-      });
-    }
+    setSelectedFeatures(resetFeatures);
+    setHasUnsavedChanges(true);
+    setShowSaveButton(true);
+    setSavedSuccessfully(false);
+  };
+
+  // معالج تغيير الخيارات مع تحديث الحالة
+  const handleOptionChange = (setter: Function, value: string, optionType: string) => {
+    const oldValue = optionType === 'size' ? size : optionType === 'color' ? color : material;
     
-    if (material && material !== "اختر" && apiData?.materials?.length > 0) {
-      selectedOptions.push({
-        option_name: "الخامة",
-        option_value: material,
-      });
-    }
-    
-    Object.entries(newFeatures).forEach(([name, val]) => {
-      if (name && val && val !== "اختر") {
-        selectedOptions.push({
-          option_name: "خاصية",
-          option_value: `${name}: ${val}`,
-        });
+    if (value !== oldValue) {
+      setter(value);
+      if (!cartItemId) {
+        // تحديث مباشر لصفحة المنتج
+        setHasUnsavedChanges(true);
+      } else {
+        // للكارت: إظهار زر الحفظ
+        setShowSaveButton(true);
+        setHasUnsavedChanges(true);
+        setSavedSuccessfully(false);
       }
+    }
+  };
+
+  const handleSizeChange = (value: string) => {
+    handleOptionChange(setSize, value, 'size');
+  };
+
+  const handleColorChange = (value: string) => {
+    handleOptionChange(setColor, value, 'color');
+  };
+
+  const handleMaterialChange = (value: string) => {
+    handleOptionChange(setMaterial, value, 'material');
+  };
+
+  const handleFeatureChange = (featureName: string, value: string) => {
+    setSelectedFeatures(prev => {
+      const newFeatures = { ...prev, [featureName]: value };
+      
+      if (cartItemId) {
+        setHasUnsavedChanges(true);
+        setShowSaveButton(true);
+        setSavedSuccessfully(false);
+      }
+      
+      return newFeatures;
     });
-    
-    const updates = { selected_options: selectedOptions };
-    
-    
-    try {
-      const success = await updateCartItem(cartItemId!, updates);
-      if (success) {
-        await loadSavedOptions();
-      }
-    } catch (error) {
-      console.error("Failed to update feature:", error);
-    } finally {
-      setSaving(false);
-    }
   };
 
+  // إذا كان في وضع التحميل
   if (loading && formLoading) {
-    return (
-      <Loading/>
-    );
+    return <Loading />;
   }
 
   if (!apiData) {
@@ -290,6 +385,32 @@ export default function StickerForm({
     );
   }
 
+  // عرض مؤشرات الصحة
+  const renderValidationIndicator = () => {
+    const isValid = validateCurrentOptions();
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="mb-4"
+      >
+        <div className={`p-3 rounded-lg border ${isValid ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'}`}>
+          <div className="flex items-center gap-2">
+            {isValid ? (
+              <CheckCircle className="text-green-600 text-sm" />
+            ) : (
+              <Warning className="text-yellow-600 text-sm" />
+            )}
+            <p className={`text-sm ${isValid ? 'text-green-800' : 'text-yellow-800'}`}>
+              {isValid ? '✓ جميع الخيارات صحيحة' : '⚠ خيارات مطلوبة'}
+            </p>
+          </div>
+        </div>
+      </motion.div>
+    );
+  };
+
+  // عرض خيارات المقاسات
   const renderSizesSelect = () => {
     if (!apiData?.sizes || apiData.sizes.length === 0) return null;
 
@@ -298,34 +419,30 @@ export default function StickerForm({
       label: sizeItem.name,
     }));
 
+    const hasSizes = apiData.sizes.length > 0;
+    const isRequired = hasSizes;
+
     return (
       <Box display="flex" gap={2} alignItems="center" mb={3}>
         <Box flex={1}>
-          <Typography
-            variant="subtitle1"
-            fontWeight="bold"
-            className="text-gray-800"
-          >
+          <Typography variant="subtitle1" fontWeight="bold" className="text-gray-800">
             المقاس{" "}
-            {apiData.sizes.length > 0 && (
-              <span style={{ color: "red" }}>*</span>
-            )}
+            {isRequired && <span style={{ color: "red" }}>*</span>}
           </Typography>
         </Box>
         <Box flex={2} position="relative">
           <FormControl
             fullWidth
-            required={apiData.sizes.length > 0}
+            required={isRequired}
             size="small"
-            error={apiData.sizes.length > 0 && size === "اختر"}
-           
+            error={isRequired && size === "اختر"}
           >
             <InputLabel>المقاس</InputLabel>
             <Select
               value={size}
               onChange={(e) => handleSizeChange(e.target.value)}
               label="المقاس"
-              required={apiData.sizes.length > 0}
+              required={isRequired}
               className="bg-white"
             >
               <MenuItem value="اختر" disabled>
@@ -337,18 +454,18 @@ export default function StickerForm({
                 </MenuItem>
               ))}
             </Select>
-            {apiData.sizes.length > 0 && size === "اختر" && (
+            {isRequired && size === "اختر" && (
               <FormHelperText className="text-red-500 text-xs">
                 يجب اختيار المقاس
               </FormHelperText>
             )}
           </FormControl>
-     
         </Box>
       </Box>
     );
   };
 
+  // عرض خيارات الألوان
   const renderColorsSelect = () => {
     if (!apiData?.colors || apiData.colors.length === 0) return null;
 
@@ -358,34 +475,30 @@ export default function StickerForm({
       hex: colorItem.hex_code,
     }));
 
+    const hasColors = apiData.colors.length > 0;
+    const isRequired = hasColors;
+
     return (
       <Box display="flex" gap={2} alignItems="center" mb={3}>
         <Box flex={1}>
-          <Typography
-            variant="subtitle1"
-            fontWeight="bold"
-            className="text-gray-800"
-          >
+          <Typography variant="subtitle1" fontWeight="bold" className="text-gray-800">
             اللون{" "}
-            {apiData.colors.length > 0 && (
-              <span style={{ color: "red" }}>*</span>
-            )}
+            {isRequired && <span style={{ color: "red" }}>*</span>}
           </Typography>
         </Box>
         <Box flex={2} position="relative">
           <FormControl
             fullWidth
-            required={apiData.colors.length > 0}
+            required={isRequired}
             size="small"
-            error={apiData.colors.length > 0 && color === "اختر"}
-           
+            error={isRequired && color === "اختر"}
           >
             <InputLabel>اللون</InputLabel>
             <Select
               value={color}
               onChange={(e) => handleColorChange(e.target.value)}
               label="اللون"
-              required={apiData.colors.length > 0}
+              required={isRequired}
               className="bg-white"
             >
               <MenuItem value="اختر" disabled>
@@ -405,18 +518,18 @@ export default function StickerForm({
                 </MenuItem>
               ))}
             </Select>
-            {apiData.colors.length > 0 && color === "اختر" && (
+            {isRequired && color === "اختر" && (
               <FormHelperText className="text-red-500 text-xs">
                 يجب اختيار اللون
               </FormHelperText>
             )}
           </FormControl>
-         
         </Box>
       </Box>
     );
   };
 
+  // عرض خيارات الخامات
   const renderMaterialsSelect = () => {
     if (!apiData?.materials || apiData.materials.length === 0) return null;
 
@@ -425,34 +538,30 @@ export default function StickerForm({
       label: materialItem.name,
     }));
 
+    const hasMaterials = apiData.materials.length > 0;
+    const isRequired = hasMaterials;
+
     return (
       <Box display="flex" gap={2} alignItems="center" mb={3}>
         <Box flex={1}>
-          <Typography
-            variant="subtitle1"
-            fontWeight="bold"
-            className="text-gray-800"
-          >
+          <Typography variant="subtitle1" fontWeight="bold" className="text-gray-800">
             الخامة{" "}
-            {apiData.materials.length > 0 && (
-              <span style={{ color: "red" }}>*</span>
-            )}
+            {isRequired && <span style={{ color: "red" }}>*</span>}
           </Typography>
         </Box>
         <Box flex={2} position="relative">
           <FormControl
             fullWidth
-            required={apiData.materials.length > 0}
+            required={isRequired}
             size="small"
-            error={apiData.materials.length > 0 && material === "اختر"}
-            
+            error={isRequired && material === "اختر"}
           >
             <InputLabel>الخامة</InputLabel>
             <Select
               value={material}
               onChange={(e) => handleMaterialChange(e.target.value)}
               label="الخامة"
-              required={apiData.materials.length > 0}
+              required={isRequired}
               className="bg-white"
             >
               <MenuItem value="اختر" disabled>
@@ -464,74 +573,63 @@ export default function StickerForm({
                 </MenuItem>
               ))}
             </Select>
-            {apiData.materials.length > 0 && material === "اختر" && (
+            {isRequired && material === "اختر" && (
               <FormHelperText className="text-red-500 text-xs">
                 يجب اختيار الخامة
               </FormHelperText>
             )}
           </FormControl>
-        
         </Box>
       </Box>
     );
   };
 
+  // عرض خيارات الخصائص
   const renderFeaturesSelects = () => {
     if (!apiData?.features || apiData.features.length === 0) return null;
 
     return apiData.features.map((feature: any, index: number) => {
       let options: { value: string; label: string }[] = [];
 
-      if (
-        feature.values &&
-        Array.isArray(feature.values) &&
-        feature.values.length > 0
-      ) {
+      if (feature.values && Array.isArray(feature.values) && feature.values.length > 0) {
         options = feature.values.map((val: string) => ({
           value: val,
           label: val,
         }));
       } else if (feature.value) {
-        options = [
-          {
-            value: feature.value,
-            label: feature.value,
-          },
-        ];
+        options = [{
+          value: feature.value,
+          label: feature.value,
+        }];
       } else {
         return null;
       }
 
       const currentValue = selectedFeatures[feature.name] || "اختر";
-      const hasValues =
-        feature.value || (feature.values && feature.values.length > 0);
+      const hasValues = feature.value || (feature.values && feature.values.length > 0);
+      const isRequired = hasValues;
 
       return (
         <Box key={index} display="flex" gap={2} alignItems="center" mb={3}>
           <Box flex={1}>
-            <Typography
-              variant="subtitle1"
-              fontWeight="bold"
-              className="text-gray-800"
-            >
+            <Typography variant="subtitle1" fontWeight="bold" className="text-gray-800">
               {feature.name}{" "}
-              {hasValues && <span style={{ color: "red" }}>*</span>}
+              {isRequired && <span style={{ color: "red" }}>*</span>}
             </Typography>
           </Box>
           <Box flex={2} position="relative">
             <FormControl
               fullWidth
-              required={hasValues}
+              required={isRequired}
               size="small"
-              error={hasValues && currentValue === "اختر"}
-             
+              error={isRequired && currentValue === "اختر"}
             >
               <InputLabel>{feature.name}</InputLabel>
               <Select
                 value={currentValue}
                 onChange={(e) => handleFeatureChange(feature.name, e.target.value)}
                 label={feature.name}
-                required={hasValues}
+                required={isRequired}
                 className="bg-white"
               >
                 <MenuItem value="اختر" disabled>
@@ -543,13 +641,12 @@ export default function StickerForm({
                   </MenuItem>
                 ))}
               </Select>
-              {hasValues && currentValue === "اختر" && (
+              {isRequired && currentValue === "اختر" && (
                 <FormHelperText className="text-red-500 text-xs">
                   يجب اختيار {feature.name}
                 </FormHelperText>
               )}
             </FormControl>
- 
           </Box>
         </Box>
       );
@@ -563,14 +660,82 @@ export default function StickerForm({
       transition={{ duration: 0.3 }}
       className="border-t border-gray-100 pt-4 mt-4"
     >
-   
-      
+      {/* مؤشر التحقق */}
+      {!cartItemId && renderValidationIndicator()}
+
+      {/* شريط التحكم (للكارت فقط) */}
+      {cartItemId && showSaveButton && (
+        <motion.div
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg"
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Warning className="text-yellow-600 text-sm" />
+              <p className="text-sm text-yellow-800">لديك تغييرات غير محفوظة</p>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outlined"
+                size="small"
+                onClick={resetAllOptions}
+                startIcon={<Refresh />}
+                className="text-yellow-700 border-yellow-300"
+              >
+                إعادة تعيين
+              </Button>
+              <Button
+                variant="contained"
+                size="small"
+                onClick={saveAllOptions}
+                disabled={saving}
+                startIcon={saving ? <CircularProgress size={16} /> : <Save />}
+                className="bg-amber-500 hover:bg-amber-600 text-white"
+              >
+                {saving ? 'جاري الحفظ...' : 'حفظ'}
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+      )}
+
+      {/* رسالة نجاح الحفظ */}
+      {cartItemId && savedSuccessfully && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="mb-4"
+        >
+          <Alert 
+            severity="success" 
+            className="rounded-lg"
+            icon={<CheckCircle />}
+          >
+            تم حفظ التغييرات بنجاح
+          </Alert>
+        </motion.div>
+      )}
+
       <div className="space-y-4">
         {renderSizesSelect()}
         {renderColorsSelect()}
         {renderMaterialsSelect()}
         {renderFeaturesSelects()}
       </div>
+
+      {apiData?.options_note && (
+        <div className="mt-6 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="flex items-start gap-2">
+            <Info className="text-blue-500 text-sm mt-0.5" />
+            <p className="text-sm text-blue-700">{apiData.options_note}</p>
+          </div>
+        </div>
+      )}
     </motion.div>
   );
-}
+});
+
+StickerForm.displayName = 'StickerForm';
+
+export default StickerForm;

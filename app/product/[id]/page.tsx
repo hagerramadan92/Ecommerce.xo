@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Loading from "@/app/loading";
 import { ProductI } from "@/Types/ProductsI";
@@ -19,34 +19,43 @@ import ButtonComponent from "@/components/ButtonComponent";
 import ProductCard from "@/components/ProductCard";
 import InStockSlider from "@/components/InStockSlider";
 import { useAppContext } from "@/src/context/AppContext";
-import { useCart } from "@/src/context/CartContext"; 
+import { useCart } from "@/src/context/CartContext";
+
+// تعريف نوع الخيارات المختارة
+interface SelectedOptions {
+  size: string;
+  color: string;
+  material: string;
+  features: { [key: string]: string };
+  isValid: boolean;
+}
+
 export default function ProductPageClient() {
   const params = useParams();
   const { id } = params;
   const { authToken: token } = useAuth();
-  // const [showStickerForm, setShowStickerForm] = useState(true);
-  // const [showPOV, setShowPOV] = useState(false);
-   const { addToCart } = useCart();
-  const [activeTab, setActiveTab] = useState<"options" | "reviews" | null>(
-    "options"
-  );
+  const { addToCart } = useCart();
+  const stickerFormRef = useRef<any>(null);
+  
+  const [activeTab, setActiveTab] = useState<"options" | "reviews" | null>("options");
   const { homeData } = useAppContext();
   const categories2 = homeData?.sub_categories || [];
   const [product, setProduct] = useState<ProductI | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [selectedOptions, setSelectedOptions] = useState<SelectedOptions>({
+    size: "اختر",
+    color: "اختر",
+    material: "اختر",
+    features: {},
+    isValid: false
+  });
+  const [apiData, setApiData] = useState<any>(null);
+
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
-const handleSubmit = async () => {
-  if (!product) return;
 
-
-  addToCart(product.id, { quantity: 1 });
-
-  // toast.success("تم إضافة المنتج إلى السلة بنجاح");
-};
-
-
+  // دالة لجلب بيانات المنتج
   useEffect(() => {
     async function fetchProduct() {
       if (!id) return;
@@ -64,6 +73,7 @@ const handleSubmit = async () => {
         const data = await res.json();
         const prod = data.data ?? null;
         setProduct(prod);
+        setApiData(data.data);
 
         const savedFavorites = JSON.parse(
           localStorage.getItem("favorites") || "[]"
@@ -80,6 +90,122 @@ const handleSubmit = async () => {
     fetchProduct();
   }, [id, token]);
 
+  // دالة التحقق من صحة الخيارات
+  const validateOptions = useCallback((options: SelectedOptions, apiData: any) => {
+    if (!apiData) return { isValid: false, missingOptions: [] };
+
+    let isValid = true;
+    const missingOptions: string[] = [];
+
+    // التحقق من المقاسات المطلوبة
+    if (apiData.sizes?.length > 0 && (!options.size || options.size === "اختر")) {
+      isValid = false;
+      missingOptions.push("المقاس");
+    }
+
+    // التحقق من الألوان المطلوبة
+    if (apiData.colors?.length > 0 && (!options.color || options.color === "اختر")) {
+      isValid = false;
+      missingOptions.push("اللون");
+    }
+
+    // التحقق من الخامات المطلوبة
+    if (apiData.materials?.length > 0 && (!options.material || options.material === "اختر")) {
+      isValid = false;
+      missingOptions.push("الخامة");
+    }
+
+    // التحقق من الخصائص المطلوبة
+    if (apiData.features?.length > 0) {
+      apiData.features.forEach((feature: any) => {
+        const hasValues = feature.value || (feature.values && feature.values.length > 0);
+        if (hasValues) {
+          const featureValue = options.features[feature.name];
+          if (!featureValue || featureValue === "اختر") {
+            isValid = false;
+            missingOptions.push(feature.name);
+          }
+        }
+      });
+    }
+
+    return { isValid, missingOptions };
+  }, []);
+
+  // دالة لجلب الخيارات من StickerForm
+  const getSelectedOptions = async () => {
+    if (stickerFormRef.current) {
+      const options = await stickerFormRef.current.getOptions();
+      setSelectedOptions(options);
+      return options;
+    }
+    return selectedOptions;
+  };
+
+  // دالة إضافة المنتج للسلة
+  const handleSubmit = async () => {
+    if (!product || !apiData) return;
+
+    // جلب الخيارات الحالية
+    const options = await getSelectedOptions();
+    
+    // التحقق من صحة الخيارات
+    const validation = validateOptions(options, apiData);
+    
+    if (!validation.isValid) {
+      toast.error(`يرجى اختيار: ${validation.missingOptions.join("، ")}`);
+      return;
+    }
+
+    // تجهيز البيانات للإرسال
+    const cartData = {
+      product_id: product.id,
+      quantity: 1,
+      selected_options: [] as Array<{ option_name: string; option_value: string }>
+    };
+
+    // إضافة الخيارات المختارة
+    if (options.size && options.size !== "اختر") {
+      cartData.selected_options.push({
+        option_name: "المقاس",
+        option_value: options.size
+      });
+    }
+
+    if (options.color && options.color !== "اختر") {
+      cartData.selected_options.push({
+        option_name: "اللون",
+        option_value: options.color
+      });
+    }
+
+    if (options.material && options.material !== "اختر") {
+      cartData.selected_options.push({
+        option_name: "الخامة",
+        option_value: options.material
+      });
+    }
+
+    // إضافة الخصائص
+    Object.entries(options.features).forEach(([name, value]) => {
+      if (value && value !== "اختر") {
+        cartData.selected_options.push({
+          option_name: "خاصية",
+          option_value: `${name}: ${value}`
+        });
+      }
+    });
+
+    // إضافة المنتج للسلة
+    try {
+      await addToCart(product.id, cartData);
+      toast.success("تم إضافة المنتج إلى السلة بنجاح");
+    } catch (error) {
+      toast.error("حدث خطأ أثناء إضافة المنتج للسلة");
+    }
+  };
+
+  // دالة المفضلة
   const toggleFavorite = async () => {
     if (!token) {
       toast.error("يجب تسجيل الدخول أولاً");
@@ -129,9 +255,12 @@ const handleSubmit = async () => {
   if (loading) return <Loading />;
   if (error || !product) return <p>المنتج غير موجود</p>;
 
+  const validation = validateOptions(selectedOptions, apiData);
+
   return (
     <>
       <div className=" xl:ms-[15%] ms-5 sm:ms-10 md:gap-5 lg:flex md:grid md:grid-cols-2">
+        {/* القسم الأيسر - معلومات المنتج */}
         <div className="lg:w-[35%]  mt-5 mb-4">
           <div className="py-5 font-family-cairo">
             <CustomSeparator proName={product.name} />
@@ -159,9 +288,11 @@ const handleSubmit = async () => {
               />
             </div>
           </div>
+          
           <h6 className="font-bold text-3xl my-7 text-gray-600">
             مواصفات المنتج
           </h6>
+          
           <p
             className="text-sm mt-1 text-gray-700"
             dangerouslySetInnerHTML={{ __html: product.description || "" }}
@@ -172,16 +303,16 @@ const handleSubmit = async () => {
               <FaBarcode size={19} className="text-pro-max" />
               <p className="text-sm">رقم الموديل</p>
             </div>
-
             <p className="text-sm">{product.id}</p>
           </div>
-          {/* rate form */}
+          
+          {/* قسم التبويبات */}
           <div className="rounded-2xl border border-gray-200 border-t-0">
-            {/* Buttons */}
+            {/* رؤوس التبويبات */}
             <div className="grid grid-cols-2 border-b-2 border-amber-400">
               <div
                 className={`flex items-center justify-center py-3 rounded-2xl rounded-br-none rounded-bl-none cursor-pointer 
-        ${activeTab === "options" ? "bg-orange-300" : "bg-white"}`}
+                  ${activeTab === "options" ? "bg-orange-300" : "bg-white"}`}
                 onClick={() => setActiveTab("options")}
               >
                 <button className="text-center transition cursor-pointer">
@@ -191,7 +322,7 @@ const handleSubmit = async () => {
 
               <div
                 className={`flex items-center justify-center py-3 rounded-2xl rounded-br-none rounded-bl-none cursor-pointer 
-        ${activeTab === "reviews" ? "bg-orange-300" : "bg-white"}`}
+                  ${activeTab === "reviews" ? "bg-orange-300" : "bg-white"}`}
                 onClick={() => setActiveTab("reviews")}
               >
                 <button className="text-center transition cursor-pointer">
@@ -200,14 +331,21 @@ const handleSubmit = async () => {
               </div>
             </div>
 
+            {/* محتوى التبويبات */}
             <div className="m-4">
               {activeTab === "options" && (
-                <StickerForm productId={product.id} />
+                <StickerForm 
+                  productId={product.id} 
+                  ref={stickerFormRef}
+                  onOptionsChange={setSelectedOptions}
+                />
               )}
               {activeTab === "reviews" && <POVComponent product={product} />}
             </div>
           </div>
         </div>
+        
+        {/* القسم الأيمن - معرض الصور */}
         <div className="lg:w-[5%] hidden lg:flex"></div>
         <div className=" lg:w-[60%] ">
           <div className="sticky top-20">
@@ -223,8 +361,61 @@ const handleSubmit = async () => {
           </div>
         </div>
       </div>
+
+      {/* قسم عرض الخيارات المختارة */}
+      {selectedOptions.size !== "اختر" || selectedOptions.color !== "اختر" || selectedOptions.material !== "اختر" || Object.values(selectedOptions.features).some(v => v !== "اختر") ? (
+        <div className="xl:ms-[15%] ms-5 sm:ms-10 mb-6 mt-4">
+          <div className="p-4 rounded-lg border border-gray-200 bg-gray-50">
+            <h3 className="text-lg font-bold text-gray-700 mb-3">
+              الخيارات المختارة
+            </h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+              {selectedOptions.size !== "اختر" && (
+                <div className="bg-white p-3 rounded border border-gray-200">
+                  <p className="text-sm text-gray-500">المقاس</p>
+                  <p className="font-semibold text-gray-800">{selectedOptions.size}</p>
+                </div>
+              )}
+              
+              {selectedOptions.color !== "اختر" && (
+                <div className="bg-white p-3 rounded border border-gray-200">
+                  <p className="text-sm text-gray-500">اللون</p>
+                  <p className="font-semibold text-gray-800">{selectedOptions.color}</p>
+                </div>
+              )}
+              
+              {selectedOptions.material !== "اختر" && (
+                <div className="bg-white p-3 rounded border border-gray-200">
+                  <p className="text-sm text-gray-500">الخامة</p>
+                  <p className="font-semibold text-gray-800">{selectedOptions.material}</p>
+                </div>
+              )}
+              
+              {Object.entries(selectedOptions.features).map(([key, value]) => (
+                value !== "اختر" && (
+                  <div key={key} className="bg-white p-3 rounded border border-gray-200">
+                    <p className="text-sm text-gray-500">{key}</p>
+                    <p className="font-semibold text-gray-800">{value}</p>
+                  </div>
+                )
+              ))}
+            </div>
+            
+            {!validation.isValid && (
+              <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                <p className="text-sm text-yellow-700">
+                  ⚠️ بعض الخيارات المطلوبة غير مختارة
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : null}
+
+      {/* شريط التثبيت السفلي */}
       <div className="flex items-center justify-between z-50 py-4 px-7  shadow-gray-700 shadow-2xl  fixed bottom-0 start-0 end-0 bg-white">
-        {/* product image */}
+        {/* صورة المنتج */}
         <div className="flex gap-5 items-center">
           <Image
             src={product.image ?? "images/o1.jpg"}
@@ -240,17 +431,25 @@ const handleSubmit = async () => {
             <h3 className="text-xl font-bold">{product.name}</h3>
           </div>
         </div>
-        {/* cart */}
+        
+        {/* السعر وإضافة للسلة */}
         <div className="flex items-center gap-3  max-w-max">
           <div className="flex flex-col items-center ">
             <h4 className="text-xl font-bold">{product.price}</h4>
             <p className="text-gray-500 text-[12px]">السعر يشمل الضريبة</p>
           </div>
           <div className=" ">
-            <ButtonComponent title="اضافة للسلة" onClick={handleSubmit} />
+            <ButtonComponent 
+              title="اضافة للسلة" 
+              onClick={handleSubmit}
+              // disabled={!validation.isValid}
+              // validation={validation}
+            />
           </div>
         </div>
       </div>
+
+      {/* المنتجات المشابهة */}
       <div className="mx-6 md:mx-[4%] xl:mx-[14%] my-6">
         {product && categories2.length > 0 && (
           <section className="">
@@ -312,6 +511,9 @@ const handleSubmit = async () => {
           </section>
         )}
       </div>
+
+      {/* مسافة إضافية لتعويض الشريط الثابت */}
+      <div className="h-20"></div>
     </>
   );
 }

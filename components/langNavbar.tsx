@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-import { FaPhoneAlt } from "react-icons/fa";
+import { FaFacebook, FaPhoneAlt } from "react-icons/fa";
 
 import SubIcon from "./subIcon";
 import { link } from "@/Types/data";
@@ -32,6 +32,7 @@ export default function LangNavbar() {
             </div>
           );
         })}
+      
       </div>
       <div className="flex1 justify-between">
         <div className="flex items-center gap-2">
