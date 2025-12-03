@@ -10,13 +10,13 @@ import { ProductI } from "@/Types/ProductsI";
 interface InStockSliderProps {
   inStock: ProductI[];
   CardComponent: React.ComponentType<ProductI>;
-  title?: string; // اختياري لو عايزة تبعتي عنوان من بره
+  title?: string;
 }
 
-export default function InStockSlider({ 
-  inStock, 
+export default function InStockSlider({
+  inStock,
   CardComponent,
-  title = "" 
+  title = "",
 }: InStockSliderProps) {
   const prevRef = useRef<HTMLButtonElement>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
@@ -34,19 +34,27 @@ export default function InStockSlider({
   return (
     <div className="relative w-full py-0">
       <div className="flex items-center justify-between mb-6 px-4 md:px-0">
-        <h2 className="text-xl md:text-2xl font-bold text-pro">
-          {title}
-        </h2>
+        <h2 className="text-xl md:text-2xl font-bold text-pro">{title}</h2>
 
-       
         <div className="flex items-center gap-3">
           <button
             ref={prevRef}
             className="flex items-center cursor-pointer justify-center w-8 h-8 rounded border border-gray-300 hover:border-orange-500 text-gray-500 hover:bg-pro hover:text-orange-500 transition-all duration-200"
             aria-label="السابق"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 scale-[-1]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-5 h-5 scale-[-1]"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 19l-7-7 7-7"
+              />
             </svg>
           </button>
 
@@ -55,8 +63,19 @@ export default function InStockSlider({
             className="flex items-center cursor-pointer justify-center w-8 h-8 rounded border border-gray-300 hover:border-orange-500 text-gray-500 hover:bg-pro hover:text-orange-500 transition-all duration-200"
             aria-label="التالي"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 scale-[-1]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="w-5 h-5 scale-[-1]"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5l7 7-7 7"
+              />
             </svg>
           </button>
         </div>
@@ -87,6 +106,8 @@ export default function InStockSlider({
               stock={product.stock}
               final_price={product.final_price}
               discount={product.discount}
+              average_rating={product.average_rating}
+              reviews={product.reviews}
             />
           </SwiperSlide>
         ))}

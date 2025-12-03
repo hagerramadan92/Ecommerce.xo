@@ -77,10 +77,8 @@ interface CartContextType {
   setStickerFormValues: (values: any) => void;
   validateStickerForm: (fields: any) => boolean;
   
-  // دالة جديدة للحصول على خيارات محددة من السيرفر
   fetchCartItemOptions: (cartItemId: number) => Promise<any>;
   
-  // دالة لتحميل خيارات منتج معين
   loadItemOptions: (cartItemId: number) => Promise<void>;
 }
 
@@ -99,12 +97,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     selectedFeatures: {},
   });
 
-  // دالة لتحليل selected_options بشكل موحد
   const parseSelectedOptions = (selectedOptionsStr: string): any[] => {
     if (!selectedOptionsStr) return [];
     
     try {
-      // محاولة تحليل كـ JSON
       const parsed = JSON.parse(selectedOptionsStr);
       if (Array.isArray(parsed)) {
         return parsed;
@@ -133,21 +129,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       });
 
       const data = await res.json();
-      console.log("Cart API Response:", data);
 
       if (res.ok && data.status && data.data?.items) {
         const items = data.data.items.map((item: any) => {
           const selectedOptions = parseSelectedOptions(item.selected_options);
           
-          console.log(`Cart Item ${item.id}:`, {
-            selected_options_raw: item.selected_options,
-            selected_options_parsed: selectedOptions,
-            size: item.size,
-            color: item.color,
-            material: item.material,
-            price_per_unit: item.price_per_unit,
-            line_total: item.line_total
-          });
+        
 
           return {
             cart_item_id: item.id,
@@ -175,10 +162,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
             is_sample: item.is_sample === 1,
           };
         });
-        console.log("Final cart items:", items);
         setCart(items);
       } else {
-        console.log("No items in cart or API error");
         setCart([]);
       }
     } catch (err) {
@@ -194,7 +179,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     await fetchCart();
   };
 
-  // دالة جديدة للحصول على خيارات عنصر معين من السيرفر
   const fetchCartItemOptions = useCallback(async (cartItemId: number) => {
     if (!token) return null;
 
@@ -213,13 +197,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         if (cartItem) {
           const selectedOptions = parseSelectedOptions(cartItem.selected_options);
           
-          console.log("Fetched cart item options:", {
-            cartItemId,
-            selected_options: selectedOptions,
-            size: cartItem.size,
-            color: cartItem.color,
-            material: cartItem.material
-          });
+         
 
           return {
             selected_options: selectedOptions,
@@ -239,14 +217,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [token, API_URL]);
 
-  // دالة لتحميل خيارات منتج معين وتحديث الـ cart state
   const loadItemOptions = useCallback(async (cartItemId: number) => {
     if (!token) return;
 
     try {
       const options = await fetchCartItemOptions(cartItemId);
       if (options) {
-        // تحديث الـ cart state مع البيانات الجديدة
         setCart(prevCart => 
           prevCart.map(item => 
             item.cart_item_id === cartItemId
@@ -264,7 +240,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
           )
         );
         
-        console.log(`Updated cart item ${cartItemId} with new options:`, options);
       }
     } catch (err) {
       console.error("Failed to load item options:", err);
@@ -408,7 +383,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   ): Promise<boolean> => {
     if (!token) return false;
 
-    console.log("Updating cart item:", cartItemId, updates);
 
     try {
       const response = await fetch(`${API_URL}/cart/items/${cartItemId}`, {
@@ -425,7 +399,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       console.log("Update response:", data);
 
       if (response.ok && data.status) {
-        // إعادة تحميل الخيارات لهذا العنصر فقط
         await loadItemOptions(cartItemId);
         toast.success("تم تحديث العنصر بنجاح");
         return true;
@@ -435,7 +408,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         return false;
       }
     } catch (err) {
-      console.error("Update cart item error:", err);
       await refreshCart();
       toast.error("خطأ في الاتصال، حاول مرة أخرى");
       return false;
@@ -471,7 +443,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       const data = await response.json();
 
       if (response.ok && data.status) {
-        // إعادة تحميل الخيارات لهذا العنصر فقط
         await loadItemOptions(cartItemId);
         toast.success("تم تحديث الخيار بنجاح");
         return true;
@@ -481,7 +452,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         return false;
       }
     } catch (err) {
-      console.error("Update selected option error:", err);
       await refreshCart();
       toast.error("خطأ في الاتصال، حاول مرة أخرى");
       return false;

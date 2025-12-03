@@ -18,7 +18,7 @@ export default function Home() {
   const [mainSlider, setMainSlider] = useState<BannerI[]>([]);
   const [loading, setLoading] = useState(true);
   // const [favorites, setFavorites] = useState<{ [key: number]: boolean }>({});
-
+  
   useEffect(() => {
     const getSlider1 = async () => {
       try {
@@ -49,6 +49,7 @@ export default function Home() {
         <CategoriesSlider categories={categories1} />
 
         {categories2.map((category) => {
+        
           if (!category.products || category.products.length === 0) return null;
 
           return (
@@ -77,9 +78,9 @@ export default function Home() {
                   </Link>
                 </div>
               </div>
-
               <InStockSlider
                 inStock={category.products}
+                
                 CardComponent={(product) => (
                   <ProductCard
                     {...product}
@@ -91,7 +92,7 @@ export default function Home() {
                     id={product.id}
                     name={product.name}
                     image={product.image || "/images/c1.png"}
-                    stock={product.stock || 0}
+                    stock={product.stock }
                     average_rating={product.average_rating}
                     reviews={product.reviews}
                   />

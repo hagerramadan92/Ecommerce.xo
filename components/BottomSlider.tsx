@@ -13,13 +13,13 @@ export default function BottomSlider() {
     },
     {
       icon: <MdStars size={20} />,
-      text: "#1 في ديكورات الأطفال",
+      text: "#1 في  التوصيل السريع",
     },
     {
       icon: <p className="text-lg">!</p>,
       text: (
         <>
-          متبقي <span className="font-bold text-red-600">1</span> فقط في المخزن
+          متبقي <span className="font-bold text-red-600">عدد قليل</span>  في المخزن
         </>
       ),
     },

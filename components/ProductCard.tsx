@@ -236,7 +236,7 @@ export default function ProductCard({
         disabled={isAdding || stock === 0}
         className={`${classNameCate} absolute end-1.5 ${Bottom} z-20 transition-all duration-300`}
       >
-        <div className="bg-white p-1 rounded-full text-pro text-xl cursor-pointer hover:text-orange-300">
+        <div className="bg-white/75 p-1 rounded-full text-pro text-xl cursor-pointer ">
           {isAdding ? (
             <div className="w-5 h-5 border-2 border-t-transparent border-gray-700 rounded-full animate-spin"></div>
           ) : (
@@ -244,21 +244,6 @@ export default function ProductCard({
           )}
         </div>
       </button>
-      {/* 
-      
-      
-      
-      <button>
-        <div className="bg-white p-1 rounded-full text-gray-700 hover:text-orange-500 transition-all duration-200">
-          {isAdding ? (
-            <div className="w-5 h-5 border-2 border-t-transparent border-gray-700 rounded-full animate-spin"></div>
-          ) : (
-            <BsCart3 size={24} className="cursor-pointer" />
-          )}
-        </div>
-      </button>
-      
-      */}
     </div>
   );
 }
