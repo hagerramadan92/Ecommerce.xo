@@ -199,13 +199,16 @@ ${errorMessages.join("\n")}
                   <div className="md:flex justify-between items-start flex md:flex-row flex-col gap-3 md:gap-0">
                     <div className="flex gap-3 md:border-0 border-b border-gray-200 w-full md:w-fit pb-4 md:pb-0">
                       <div className="w-25 h-20 bg-gray-100 rounded">
-                        <Image
-                          src={item.product.image || "/images/placeholder.png"}
+                       <Link href={`/product/${item.product.id}`}>
+                            <Image
+                          src={item.product.image || "/images/not.jpg"}
                           alt={item.product.name}
                           width={96}
                           height={80}
                           className="w-full h-full object-fit rounded"
                         />
+                       </Link>
+                   
                       </div>
 
                       <div className="flex flex-col justify-between">

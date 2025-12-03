@@ -21,7 +21,6 @@ import InStockSlider from "@/components/InStockSlider";
 import { useAppContext } from "@/src/context/AppContext";
 import { useCart } from "@/src/context/CartContext";
 
-// تعريف نوع الخيارات المختارة
 interface SelectedOptions {
   size: string;
   color: string;
@@ -55,7 +54,6 @@ export default function ProductPageClient() {
 
   const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-  // دالة لجلب بيانات المنتج
   useEffect(() => {
     async function fetchProduct() {
       if (!id) return;
@@ -90,32 +88,27 @@ export default function ProductPageClient() {
     fetchProduct();
   }, [id, token]);
 
-  // دالة التحقق من صحة الخيارات
   const validateOptions = useCallback((options: SelectedOptions, apiData: any) => {
     if (!apiData) return { isValid: false, missingOptions: [] };
 
     let isValid = true;
     const missingOptions: string[] = [];
 
-    // التحقق من المقاسات المطلوبة
     if (apiData.sizes?.length > 0 && (!options.size || options.size === "اختر")) {
       isValid = false;
       missingOptions.push("المقاس");
     }
 
-    // التحقق من الألوان المطلوبة
     if (apiData.colors?.length > 0 && (!options.color || options.color === "اختر")) {
       isValid = false;
       missingOptions.push("اللون");
     }
 
-    // التحقق من الخامات المطلوبة
     if (apiData.materials?.length > 0 && (!options.material || options.material === "اختر")) {
       isValid = false;
       missingOptions.push("الخامة");
     }
 
-    // التحقق من الخصائص المطلوبة
     if (apiData.features?.length > 0) {
       apiData.features.forEach((feature: any) => {
         const hasValues = feature.value || (feature.values && feature.values.length > 0);
@@ -132,7 +125,6 @@ export default function ProductPageClient() {
     return { isValid, missingOptions };
   }, []);
 
-  // دالة لجلب الخيارات من StickerForm
   const getSelectedOptions = async () => {
     if (stickerFormRef.current) {
       const options = await stickerFormRef.current.getOptions();
@@ -142,14 +134,11 @@ export default function ProductPageClient() {
     return selectedOptions;
   };
 
-  // دالة إضافة المنتج للسلة
   const handleSubmit = async () => {
     if (!product || !apiData) return;
 
-    // جلب الخيارات الحالية
     const options = await getSelectedOptions();
     
-    // التحقق من صحة الخيارات
     const validation = validateOptions(options, apiData);
     
     if (!validation.isValid) {
@@ -157,14 +146,12 @@ export default function ProductPageClient() {
       return;
     }
 
-    // تجهيز البيانات للإرسال
     const cartData = {
       product_id: product.id,
       quantity: 1,
       selected_options: [] as Array<{ option_name: string; option_value: string }>
     };
 
-    // إضافة الخيارات المختارة
     if (options.size && options.size !== "اختر") {
       cartData.selected_options.push({
         option_name: "المقاس",
@@ -186,7 +173,6 @@ export default function ProductPageClient() {
       });
     }
 
-    // إضافة الخصائص
     Object.entries(options.features).forEach(([name, value]) => {
       if (value && value !== "اختر") {
         cartData.selected_options.push({
@@ -196,16 +182,13 @@ export default function ProductPageClient() {
       }
     });
 
-    // إضافة المنتج للسلة
     try {
       await addToCart(product.id, cartData);
-      toast.success("تم إضافة المنتج إلى السلة بنجاح");
     } catch (error) {
       toast.error("حدث خطأ أثناء إضافة المنتج للسلة");
     }
   };
 
-  // دالة المفضلة
   const toggleFavorite = async () => {
     if (!token) {
       toast.error("يجب تسجيل الدخول أولاً");
@@ -260,7 +243,6 @@ export default function ProductPageClient() {
   return (
     <>
       <div className=" xl:ms-[15%] ms-5 sm:ms-10 md:gap-5 lg:flex md:grid md:grid-cols-2">
-        {/* القسم الأيسر - معلومات المنتج */}
         <div className="lg:w-[35%]  mt-5 mb-4">
           <div className="py-5 font-family-cairo">
             <CustomSeparator proName={product.name} />
@@ -306,9 +288,7 @@ export default function ProductPageClient() {
             <p className="text-sm">{product.id}</p>
           </div>
           
-          {/* قسم التبويبات */}
           <div className="rounded-2xl border border-gray-200 border-t-0">
-            {/* رؤوس التبويبات */}
             <div className="grid grid-cols-2 border-b-2 border-amber-400">
               <div
                 className={`flex items-center justify-center py-3 rounded-2xl rounded-br-none rounded-bl-none cursor-pointer 
@@ -331,7 +311,6 @@ export default function ProductPageClient() {
               </div>
             </div>
 
-            {/* محتوى التبويبات */}
             <div className="m-4">
               {activeTab === "options" && (
                 <StickerForm 
@@ -345,7 +324,6 @@ export default function ProductPageClient() {
           </div>
         </div>
         
-        {/* القسم الأيمن - معرض الصور */}
         <div className="lg:w-[5%] hidden lg:flex"></div>
         <div className=" lg:w-[60%] ">
           <div className="sticky top-20">
@@ -362,7 +340,6 @@ export default function ProductPageClient() {
         </div>
       </div>
 
-      {/* قسم عرض الخيارات المختارة */}
       {selectedOptions.size !== "اختر" || selectedOptions.color !== "اختر" || selectedOptions.material !== "اختر" || Object.values(selectedOptions.features).some(v => v !== "اختر") ? (
         <div className="xl:ms-[15%] ms-5 sm:ms-10 mb-6 mt-4">
           <div className="p-4 rounded-lg border border-gray-200 bg-gray-50">
@@ -413,9 +390,7 @@ export default function ProductPageClient() {
         </div>
       ) : null}
 
-      {/* شريط التثبيت السفلي */}
       <div className="flex items-center justify-between z-50 py-4 px-7  shadow-gray-700 shadow-2xl  fixed bottom-0 start-0 end-0 bg-white">
-        {/* صورة المنتج */}
         <div className="flex gap-5 items-center">
           <Image
             src={product.image ?? "images/o1.jpg"}
@@ -432,7 +407,6 @@ export default function ProductPageClient() {
           </div>
         </div>
         
-        {/* السعر وإضافة للسلة */}
         <div className="flex items-center gap-3  max-w-max">
           <div className="flex flex-col items-center ">
             <h4 className="text-xl font-bold">{product.price}</h4>
@@ -512,7 +486,6 @@ export default function ProductPageClient() {
         )}
       </div>
 
-      {/* مسافة إضافية لتعويض الشريط الثابت */}
       <div className="h-20"></div>
     </>
   );

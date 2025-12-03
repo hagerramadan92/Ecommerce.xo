@@ -31,7 +31,7 @@ export default function ProductGallery({ mainImage, images }: GalleryProps) {
       >
         {allImages.map((img, i) => (
           <SwiperSlide key={i}>
-            <div className="w-full h-132 relative bg-white  overflow-hidden">
+            <div className="w-full h-174 relative bg-white  overflow-hidden">
               <Image
                 src={img.url??
                   "images/c1.jpg"

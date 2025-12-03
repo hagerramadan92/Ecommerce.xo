@@ -60,7 +60,6 @@ const StickerForm = forwardRef(({
   
   const baseUrl = process.env.NEXT_PUBLIC_API_URL;
 
-  // تعريف واجهة API للمكون الخارجي
   useImperativeHandle(ref, () => ({
     getOptions: () => {
       return {
@@ -76,28 +75,23 @@ const StickerForm = forwardRef(({
     resetOptions: () => resetAllOptions()
   }));
 
-  // دالة التحقق من صحة الخيارات
   const validateCurrentOptions = useCallback(() => {
     if (!apiData) return false;
 
     let isValid = true;
 
-    // التحقق من المقاسات المطلوبة
     if (apiData.sizes?.length > 0 && (!size || size === "اختر")) {
       isValid = false;
     }
 
-    // التحقق من الألوان المطلوبة
     if (apiData.colors?.length > 0 && (!color || color === "اختر")) {
       isValid = false;
     }
 
-    // التحقق من الخامات المطلوبة
     if (apiData.materials?.length > 0 && (!material || material === "اختر")) {
       isValid = false;
     }
 
-    // التحقق من الخصائص المطلوبة
     if (apiData.features?.length > 0) {
       apiData.features.forEach((feature: any) => {
         const hasValues = feature.value || (feature.values && feature.values.length > 0);
@@ -113,7 +107,6 @@ const StickerForm = forwardRef(({
     return isValid;
   }, [apiData, size, color, material, selectedFeatures]);
 
-  // تحديث الـ onOptionsChange عند تغيير الخيارات
   useEffect(() => {
     if (onOptionsChange) {
       const options = {
@@ -127,7 +120,6 @@ const StickerForm = forwardRef(({
     }
   }, [size, color, material, selectedFeatures, validateCurrentOptions, onOptionsChange]);
 
-  // جلب بيانات المنتج
   useEffect(() => {
     const fetchData = async () => {
       try {
@@ -135,7 +127,6 @@ const StickerForm = forwardRef(({
         const data = await res.json();
         setApiData(data.data);
         
-        // تهيئة الخصائص الفارغة
         if (data.data?.features) {
           const initialFeatures: { [key: string]: string } = {};
           data.data.features.forEach((feature: any) => {
@@ -162,7 +153,6 @@ const StickerForm = forwardRef(({
     return option ? option.option_value : null;
   }, []);
 
-  // دالة لتحميل الخيارات المحفوظة (للكارت)
   const loadSavedOptions = useCallback(async () => {
     if (!cartItemId) return;
 
@@ -221,7 +211,6 @@ const StickerForm = forwardRef(({
     loadSavedOptions();
   }, [cartItemId, apiData, loadSavedOptions]);
 
-  // دالة لحفظ جميع الخيارات مرة واحدة (للكارت)
   const saveAllOptions = async () => {
     if (!cartItemId || !apiData) return;
     
@@ -230,7 +219,6 @@ const StickerForm = forwardRef(({
 
     const selectedOptions: any[] = [];
 
-    // إضافة المقاسات
     if (size && size !== "اختر" && apiData.sizes?.length > 0) {
       selectedOptions.push({
         option_name: "المقاس",
@@ -238,7 +226,6 @@ const StickerForm = forwardRef(({
       });
     }
 
-    // إضافة الألوان
     if (color && color !== "اختر" && apiData.colors?.length > 0) {
       selectedOptions.push({
         option_name: "اللون",
@@ -246,7 +233,6 @@ const StickerForm = forwardRef(({
       });
     }
 
-    // إضافة الخامات
     if (material && material !== "اختر" && apiData.materials?.length > 0) {
       selectedOptions.push({
         option_name: "الخامة",
@@ -254,7 +240,6 @@ const StickerForm = forwardRef(({
       });
     }
 
-    // إضافة الخصائص
     Object.entries(selectedFeatures).forEach(([name, val]) => {
       if (name && val && val !== "اختر") {
         selectedOptions.push({
@@ -268,7 +253,6 @@ const StickerForm = forwardRef(({
       selected_options: selectedOptions,
     };
 
-    // إضافة IDs إذا كانت متوفرة
     if (size && size !== "اختر" && apiData.sizes?.length > 0) {
       const selectedSize = apiData.sizes.find((s: any) => s.name === size);
       if (selectedSize?.id) updates.size_id = selectedSize.id;
@@ -294,7 +278,6 @@ const StickerForm = forwardRef(({
         setHasUnsavedChanges(false);
         setShowSaveButton(false);
         
-        // إخفاء رسالة النجاح بعد 3 ثواني
         setTimeout(() => {
           setSavedSuccessfully(false);
         }, 3000);
@@ -306,7 +289,6 @@ const StickerForm = forwardRef(({
     }
   };
 
-  // دالة إعادة تعيين الخيارات
   const resetAllOptions = () => {
     setSize("اختر");
     setColor("اختر");
@@ -328,17 +310,14 @@ const StickerForm = forwardRef(({
     setSavedSuccessfully(false);
   };
 
-  // معالج تغيير الخيارات مع تحديث الحالة
   const handleOptionChange = (setter: Function, value: string, optionType: string) => {
     const oldValue = optionType === 'size' ? size : optionType === 'color' ? color : material;
     
     if (value !== oldValue) {
       setter(value);
       if (!cartItemId) {
-        // تحديث مباشر لصفحة المنتج
         setHasUnsavedChanges(true);
       } else {
-        // للكارت: إظهار زر الحفظ
         setShowSaveButton(true);
         setHasUnsavedChanges(true);
         setSavedSuccessfully(false);
@@ -372,7 +351,6 @@ const StickerForm = forwardRef(({
     });
   };
 
-  // إذا كان في وضع التحميل
   if (loading && formLoading) {
     return <Loading />;
   }
@@ -385,7 +363,6 @@ const StickerForm = forwardRef(({
     );
   }
 
-  // عرض مؤشرات الصحة
   const renderValidationIndicator = () => {
     const isValid = validateCurrentOptions();
     return (
@@ -410,7 +387,6 @@ const StickerForm = forwardRef(({
     );
   };
 
-  // عرض خيارات المقاسات
   const renderSizesSelect = () => {
     if (!apiData?.sizes || apiData.sizes.length === 0) return null;
 
@@ -465,7 +441,6 @@ const StickerForm = forwardRef(({
     );
   };
 
-  // عرض خيارات الألوان
   const renderColorsSelect = () => {
     if (!apiData?.colors || apiData.colors.length === 0) return null;
 
@@ -529,7 +504,6 @@ const StickerForm = forwardRef(({
     );
   };
 
-  // عرض خيارات الخامات
   const renderMaterialsSelect = () => {
     if (!apiData?.materials || apiData.materials.length === 0) return null;
 
@@ -584,7 +558,6 @@ const StickerForm = forwardRef(({
     );
   };
 
-  // عرض خيارات الخصائص
   const renderFeaturesSelects = () => {
     if (!apiData?.features || apiData.features.length === 0) return null;
 
@@ -660,10 +633,8 @@ const StickerForm = forwardRef(({
       transition={{ duration: 0.3 }}
       className="border-t border-gray-100 pt-4 mt-4"
     >
-      {/* مؤشر التحقق */}
       {!cartItemId && renderValidationIndicator()}
 
-      {/* شريط التحكم (للكارت فقط) */}
       {cartItemId && showSaveButton && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -700,7 +671,6 @@ const StickerForm = forwardRef(({
         </motion.div>
       )}
 
-      {/* رسالة نجاح الحفظ */}
       {cartItemId && savedSuccessfully && (
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}

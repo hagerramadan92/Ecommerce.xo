@@ -19,7 +19,24 @@
   display: none;
   
 }
+.swiper-button-prev,
+.swiper-button-next {
+  background: #ffffff;
+  width: 5px;
+  height: 5px;
+  border-radius: 3px;
+  padding: 1rem;
+  color: #424242 !important; 
 
+  box-shadow: 0 2px 3px rgba(0,0,0,0.15);
+}
+
+/* حجم الأيقونة داخل السهم */
+.swiper-button-prev:after,
+.swiper-button-next:after {
+  font-size: 7px !important;
+  color: #00000080 !important;
+}
 
 @media (max-width: 1210px) and (min-width: 0) {
   .hidden2 {
