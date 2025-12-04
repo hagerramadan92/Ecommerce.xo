@@ -33,7 +33,7 @@ export default function CateNavbar() {
       {categories.map((cat) => (
         <div key={cat.id} className="group relative px-3 cursor-pointer">
           <Link
-            href={`/category/${cat.slug}`}
+            href={`/category/${cat.id}`}
             className="text-[1rem] text-pro-hover"
           >
             {cat.name}
@@ -45,7 +45,7 @@ export default function CateNavbar() {
               {cat.children.map((child: CategoryI) => (
                 <Link
                   key={child.id}
-                  href={`/category/${child.slug}`}
+                  href={`/category/${child.id}`}
                   className="block px-4 py-2 hover:bg-gray-100 text-gray-700 whitespace-nowrap"
                 >
                   {child.name}

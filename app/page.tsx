@@ -18,7 +18,7 @@ export default function Home() {
   const [mainSlider, setMainSlider] = useState<BannerI[]>([]);
   const [loading, setLoading] = useState(true);
   // const [favorites, setFavorites] = useState<{ [key: number]: boolean }>({});
-  
+  console.log("HomeData:", categories2);
   useEffect(() => {
     const getSlider1 = async () => {
       try {
