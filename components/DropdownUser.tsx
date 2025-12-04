@@ -17,7 +17,7 @@ import {
 import Swal from "sweetalert2";
 import { useAuth } from "@/src/context/AuthContext";
 import Image from "next/image";
-import toast from "react-hot-toast";
+// import toast from "react-hot-toast";
 
 export default function DropdownUser() {
   const [open, setOpen] = useState(false);
@@ -28,7 +28,7 @@ export default function DropdownUser() {
 
   const displayName = fullName || session?.user?.name || "مستخدم";
   const displayImage =
-    userImage || session?.user?.image || "/images/default-user.png";
+    userImage || session?.user?.image || "/images/de_user.webp";
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {

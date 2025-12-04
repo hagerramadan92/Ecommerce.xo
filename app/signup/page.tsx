@@ -76,18 +76,21 @@ export default function SignupPage() {
       });
       const data = await res.json();
       console.log("Register response:", data);
-      if (res.ok && data.status !== false) {
-        const token = data.data?.token;
-        if (token) {
-          localStorage.setItem("auth_token", token);
-        }
-        setMessage("تم التسجيل بنجاح");
-        login(firstName, email, "", `${firstName} ${lastName}`);
-        localStorage.setItem("userName", firstName);
-        localStorage.setItem("fullName", `${firstName} ${lastName}`);
-        localStorage.setItem("userEmail", email);
-        setTimeout(() => router.push("/"), 1000);
-      } else {
+    if (res.ok && data.status !== false) {
+  const token = data.data?.token;
+  if (token) {
+    login(
+      token,                    
+      firstName,                  
+      email,                      
+      "",                        
+      `${firstName} ${lastName}` 
+    );
+
+    setMessage("تم التسجيل بنجاح");
+    setTimeout(() => router.push("/"), 1000);
+  }
+} else {
         setMessage(data.message || "حدث خطأ أثناء التسجيل");
         if (data.errors) {
           const apiErrors: { [key: string]: string } = {};

@@ -34,8 +34,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userImage, setUserImage] = useState<string | null>(null);
   const [fullName, setFullName] = useState<string | null>(null);
+
   const { data: session, status } = useSession();
 
+  /* ---------------------- FIXED EFFECT (NO CASCADE) ---------------------- */
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -45,22 +47,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const storedImage = localStorage.getItem("userImage");
     const storedFullName = localStorage.getItem("fullName");
 
-    if (storedToken) setAuthToken(storedToken);
-    if (storedName) setUserName(storedName);
-    if (storedEmail) setUserEmail(storedEmail);
-    if (storedImage) setUserImage(storedImage);
-    if (storedFullName) setFullName(storedFullName);
+    // Prevent waterfall renders by comparing before setting
+    if (storedToken && storedToken !== authToken) setAuthToken(storedToken);
+    if (storedName && storedName !== userName) setUserName(storedName);
+    if (storedEmail && storedEmail !== userEmail) setUserEmail(storedEmail);
+    if (storedImage && storedImage !== userImage) setUserImage(storedImage);
+    if (storedFullName && storedFullName !== fullName) setFullName(storedFullName);
 
+    // Update from NextAuth session
     if (status === "authenticated" && session?.user) {
       const name = session.user.name || storedName || "مستخدم";
       const email = session.user.email || storedEmail || null;
       const image = session.user.image || storedImage || "";
       const full = storedFullName || session.user.name || "مستخدم";
 
-      setUserName(name);
-      setUserEmail(email);
-      setUserImage(image);
-      setFullName(full);
+      if (name !== userName) setUserName(name);
+      if (email !== userEmail) setUserEmail(email);
+      if (image !== userImage) setUserImage(image);
+      if (full !== fullName) setFullName(full);
 
       localStorage.setItem("userName", name);
       if (email) localStorage.setItem("userEmail", email);
@@ -69,19 +73,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, [session, status]);
 
+  /* ---------------------- FETCH FAVORITES WHEN TOKEN READY ---------------------- */
   useEffect(() => {
     if (!authToken) return;
 
     const fetchFavorites = async () => {
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_API_URL}/favorites`,
-          {
-            headers: {
-              Authorization: `Bearer ${authToken}`,
-            },
-          }
-        );
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/favorites`, {
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+          },
+        });
 
         const data = await res.json();
 
@@ -95,8 +97,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     fetchFavorites();
-  }, [authToken]); 
+  }, [authToken]);
 
+  /* ------------------------------ LOGIN ------------------------------ */
   const login = (
     token: string,
     name: string,
@@ -117,7 +120,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("fullName", fullNameParam || name);
   };
 
-
+  /* ------------------------------ API LOGIN ------------------------------ */
   const setAuthFromApi = (data: {
     token: string;
     name: string;
@@ -128,13 +131,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     login(data.token, data.name, data.email, data.image, data.fullName);
   };
 
-
+  /* ------------------------------ LOGOUT ------------------------------ */
   const logout = () => {
     setAuthToken(null);
     setUserName(null);
     setUserEmail(null);
     setUserImage(null);
     setFullName(null);
+
     localStorage.clear();
     nextAuthSignOut({ callbackUrl: "/login" });
   };

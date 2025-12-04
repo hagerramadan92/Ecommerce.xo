@@ -5,7 +5,7 @@ import { FaBars, FaRegUser } from "react-icons/fa";
 import { LuPhone } from "react-icons/lu";
 import Link from "next/link";
 // import { link } from "@/Types/data";
-import SubIcon from "./subIcon";
+// import SubIcon from "./subIcon";
 // import CategoriesDropdown from "./DropdownComponent";
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
